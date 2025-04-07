@@ -1,15 +1,48 @@
 export interface Movie {
-  id: number;
+  showId: string;
+  type: string;
   title: string;
+  director: string;
+  cast: string;
+  country: string;
+  releaseYear: number;
+  rating: string;
+  duration: number;
   description: string;
   imageUrl: string;
   genre: string;
-  releaseYear: number;
-  rating: number;
-  director: string;
-  cast: string[];
-  duration: number; // in minutes
-  price: number;
+  Action: number;
+  Adventure: number;
+  AnimeSeriesInternationalTVShows: number;
+  BritishTVShowsDocuseriesInternationalTVShows: number;
+  Children: number;
+  Comedies: number;
+  ComediesDramasInternationalMovies: number;
+  ComediesInternationalMovies: number;
+  ComediesRomanticMovies: number;
+  CrimeTVShowsDocuseries: number;
+  Documentaries: number;
+  DocumentariesInternationalMovies: number;
+  Docuseries: number;
+  Dramas: number;
+  DramasInternationalMovies: number;
+  DramasRomanticMovies: number;
+  FamilyMovies: number;
+  Fantasy: number;
+  HorrorMovies: number;
+  InternationalMoviesThrillers: number;
+  InternationalTVShowsRomanticTVShowsTVDramas: number;
+  KidsTV: number;
+  LanguageTVShows: number;
+  Musicals: number;
+  NatureTV: number;
+  RealityTV: number;
+  Spirituality: number;
+  TVAction: number;
+  TVComedies: number;
+  TVDramas: number;
+  TalkShowsTVComedies: number;
+  Thrillers: number;
 }
 
 export interface MovieFilters {
@@ -21,7 +54,5 @@ export interface MovieFilters {
 
 export interface MovieResponse {
   movies: Movie[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-} 
+  totalNumMovies: number;
+}

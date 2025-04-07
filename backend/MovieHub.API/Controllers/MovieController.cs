@@ -17,5 +17,26 @@ namespace MovieHub.API.Controllers
             IQueryable movies = _movieContext.MoviesTitles.Select(m => m.Title);
             return Ok(movies);
         }
+
+        [HttpGet("AdminMovies")]
+        public IActionResult GetMovies(int pageSize = 10, int pageNum = 1)
+        {
+            var query = _movieContext.MoviesTitles.AsQueryable();
+
+            int totalNumMovies = query.Count();
+
+            IEnumerable<MoviesTitle> moviesOnPageList = query
+                .Skip((pageNum - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var returnObject = new
+            {
+                movies = moviesOnPageList,
+                totalNumMovies = totalNumMovies
+            };
+
+            return Ok(returnObject);
+        }
     }
 }
