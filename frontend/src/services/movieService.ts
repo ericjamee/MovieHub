@@ -36,4 +36,9 @@ export const movieService = {
     });
     return response.data;
   },
+  
+  async getAdminDashboardStats(): Promise<any> {
+    const response = await axios.get(`${API_BASE_URL}/AdminDashboardStats`);
+    return response.data;
+  }
 };
