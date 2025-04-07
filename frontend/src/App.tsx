@@ -38,6 +38,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading, currentUser } = useAuth();
   
+  console.log('AdminRoute check:', { 
+    isAuthenticated, 
+    isLoading, 
+    userRole: currentUser?.role,
+    isAdmin: currentUser?.role === 'admin'
+  });
+  
   if (isLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
@@ -49,13 +56,16 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
+    console.log('User not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
   if (currentUser?.role !== 'admin') {
+    console.log('User not admin, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
+  console.log('User is admin, rendering admin component');
   return <>{children}</>;
 };
 

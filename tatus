@@ -1,3 +1,5 @@
-  James2[m
-* [32mJim[m
-  master[m
+[33mcommit 60c8f8d8c843cbb544e0511f933017d0a69ca547[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnav-cleanup[m[33m)[m
+Author: ericjamee <je7erickson@gmail.com>
+Date:   Mon Apr 7 16:56:40 2025 -0600
+
+    Clean up navigation UI for admin interface
