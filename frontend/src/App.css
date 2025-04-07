@@ -7,6 +7,29 @@
   overflow-x: hidden;
 }
 
+/* Fix for button click issues */
+button, .btn, a, .accordion-button, .nav-link {
+  position: relative;
+  z-index: 100;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Fix for accordion buttons */
+.accordion-button {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure no overlays block clickable elements */
+.hero-section::before {
+  pointer-events: none !important;
+}
+
+.position-relative {
+  isolation: isolate;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
