@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Container, Row, Col, Button, Card, Badge, ProgressBar } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -127,6 +127,13 @@ const featuredMovie = {
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+  
+  // Handle logout and redirect to home page
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
   
   // References for carousel controls
   const carouselRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -155,7 +162,7 @@ const Dashboard: React.FC = () => {
         <Container>
           <div className="d-flex justify-content-between align-items-center">
             <h5 className="m-0">Welcome back, {currentUser?.firstName || 'User'}</h5>
-            <Button variant="outline-light" size="sm" onClick={logout}>
+            <Button variant="outline-light" size="sm" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -695,19 +702,19 @@ const Dashboard: React.FC = () => {
             <Col md={3} sm={6} className="mb-4">
               <h5 className="text-light mb-3">Navigation</h5>
               <ul className="list-unstyled">
-                <li className="mb-2"><Link to="/dashboard" className="text-decoration-none text-muted">Home</Link></li>
-                <li className="mb-2"><Link to="/movies" className="text-decoration-none text-muted">Movies</Link></li>
-                <li className="mb-2"><Link to="/tv-shows" className="text-decoration-none text-muted">TV Shows</Link></li>
-                <li className="mb-2"><Link to="/new-popular" className="text-decoration-none text-muted">New & Popular</Link></li>
+                <li className="mb-2"><Link to="/dashboard" className="text-decoration-none">Home</Link></li>
+                <li className="mb-2"><Link to="/movies" className="text-decoration-none">Movies</Link></li>
+                <li className="mb-2"><Link to="/tv-shows" className="text-decoration-none">TV Shows</Link></li>
+                <li className="mb-2"><Link to="/new-popular" className="text-decoration-none">New & Popular</Link></li>
               </ul>
             </Col>
             <Col md={3} sm={6} className="mb-4">
               <h5 className="text-light mb-3">Categories</h5>
               <ul className="list-unstyled">
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Action</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Comedy</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Drama</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Sci-Fi</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Action</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Comedy</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Drama</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Sci-Fi</a></li>
               </ul>
             </Col>
             <Col md={3} sm={6} className="mb-4">
@@ -716,16 +723,16 @@ const Dashboard: React.FC = () => {
                 <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Profile</a></li>
                 <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Settings</a></li>
                 <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Subscription</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Sign Out</a></li>
+                <li className="mb-2"><button onClick={handleLogout} className="btn btn-link p-0 text-decoration-none text-muted">Sign Out</button></li>
               </ul>
             </Col>
             <Col md={3} sm={6} className="mb-4">
               <h5 className="text-light mb-3">Support</h5>
               <ul className="list-unstyled">
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Help Center</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Contact Us</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Terms of Use</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Privacy Policy</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Help Center</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Contact Us</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Terms of Use</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none">Privacy Policy</a></li>
               </ul>
             </Col>
           </Row>
