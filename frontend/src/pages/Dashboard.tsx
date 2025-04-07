@@ -1,7 +1,7 @@
-import React from 'react';
-import { Container, Row, Col, Button, Card } from 'react-bootstrap';
+import React, { useState, useRef } from 'react';
+import { Container, Row, Col, Button, Card, Badge, ProgressBar } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle } from 'react-icons/fa';
+import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
 // Mock data for movie sections
@@ -44,6 +44,77 @@ const movieSections = [
   }
 ];
 
+// Continue watching data
+const continueWatching = [
+  { 
+    id: 101, 
+    title: "Stranger Things", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=Stranger+Things", 
+    progress: 65, 
+    episode: "S3:E5",
+    timeLeft: "25 min left"
+  },
+  { 
+    id: 102, 
+    title: "The Queen's Gambit", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=Queens+Gambit", 
+    progress: 30, 
+    episode: "S1:E3",
+    timeLeft: "40 min left"
+  },
+  { 
+    id: 103, 
+    title: "Breaking Bad", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=Breaking+Bad", 
+    progress: 80, 
+    episode: "S4:E8",
+    timeLeft: "12 min left"
+  },
+  { 
+    id: 104, 
+    title: "The Witcher", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=The+Witcher", 
+    progress: 45, 
+    episode: "S2:E1",
+    timeLeft: "32 min left"
+  }
+];
+
+// My List data
+const myList = [
+  { id: 201, title: "The Crown", imgUrl: "https://placehold.co/600x350/333/fff?text=The+Crown", rating: 4.7 },
+  { id: 202, title: "Ozark", imgUrl: "https://placehold.co/600x350/333/fff?text=Ozark", rating: 4.5 },
+  { id: 203, title: "Dark", imgUrl: "https://placehold.co/600x350/333/fff?text=Dark", rating: 4.8 },
+  { id: 204, title: "Peaky Blinders", imgUrl: "https://placehold.co/600x350/333/fff?text=Peaky+Blinders", rating: 4.6 },
+  { id: 205, title: "Narcos", imgUrl: "https://placehold.co/600x350/333/fff?text=Narcos", rating: 4.4 },
+  { id: 206, title: "Money Heist", imgUrl: "https://placehold.co/600x350/333/fff?text=Money+Heist", rating: 4.5 }
+];
+
+// Coming Soon data
+const comingSoon = [
+  { 
+    id: 301, 
+    title: "Squid Game: Season 2", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=Squid+Game+2", 
+    releaseDate: "Dec 10, 2024",
+    description: "The game continues as new players enter the deadly competition for a massive cash prize."
+  },
+  { 
+    id: 302, 
+    title: "Interstellar 2", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=Interstellar+2", 
+    releaseDate: "Nov 18, 2024",
+    description: "Cooper's journey continues as he explores new galaxies and dimensions."
+  },
+  { 
+    id: 303, 
+    title: "Black Mirror: Season 6", 
+    imgUrl: "https://placehold.co/600x350/333/fff?text=Black+Mirror", 
+    releaseDate: "Oct 15, 2024",
+    description: "The anthology series returns with more cautionary tales about technology's dark side."
+  }
+];
+
 // Featured movie for hero banner
 const featuredMovie = {
   title: "Inception",
@@ -56,6 +127,26 @@ const featuredMovie = {
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  
+  // References for carousel controls
+  const carouselRefs = useRef<Array<HTMLDivElement | null>>([]);
+  
+  // Function to scroll carousel
+  const scrollCarousel = (sectionIndex: number, direction: 'prev' | 'next') => {
+    const scrollAmount = 250; // Width of each card + margin
+    const carousel = carouselRefs.current[sectionIndex];
+    if (carousel) {
+      const scrollLeftMax = carousel.scrollWidth - carousel.clientWidth;
+      const newScrollLeft = direction === 'next' 
+        ? Math.min(carousel.scrollLeft + scrollAmount, scrollLeftMax)
+        : Math.max(carousel.scrollLeft - scrollAmount, 0);
+      
+      carousel.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   return (
     <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }}>
@@ -147,9 +238,276 @@ const Dashboard: React.FC = () => {
         </Container>
       </div>
 
-      {/* Movie Carousels Sections */}
-      <Container fluid className="px-4 pb-5">
-        {movieSections.map((section) => (
+      {/* Continue Watching Section */}
+      <Container fluid className="px-4 pb-4">
+        <div className="movie-section mb-5">
+          <div className="d-flex align-items-center mb-3">
+            <h2 className="fw-bold mb-0 fs-4">Continue Watching</h2>
+          </div>
+          
+          <div className="position-relative">
+            <Button 
+              variant="dark" 
+              className="carousel-control carousel-control-prev" 
+              onClick={() => scrollCarousel(0, 'prev')}
+              style={{
+                position: 'absolute',
+                left: '-20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 10,
+                opacity: 0.7,
+                height: '100%',
+                width: '40px',
+                background: 'rgba(0,0,0,0.5)',
+                border: 'none',
+                borderRadius: '4px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <FaArrowLeft />
+            </Button>
+            
+            <div 
+              className="movie-carousel" 
+              ref={(el: HTMLDivElement | null) => {
+                carouselRefs.current[0] = el;
+              }}
+              style={{
+                display: 'flex',
+                overflowX: 'hidden',
+                scrollBehavior: 'smooth',
+                padding: '5px'
+              }}
+            >
+              {continueWatching.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="movie-card-container"
+                  style={{
+                    flex: '0 0 auto', 
+                    width: 'calc(25% - 16px)',
+                    marginRight: '16px',
+                    minWidth: '250px'
+                  }}
+                >
+                  <div className="position-relative" style={{ height: '200px' }}>
+                    <Card 
+                      className="movie-card bg-dark text-white border-0 h-100"
+                      style={{ 
+                        transition: 'transform 0.3s ease', 
+                        cursor: 'pointer',
+                        overflow: 'hidden'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.zIndex = '1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.zIndex = '0';
+                      }}
+                    >
+                      <Card.Img 
+                        src={item.imgUrl} 
+                        alt={item.title}
+                        className="rounded-top"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <Card.ImgOverlay 
+                        className="d-flex flex-column justify-content-between p-2" 
+                        style={{ 
+                          background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0) 60%)',
+                        }}
+                      >
+                        <div className="d-flex justify-content-end">
+                          <Badge bg="danger" className="py-1">{item.episode}</Badge>
+                        </div>
+                        <div>
+                          <Card.Title className="mb-0 fs-6 fw-bold">{item.title}</Card.Title>
+                          <small>{item.timeLeft}</small>
+                        </div>
+                      </Card.ImgOverlay>
+                    </Card>
+                    <ProgressBar 
+                      now={item.progress} 
+                      style={{ 
+                        height: '4px', 
+                        borderRadius: '0', 
+                        marginTop: '-4px',
+                        position: 'relative',
+                        zIndex: 2
+                      }} 
+                      variant="danger" 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <Button 
+              variant="dark" 
+              className="carousel-control carousel-control-next" 
+              onClick={() => scrollCarousel(0, 'next')}
+              style={{
+                position: 'absolute',
+                right: '-20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 10,
+                opacity: 0.7,
+                height: '100%',
+                width: '40px',
+                background: 'rgba(0,0,0,0.5)',
+                border: 'none',
+                borderRadius: '4px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <FaArrowRight />
+            </Button>
+          </div>
+        </div>
+      
+        {/* My List Section */}
+        <div className="movie-section mb-5">
+          <div className="d-flex align-items-center mb-3">
+            <h2 className="fw-bold mb-0 fs-4">My List</h2>
+            <Link to="/movies" className="ms-3 text-decoration-none text-light d-flex align-items-center">
+              <span className="small">Manage</span>
+              <FaChevronRight size={12} className="ms-1" />
+            </Link>
+          </div>
+          
+          <div className="position-relative">
+            <Button 
+              variant="dark" 
+              className="carousel-control carousel-control-prev" 
+              onClick={() => scrollCarousel(1, 'prev')}
+              style={{
+                position: 'absolute',
+                left: '-20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 10,
+                opacity: 0.7,
+                height: '100%',
+                width: '40px',
+                background: 'rgba(0,0,0,0.5)',
+                border: 'none',
+                borderRadius: '4px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <FaArrowLeft />
+            </Button>
+            
+            <div 
+              className="movie-carousel" 
+              ref={(el: HTMLDivElement | null) => {
+                carouselRefs.current[1] = el;
+              }}
+              style={{
+                display: 'flex',
+                overflowX: 'hidden',
+                scrollBehavior: 'smooth',
+                padding: '5px'
+              }}
+            >
+              {myList.map((movie) => (
+                <div 
+                  key={movie.id} 
+                  className="movie-card-container"
+                  style={{
+                    flex: '0 0 auto', 
+                    width: 'calc(16.666% - 16px)',
+                    marginRight: '16px',
+                    minWidth: '200px'
+                  }}
+                >
+                  <div className="position-relative" style={{ height: '200px' }}>
+                    <Card 
+                      className="movie-card bg-dark text-white border-0 h-100"
+                      style={{ 
+                        transition: 'transform 0.3s ease', 
+                        cursor: 'pointer',
+                        overflow: 'hidden'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.zIndex = '1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.zIndex = '0';
+                      }}
+                    >
+                      <Card.Img 
+                        src={movie.imgUrl} 
+                        alt={movie.title}
+                        className="rounded"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <Card.ImgOverlay 
+                        className="d-flex flex-column justify-content-end p-2" 
+                        style={{ 
+                          background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)',
+                          opacity: 0,
+                          transition: 'opacity 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = '0';
+                        }}
+                      >
+                        <Card.Title className="mb-0 fs-6 fw-bold text-truncate">{movie.title}</Card.Title>
+                        <div className="d-flex align-items-center">
+                          <FaStar className="text-warning me-1" size={14} />
+                          <small>{movie.rating}</small>
+                        </div>
+                      </Card.ImgOverlay>
+                    </Card>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <Button 
+              variant="dark" 
+              className="carousel-control carousel-control-next" 
+              onClick={() => scrollCarousel(1, 'next')}
+              style={{
+                position: 'absolute',
+                right: '-20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 10,
+                opacity: 0.7,
+                height: '100%',
+                width: '40px',
+                background: 'rgba(0,0,0,0.5)',
+                border: 'none',
+                borderRadius: '4px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <FaArrowRight />
+            </Button>
+          </div>
+        </div>
+
+        {/* Movie Carousels Sections from original data */}
+        {movieSections.map((section, sectionIndex) => (
           <div key={section.id} className="movie-section mb-5">
             <div className="d-flex align-items-center mb-3">
               <h2 className="fw-bold mb-0 fs-4">{section.title}</h2>
@@ -159,10 +517,55 @@ const Dashboard: React.FC = () => {
               </Link>
             </div>
             
-            <div className="movie-row">
-              <Row className="g-3">
+            <div className="position-relative">
+              {/* Carousel navigation arrows */}
+              <Button 
+                variant="dark" 
+                className="carousel-control carousel-control-prev" 
+                onClick={() => scrollCarousel(sectionIndex + 2, 'prev')}
+                style={{
+                  position: 'absolute',
+                  left: '-20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  opacity: 0.7,
+                  height: '100%',
+                  width: '40px',
+                  background: 'rgba(0,0,0,0.5)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              >
+                <FaArrowLeft />
+              </Button>
+              
+              <div 
+                className="movie-carousel" 
+                ref={(el: HTMLDivElement | null) => {
+                  carouselRefs.current[sectionIndex + 2] = el;
+                }}
+                style={{
+                  display: 'flex',
+                  overflowX: 'hidden',
+                  scrollBehavior: 'smooth',
+                  padding: '5px'
+                }}
+              >
                 {section.movies.map((movie) => (
-                  <Col key={movie.id} xs={6} sm={4} md={3} lg={2}>
+                  <div 
+                    key={movie.id} 
+                    className="movie-card-container"
+                    style={{
+                      flex: '0 0 auto', 
+                      width: 'calc(16.666% - 16px)',
+                      marginRight: '16px',
+                      minWidth: '200px'
+                    }}
+                  >
                     <div className="position-relative" style={{ height: '200px' }}>
                       <Card 
                         className="movie-card bg-dark text-white border-0 h-100"
@@ -208,13 +611,129 @@ const Dashboard: React.FC = () => {
                         </Card.ImgOverlay>
                       </Card>
                     </div>
-                  </Col>
+                  </div>
                 ))}
-              </Row>
+              </div>
+              
+              <Button 
+                variant="dark" 
+                className="carousel-control carousel-control-next" 
+                onClick={() => scrollCarousel(sectionIndex + 2, 'next')}
+                style={{
+                  position: 'absolute',
+                  right: '-20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  opacity: 0.7,
+                  height: '100%',
+                  width: '40px',
+                  background: 'rgba(0,0,0,0.5)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              >
+                <FaArrowRight />
+              </Button>
             </div>
           </div>
         ))}
+        
+        {/* Coming Soon Section */}
+        <div className="movie-section mb-5">
+          <div className="d-flex align-items-center mb-4">
+            <h2 className="fw-bold mb-0 fs-4">Coming Soon</h2>
+          </div>
+          
+          <Row className="g-4">
+            {comingSoon.map((movie) => (
+              <Col md={4} key={movie.id}>
+                <Card className="bg-dark text-white border-0 h-100">
+                  <Card.Img 
+                    src={movie.imgUrl} 
+                    alt={movie.title}
+                    className="rounded-top"
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
+                  <Card.Body className="p-3">
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <Card.Title className="fs-5 fw-bold mb-0">{movie.title}</Card.Title>
+                      <Button variant="outline-light" size="sm" className="rounded-circle p-1">
+                        <FaPlus size={14} />
+                      </Button>
+                    </div>
+                    <div className="d-flex align-items-center mb-2 text-danger">
+                      <FaCalendarAlt className="me-2" size={14} />
+                      <small>{movie.releaseDate}</small>
+                    </div>
+                    <Card.Text className="small text-muted">
+                      {movie.description}
+                    </Card.Text>
+                    <div className="d-flex mt-3 gap-3">
+                      <Button variant="outline-light" size="sm" className="d-flex align-items-center gap-1">
+                        <FaBell size={12} /> Remind Me
+                      </Button>
+                      <Button variant="outline-light" size="sm" className="d-flex align-items-center gap-1">
+                        <FaShare size={12} /> Share
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </div>
       </Container>
+      
+      {/* Footer */}
+      <footer className="py-5" style={{ backgroundColor: '#141414', borderTop: '1px solid #333' }}>
+        <Container>
+          <Row className="mb-4">
+            <Col md={3} sm={6} className="mb-4">
+              <h5 className="text-light mb-3">Navigation</h5>
+              <ul className="list-unstyled">
+                <li className="mb-2"><Link to="/dashboard" className="text-decoration-none text-muted">Home</Link></li>
+                <li className="mb-2"><Link to="/movies" className="text-decoration-none text-muted">Movies</Link></li>
+                <li className="mb-2"><Link to="/tv-shows" className="text-decoration-none text-muted">TV Shows</Link></li>
+                <li className="mb-2"><Link to="/new-popular" className="text-decoration-none text-muted">New & Popular</Link></li>
+              </ul>
+            </Col>
+            <Col md={3} sm={6} className="mb-4">
+              <h5 className="text-light mb-3">Categories</h5>
+              <ul className="list-unstyled">
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Action</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Comedy</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Drama</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Sci-Fi</a></li>
+              </ul>
+            </Col>
+            <Col md={3} sm={6} className="mb-4">
+              <h5 className="text-light mb-3">Account</h5>
+              <ul className="list-unstyled">
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Profile</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Settings</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Subscription</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Sign Out</a></li>
+              </ul>
+            </Col>
+            <Col md={3} sm={6} className="mb-4">
+              <h5 className="text-light mb-3">Support</h5>
+              <ul className="list-unstyled">
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Help Center</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Contact Us</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Terms of Use</a></li>
+                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Privacy Policy</a></li>
+              </ul>
+            </Col>
+          </Row>
+          <div className="text-center pt-4 border-top border-secondary">
+            <p className="text-muted small">© 2024 MovieHub. All rights reserved.</p>
+          </div>
+        </Container>
+      </footer>
     </div>
   );
 };
