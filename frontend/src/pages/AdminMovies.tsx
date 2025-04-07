@@ -7,7 +7,6 @@ import {
   Button,
   Modal,
   Form,
-  Pagination,
   Alert,
   Card,
   Badge,
@@ -19,6 +18,7 @@ import {
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaSort } from "react-icons/fa";
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
+import Pagination from "../components/Pagination";
 
 const AdminMovies: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -295,6 +295,16 @@ const AdminMovies: React.FC = () => {
           </Modal.Footer>
         </Form>
       </Modal>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(newSize) => {
+          setPageSize(newSize);
+          setCurrentPage(1);
+        }}
+      />
     </Container>
   );
 };
