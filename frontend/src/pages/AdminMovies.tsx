@@ -50,24 +50,29 @@ const AdminMovies: React.FC = () => {
   const loadMovies = async () => {
     try {
       setLoading(true);
+      console.log('Attempting to load movies...');
       const response = await movieService.getMovies({
         pageSize,
         page: currentPage,
         searchTerm: searchTerm || undefined,
         genre: genreFilter || undefined,
       });
+      console.log('Movies loaded successfully:', response);
       setMovies(response.movies);
       setTotalPages(Math.ceil(response.totalNumMovies / pageSize));
       setTotalCount(response.totalNumMovies);
     } catch (err) {
-      setError("Failed to load movies");
+      console.error('Error loading movies:', err);
+      setError("Failed to load movies. Please try again later or contact support if the issue persists.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('AdminMovies component mounted');
     loadMovies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, searchTerm, genreFilter]);
 
   const handleShowModal = (movie?: Movie) => {
