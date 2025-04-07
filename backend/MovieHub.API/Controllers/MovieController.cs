@@ -10,5 +10,12 @@ namespace MovieHub.API.Controllers
     {
         private MoviesContext _movieContext;
         public MovieController(MoviesContext temp) => _movieContext = temp;
+
+        [HttpGet("GetMovies")]
+        public IActionResult GetMovies()
+        {
+            IQueryable movies = _movieContext.MoviesTitles.Select(m => m.Title);
+            return Ok(movies);
+        }
     }
-} 
+}
