@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Container, Row, Col, Button, Card, Badge, ProgressBar } from 'react-bootstrap';
+import React, { useState, useRef, useEffect } from 'react';
+import { Container, Row, Col, Button, Card, Badge, ProgressBar, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell } from 'react-icons/fa';
+import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell, FaUserShield, FaCog, FaChartLine, FaUsers, FaEdit, FaDatabase } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
 // Mock data for movie sections
@@ -125,18 +125,44 @@ const featuredMovie = {
   duration: "2h 28m"
 };
 
+// Mock admin stats data
+const adminStats = {
+  totalMovies: 287,
+  totalUsers: 1423,
+  newUsersToday: 38,
+  activeRentals: 256,
+  revenueThisMonth: 12475,
+  topGenres: [
+    { name: "Action", value: 32 },
+    { name: "Drama", value: 28 },
+    { name: "Comedy", value: 22 },
+    { name: "Sci-Fi", value: 18 }
+  ],
+  recentActivity: [
+    { id: 1, type: "new_movie", title: "The Batman", time: "2 hours ago" },
+    { id: 2, type: "new_user", name: "John Smith", time: "4 hours ago" },
+    { id: 3, type: "rental", title: "Dune", user: "Emily Johnson", time: "5 hours ago" },
+    { id: 4, type: "rating", title: "No Time to Die", rating: 4.5, time: "6 hours ago" }
+  ]
+};
+
 const Dashboard: React.FC = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
-  
-  // Handle logout and redirect to home page
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const isAdmin = currentUser?.role === 'admin';
+  const [pageLoaded, setPageLoaded] = useState(false);
   
   // References for carousel controls
   const carouselRefs = useRef<Array<HTMLDivElement | null>>([]);
+  
+  useEffect(() => {
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setPageLoaded(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Function to scroll carousel
   const scrollCarousel = (sectionIndex: number, direction: 'prev' | 'next') => {
@@ -154,595 +180,514 @@ const Dashboard: React.FC = () => {
       });
     }
   };
-  
-  return (
-    <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }}>
-      {/* Welcome message */}
-      <div className="py-3 px-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
-        <Container>
-          <div className="d-flex justify-content-between align-items-center">
-            <h5 className="m-0">Welcome back, {currentUser?.firstName || 'User'}</h5>
-            <Button variant="outline-light" size="sm" onClick={handleLogout}>
-              Sign Out
-            </Button>
-          </div>
-        </Container>
-      </div>
-      
-      {/* Hero Banner - Netflix Style */}
-      <div 
-        className="hero-banner position-relative text-light mb-5"
-        style={{
-          height: '80vh',
-          minHeight: '600px',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%)',
-          padding: '0',
-          marginTop: '0',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Background image */}
-        <div 
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `url(${featuredMovie.imgUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center top',
-            zIndex: -1,
-            opacity: 0.5
-          }}
-        />
-        
-        <Container className="h-100 d-flex align-items-center">
-          <div className="featured-content" style={{ maxWidth: '600px', zIndex: 10 }}>
-            <h1 className="display-2 fw-bold mb-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}>
-              {featuredMovie.title}
-            </h1>
-            <div className="d-flex mb-3 gap-3 text-light">
-              <span>{featuredMovie.year}</span>
-              <span>•</span>
-              <span>{featuredMovie.rating}</span>
-              <span>•</span>
-              <span>{featuredMovie.duration}</span>
-            </div>
-            <p className="lead mb-4" style={{ fontSize: '1.2rem', textShadow: '0 1px 5px rgba(0,0,0,0.7)' }}>
-              {featuredMovie.description}
-            </p>
-            <div className="d-flex flex-wrap gap-3">
-              <Button
-                variant="light"
-                size="lg"
-                className="fw-semibold px-4 py-2 d-flex align-items-center"
-                style={{
-                  backgroundColor: 'white',
-                  color: 'black',
-                  border: 'none',
-                  borderRadius: '4px'
-                }}
-              >
-                <FaPlay className="me-2" /> Play
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="fw-semibold px-4 py-2 d-flex align-items-center"
-                style={{
-                  backgroundColor: 'rgba(109, 109, 110, 0.7)', 
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px'
-                }}
-              >
-                <FaInfoCircle className="me-2" /> More Info
-              </Button>
-            </div>
-          </div>
-        </Container>
-      </div>
 
-      {/* Continue Watching Section */}
-      <Container fluid className="px-4 pb-4">
-        <div className="movie-section mb-5">
-          <div className="d-flex align-items-center mb-3">
-            <h2 className="fw-bold mb-0 fs-4">Continue Watching</h2>
-          </div>
-          
-          <div className="position-relative">
-            <Button 
-              variant="dark" 
-              className="carousel-control carousel-control-prev" 
-              onClick={() => scrollCarousel(0, 'prev')}
-              style={{
-                position: 'absolute',
-                left: '-20px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 10,
-                opacity: 0.7,
-                height: '100%',
-                width: '40px',
-                background: 'rgba(0,0,0,0.5)',
-                border: 'none',
-                borderRadius: '4px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <FaArrowLeft />
-            </Button>
-            
-            <div 
-              className="movie-carousel" 
-              ref={(el: HTMLDivElement | null) => {
-                carouselRefs.current[0] = el;
-              }}
-              style={{
-                display: 'flex',
-                overflowX: 'hidden',
-                scrollBehavior: 'smooth',
-                padding: '5px'
-              }}
-            >
-              {continueWatching.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="movie-card-container"
-                  style={{
-                    flex: '0 0 auto', 
-                    width: 'calc(25% - 16px)',
-                    marginRight: '16px',
-                    minWidth: '250px'
-                  }}
-                >
-                  <div className="position-relative" style={{ height: '200px' }}>
-                    <Card 
-                      className="movie-card bg-dark text-white border-0 h-100"
-                      style={{ 
-                        transition: 'transform 0.3s ease', 
-                        cursor: 'pointer',
-                        overflow: 'hidden'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.zIndex = '1';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.zIndex = '0';
-                      }}
-                    >
-                      <Card.Img 
-                        src={item.imgUrl} 
-                        alt={item.title}
-                        className="rounded-top"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <Card.ImgOverlay 
-                        className="d-flex flex-column justify-content-between p-2" 
-                        style={{ 
-                          background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0) 60%)',
-                        }}
-                      >
-                        <div className="d-flex justify-content-end">
-                          <Badge bg="danger" className="py-1">{item.episode}</Badge>
-                        </div>
-                        <div>
-                          <Card.Title className="mb-0 fs-6 fw-bold">{item.title}</Card.Title>
-                          <small>{item.timeLeft}</small>
-                        </div>
-                      </Card.ImgOverlay>
-                    </Card>
+  // Properly typed ref callback
+  const setCarouselRef = (index: number) => (el: HTMLDivElement | null) => {
+    carouselRefs.current[index] = el;
+  };
+
+  // Admin Dashboard View
+  const renderAdminDashboard = () => {
+    return (
+      <Container fluid className="py-4">
+        <Row className="mb-4">
+          <Col>
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-black">Admin Dashboard</h1>
+              <Button 
+                as={Link as any}
+                to="/admin/movies"
+                variant="primary" 
+                className="d-none d-sm-inline-block shadow-sm"
+              >
+                <FaFilm className="me-1" /> Manage Movies
+              </Button>
+            </div>
+          </Col>
+        </Row>
+
+        <Row>
+          {/* Total Movies Card */}
+          <Col xl={3} md={6} className="mb-4">
+            <Card className="border-left-primary shadow h-100 admin-card">
+              <Card.Body>
+                <Row className="no-gutters align-items-center">
+                  <Col className="mr-2">
+                    <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                      Total Movies
+                    </Card.Title>
+                    <Card.Text className="h5 mb-0 font-weight-bold">{adminStats.totalMovies}</Card.Text>
+                  </Col>
+                  <Col xs="auto">
+                    <FaFilm className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Total Users Card */}
+          <Col xl={3} md={6} className="mb-4">
+            <Card className="border-left-success shadow h-100 admin-card">
+              <Card.Body>
+                <Row className="no-gutters align-items-center">
+                  <Col className="mr-2">
+                    <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                      Total Users
+                    </Card.Title>
+                    <Card.Text className="h5 mb-0 font-weight-bold">{adminStats.totalUsers}</Card.Text>
+                    <small className="text-success">+{adminStats.newUsersToday} today</small>
+                  </Col>
+                  <Col xs="auto">
+                    <FaUsers className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Active Rentals Card */}
+          <Col xl={3} md={6} className="mb-4">
+            <Card className="border-left-info shadow h-100 admin-card">
+              <Card.Body>
+                <Row className="no-gutters align-items-center">
+                  <Col className="mr-2">
+                    <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                      Active Rentals
+                    </Card.Title>
+                    <Card.Text className="h5 mb-0 font-weight-bold">{adminStats.activeRentals}</Card.Text>
+                  </Col>
+                  <Col xs="auto">
+                    <FaDatabase className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Monthly Revenue Card */}
+          <Col xl={3} md={6} className="mb-4">
+            <Card className="border-left-warning shadow h-100 admin-card">
+              <Card.Body>
+                <Row className="no-gutters align-items-center">
+                  <Col className="mr-2">
+                    <Card.Title className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                      Monthly Revenue
+                    </Card.Title>
+                    <Card.Text className="h5 mb-0 font-weight-bold">${adminStats.revenueThisMonth.toLocaleString()}</Card.Text>
+                  </Col>
+                  <Col xs="auto">
+                    <FaChartLine className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row>
+          {/* Top Genres */}
+          <Col lg={6} className="mb-4">
+            <Card className="shadow mb-4 admin-card">
+              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 className="m-0 font-weight-bold">Popular Genres</h6>
+              </Card.Header>
+              <Card.Body>
+                {adminStats.topGenres.map((genre, index) => (
+                  <div key={index} className="mb-3">
+                    <div className="d-flex justify-content-between mb-1">
+                      <span>{genre.name}</span>
+                      <span>{genre.value}%</span>
+                    </div>
                     <ProgressBar 
-                      now={item.progress} 
-                      style={{ 
-                        height: '4px', 
-                        borderRadius: '0', 
-                        marginTop: '-4px',
-                        position: 'relative',
-                        zIndex: 2
-                      }} 
-                      variant="danger" 
+                      now={genre.value} 
+                      variant={
+                        index === 0 ? "primary" : 
+                        index === 1 ? "success" : 
+                        index === 2 ? "info" : 
+                        "warning"
+                      } 
+                      className="mb-2" 
                     />
                   </div>
+                ))}
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Recent Activity */}
+          <Col lg={6} className="mb-4">
+            <Card className="shadow mb-4 admin-card">
+              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 className="m-0 font-weight-bold">Recent Activity</h6>
+              </Card.Header>
+              <Card.Body>
+                <div style={{ maxHeight: '300px', overflow: 'auto' }}>
+                  {adminStats.recentActivity.map(activity => (
+                    <div key={activity.id} className="border-bottom py-2">
+                      {activity.type === 'new_movie' && (
+                        <div className="d-flex align-items-center">
+                          <Badge bg="primary" className="me-2">NEW</Badge>
+                          <span>Movie <strong>{activity.title}</strong> was added</span>
+                          <small className="ms-auto text-muted">{activity.time}</small>
+                        </div>
+                      )}
+                      {activity.type === 'new_user' && (
+                        <div className="d-flex align-items-center">
+                          <Badge bg="success" className="me-2">USER</Badge>
+                          <span><strong>{activity.name}</strong> joined the platform</span>
+                          <small className="ms-auto text-muted">{activity.time}</small>
+                        </div>
+                      )}
+                      {activity.type === 'rental' && (
+                        <div className="d-flex align-items-center">
+                          <Badge bg="info" className="me-2">RENTAL</Badge>
+                          <span><strong>{activity.user}</strong> rented <strong>{activity.title}</strong></span>
+                          <small className="ms-auto text-muted">{activity.time}</small>
+                        </div>
+                      )}
+                      {activity.type === 'rating' && (
+                        <div className="d-flex align-items-center">
+                          <Badge bg="warning" className="me-2">RATING</Badge>
+                          <span>Movie <strong>{activity.title}</strong> received {activity.rating} stars</span>
+                          <small className="ms-auto text-muted">{activity.time}</small>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row className="mb-4">
+          <Col>
+            <Card className="shadow admin-card">
+              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 className="m-0 font-weight-bold">Admin Quick Actions</h6>
+              </Card.Header>
+              <Card.Body>
+                <Row>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button 
+                      as={Link as any}
+                      to="/admin/movies"
+                      variant="outline-primary" 
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaFilm style={{ fontSize: '2rem' }} className="mb-2" />
+                      <span>Manage Movies</span>
+                    </Button>
+                  </Col>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button 
+                      variant="outline-success" 
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaUsers style={{ fontSize: '2rem' }} className="mb-2" />
+                      <span>Manage Users</span>
+                    </Button>
+                  </Col>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button 
+                      variant="outline-info" 
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaChartLine style={{ fontSize: '2rem' }} className="mb-2" />
+                      <span>Analytics</span>
+                    </Button>
+                  </Col>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button 
+                      variant="outline-warning" 
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaCog style={{ fontSize: '2rem' }} className="mb-2" />
+                      <span>Settings</span>
+                    </Button>
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        
+        <Alert variant="info" className="d-flex align-items-center">
+          <FaUserShield className="me-2" size={24} />
+          <div>
+            <h5 className="mb-1">Admin Mode Active</h5>
+            <p className="mb-0">You're currently in admin mode. You can switch to the <Link to="/movies" className="alert-link">movies section</Link> to view the site as a regular user.</p>
+          </div>
+        </Alert>
+      </Container>
+    );
+  };
+
+  // Regular User Dashboard View
+  const renderUserDashboard = () => {
+    return (
+      <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }}>
+        {/* Welcome message */}
+        <div className="py-3 px-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <Container>
+            <div className="d-flex justify-content-between align-items-center">
+              <h5 className="m-0">Welcome back, {currentUser?.firstName || 'User'}</h5>
+            </div>
+          </Container>
+        </div>
+        
+        {/* Hero Banner - Netflix Style */}
+        <div 
+          className="hero-banner position-relative text-light mb-5"
+          style={{
+            height: '80vh',
+            minHeight: '600px',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%)',
+            padding: '0',
+            marginTop: '0',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Background image */}
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundImage: `url(${featuredMovie.imgUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top',
+              zIndex: -1,
+              opacity: 0.5
+            }}
+          />
+          
+          <Container className="h-100 d-flex align-items-center">
+            <div className="w-50">
+              <h1 className="display-4 fw-bold mb-2">{featuredMovie.title}</h1>
+              <div className="mb-3 d-flex align-items-center">
+                <span className="me-3">{featuredMovie.year}</span>
+                <Badge bg="danger" className="me-3">{featuredMovie.rating}</Badge>
+                <span>{featuredMovie.duration}</span>
+              </div>
+              <p className="lead mb-4">{featuredMovie.description}</p>
+              <div className="d-flex">
+                <Button variant="danger" className="me-2 d-flex align-items-center">
+                  <FaPlay className="me-2" /> Play
+                </Button>
+                <Button variant="secondary" className="d-flex align-items-center">
+                  <FaInfoCircle className="me-2" /> More Info
+                </Button>
+              </div>
+            </div>
+          </Container>
+        </div>
+        
+        {/* Continue Watching Section */}
+        <Container fluid className="mb-5 px-4">
+          <h5 className="mb-3">Continue Watching</h5>
+          <div className="position-relative">
+            <div 
+              className="d-flex gap-3 overflow-auto pb-3"
+              style={{ scrollbarWidth: 'none' }}
+              ref={setCarouselRef(0)}
+            >
+              {continueWatching.map(item => (
+                <div 
+                  key={item.id} 
+                  className="movie-card" 
+                  style={{ minWidth: '250px', cursor: 'pointer' }}
+                >
+                  <div className="position-relative">
+                    <img 
+                      src={item.imgUrl} 
+                      alt={item.title} 
+                      className="img-fluid rounded"
+                      style={{ height: '140px', width: '100%', objectFit: 'cover' }}
+                    />
+                    <div className="position-absolute bottom-0 start-0 end-0 p-2">
+                      <ProgressBar 
+                        now={item.progress} 
+                        variant="danger" 
+                        style={{ height: '4px' }} 
+                      />
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center mt-2">
+                    <h6 className="mb-0">{item.title}</h6>
+                    <Badge bg="secondary">{item.episode}</Badge>
+                  </div>
+                  <small className="text-muted">{item.timeLeft}</small>
                 </div>
               ))}
             </div>
-            
             <Button 
               variant="dark" 
-              className="carousel-control carousel-control-next" 
-              onClick={() => scrollCarousel(0, 'next')}
-              style={{
-                position: 'absolute',
-                right: '-20px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 10,
-                opacity: 0.7,
-                height: '100%',
-                width: '40px',
-                background: 'rgba(0,0,0,0.5)',
-                border: 'none',
-                borderRadius: '4px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <FaArrowRight />
-            </Button>
-          </div>
-        </div>
-      
-        {/* My List Section */}
-        <div className="movie-section mb-5">
-          <div className="d-flex align-items-center mb-3">
-            <h2 className="fw-bold mb-0 fs-4">My List</h2>
-            <Link to="/movies" className="ms-3 text-decoration-none text-light d-flex align-items-center">
-              <span className="small">Manage</span>
-              <FaChevronRight size={12} className="ms-1" />
-            </Link>
-          </div>
-          
-          <div className="position-relative">
-            <Button 
-              variant="dark" 
-              className="carousel-control carousel-control-prev" 
-              onClick={() => scrollCarousel(1, 'prev')}
-              style={{
-                position: 'absolute',
-                left: '-20px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 10,
-                opacity: 0.7,
-                height: '100%',
-                width: '40px',
-                background: 'rgba(0,0,0,0.5)',
-                border: 'none',
-                borderRadius: '4px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
+              className="position-absolute start-0 top-50 translate-middle-y rounded-circle p-1"
+              style={{ opacity: 0.7 }}
+              onClick={() => scrollCarousel(0, 'prev')}
             >
               <FaArrowLeft />
             </Button>
-            
-            <div 
-              className="movie-carousel" 
-              ref={(el: HTMLDivElement | null) => {
-                carouselRefs.current[1] = el;
-              }}
-              style={{
-                display: 'flex',
-                overflowX: 'hidden',
-                scrollBehavior: 'smooth',
-                padding: '5px'
-              }}
-            >
-              {myList.map((movie) => (
-                <div 
-                  key={movie.id} 
-                  className="movie-card-container"
-                  style={{
-                    flex: '0 0 auto', 
-                    width: 'calc(16.666% - 16px)',
-                    marginRight: '16px',
-                    minWidth: '200px'
-                  }}
-                >
-                  <div className="position-relative" style={{ height: '200px' }}>
-                    <Card 
-                      className="movie-card bg-dark text-white border-0 h-100"
-                      style={{ 
-                        transition: 'transform 0.3s ease', 
-                        cursor: 'pointer',
-                        overflow: 'hidden'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                        e.currentTarget.style.zIndex = '1';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.zIndex = '0';
-                      }}
-                    >
-                      <Card.Img 
-                        src={movie.imgUrl} 
-                        alt={movie.title}
-                        className="rounded"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <Card.ImgOverlay 
-                        className="d-flex flex-column justify-content-end p-2" 
-                        style={{ 
-                          background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)',
-                          opacity: 0,
-                          transition: 'opacity 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.opacity = '1';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.opacity = '0';
-                        }}
-                      >
-                        <Card.Title className="mb-0 fs-6 fw-bold text-truncate">{movie.title}</Card.Title>
-                        <div className="d-flex align-items-center">
-                          <FaStar className="text-warning me-1" size={14} />
-                          <small>{movie.rating}</small>
-                        </div>
-                      </Card.ImgOverlay>
-                    </Card>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
             <Button 
               variant="dark" 
-              className="carousel-control carousel-control-next" 
-              onClick={() => scrollCarousel(1, 'next')}
-              style={{
-                position: 'absolute',
-                right: '-20px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                zIndex: 10,
-                opacity: 0.7,
-                height: '100%',
-                width: '40px',
-                background: 'rgba(0,0,0,0.5)',
-                border: 'none',
-                borderRadius: '4px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
+              className="position-absolute end-0 top-50 translate-middle-y rounded-circle p-1"
+              style={{ opacity: 0.7 }}
+              onClick={() => scrollCarousel(0, 'next')}
             >
               <FaArrowRight />
             </Button>
           </div>
-        </div>
-
-        {/* Movie Carousels Sections from original data */}
-        {movieSections.map((section, sectionIndex) => (
-          <div key={section.id} className="movie-section mb-5">
-            <div className="d-flex align-items-center mb-3">
-              <h2 className="fw-bold mb-0 fs-4">{section.title}</h2>
-              <Link to="/movies" className="ms-3 text-decoration-none text-light d-flex align-items-center">
-                <span className="small">See all</span>
-                <FaChevronRight size={12} className="ms-1" />
-              </Link>
-            </div>
-            
+        </Container>
+        
+        {/* Movie Sections */}
+        {movieSections.map((section, index) => (
+          <Container fluid key={section.id} className="mb-5 px-4">
+            <h5 className="mb-3">{section.title}</h5>
             <div className="position-relative">
-              {/* Carousel navigation arrows */}
-              <Button 
-                variant="dark" 
-                className="carousel-control carousel-control-prev" 
-                onClick={() => scrollCarousel(sectionIndex + 2, 'prev')}
-                style={{
-                  position: 'absolute',
-                  left: '-20px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  zIndex: 10,
-                  opacity: 0.7,
-                  height: '100%',
-                  width: '40px',
-                  background: 'rgba(0,0,0,0.5)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <FaArrowLeft />
-              </Button>
-              
               <div 
-                className="movie-carousel" 
-                ref={(el: HTMLDivElement | null) => {
-                  carouselRefs.current[sectionIndex + 2] = el;
-                }}
-                style={{
-                  display: 'flex',
-                  overflowX: 'hidden',
-                  scrollBehavior: 'smooth',
-                  padding: '5px'
-                }}
+                className="d-flex gap-3 overflow-auto pb-3"
+                style={{ scrollbarWidth: 'none' }}
+                ref={setCarouselRef(index + 1)}
               >
-                {section.movies.map((movie) => (
+                {section.movies.map(movie => (
                   <div 
                     key={movie.id} 
-                    className="movie-card-container"
-                    style={{
-                      flex: '0 0 auto', 
-                      width: 'calc(16.666% - 16px)',
-                      marginRight: '16px',
-                      minWidth: '200px'
-                    }}
+                    className="movie-card" 
+                    style={{ minWidth: '200px', cursor: 'pointer' }}
                   >
-                    <div className="position-relative" style={{ height: '200px' }}>
-                      <Card 
-                        className="movie-card bg-dark text-white border-0 h-100"
-                        style={{ 
-                          transition: 'transform 0.3s ease', 
-                          cursor: 'pointer',
-                          overflow: 'hidden'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.zIndex = '1';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.zIndex = '0';
-                        }}
-                      >
-                        <Card.Img 
-                          src={movie.imgUrl} 
-                          alt={movie.title}
-                          className="rounded"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <Card.ImgOverlay 
-                          className="d-flex flex-column justify-content-end p-2" 
-                          style={{ 
-                            background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)',
-                            opacity: 0,
-                            transition: 'opacity 0.3s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.opacity = '1';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.opacity = '0';
-                          }}
-                        >
-                          <Card.Title className="mb-0 fs-6 fw-bold text-truncate">{movie.title}</Card.Title>
-                          <div className="d-flex align-items-center">
-                            <FaStar className="text-warning me-1" size={14} />
-                            <small>{movie.rating}</small>
-                          </div>
-                        </Card.ImgOverlay>
-                      </Card>
+                    <img 
+                      src={movie.imgUrl} 
+                      alt={movie.title} 
+                      className="img-fluid rounded"
+                      style={{ height: '120px', width: '100%', objectFit: 'cover' }}
+                    />
+                    <div className="d-flex justify-content-between align-items-start mt-2">
+                      <h6 className="mb-0">{movie.title}</h6>
+                      <div className="d-flex align-items-center">
+                        <FaStar className="text-warning me-1" />
+                        <small>{movie.rating.toFixed(1)}</small>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              
               <Button 
                 variant="dark" 
-                className="carousel-control carousel-control-next" 
-                onClick={() => scrollCarousel(sectionIndex + 2, 'next')}
-                style={{
-                  position: 'absolute',
-                  right: '-20px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  zIndex: 10,
-                  opacity: 0.7,
-                  height: '100%',
-                  width: '40px',
-                  background: 'rgba(0,0,0,0.5)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
+                className="position-absolute start-0 top-50 translate-middle-y rounded-circle p-1"
+                style={{ opacity: 0.7 }}
+                onClick={() => scrollCarousel(index + 1, 'prev')}
+              >
+                <FaArrowLeft />
+              </Button>
+              <Button 
+                variant="dark" 
+                className="position-absolute end-0 top-50 translate-middle-y rounded-circle p-1"
+                style={{ opacity: 0.7 }}
+                onClick={() => scrollCarousel(index + 1, 'next')}
               >
                 <FaArrowRight />
               </Button>
             </div>
-          </div>
+          </Container>
         ))}
         
-        {/* Coming Soon Section */}
-        <div className="movie-section mb-5">
-          <div className="d-flex align-items-center mb-4">
-            <h2 className="fw-bold mb-0 fs-4">Coming Soon</h2>
+        {/* My List Section */}
+        <Container fluid className="mb-5 px-4">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="mb-0">My List</h5>
+            <Button variant="link" className="text-light p-0">
+              See All <FaChevronRight className="ms-1" />
+            </Button>
           </div>
-          
-          <Row className="g-4">
-            {comingSoon.map((movie) => (
-              <Col md={4} key={movie.id}>
-                <Card className="bg-dark text-white border-0 h-100">
+          <Row className="row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+            {myList.map(item => (
+              <Col key={item.id}>
+                <Card className="bg-dark text-white h-100 border-0">
                   <Card.Img 
-                    src={movie.imgUrl} 
-                    alt={movie.title}
-                    className="rounded-top"
-                    style={{ height: '200px', objectFit: 'cover' }}
+                    src={item.imgUrl} 
+                    alt={item.title} 
+                    style={{ height: '150px', objectFit: 'cover' }}
                   />
-                  <Card.Body className="p-3">
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <Card.Title className="fs-5 fw-bold mb-0">{movie.title}</Card.Title>
-                      <Button variant="outline-light" size="sm" className="rounded-circle p-1">
-                        <FaPlus size={14} />
-                      </Button>
-                    </div>
-                    <div className="d-flex align-items-center mb-2 text-danger">
-                      <FaCalendarAlt className="me-2" size={14} />
-                      <small>{movie.releaseDate}</small>
-                    </div>
-                    <Card.Text className="small text-muted">
-                      {movie.description}
-                    </Card.Text>
-                    <div className="d-flex mt-3 gap-3">
-                      <Button variant="outline-light" size="sm" className="d-flex align-items-center gap-1">
-                        <FaBell size={12} /> Remind Me
-                      </Button>
-                      <Button variant="outline-light" size="sm" className="d-flex align-items-center gap-1">
-                        <FaShare size={12} /> Share
-                      </Button>
+                  <Card.Body className="p-2">
+                    <div className="d-flex justify-content-between">
+                      <Card.Title className="h6 mb-0">{item.title}</Card.Title>
+                      <div className="d-flex align-items-center">
+                        <FaStar className="text-warning me-1" />
+                        <small>{item.rating.toFixed(1)}</small>
+                      </div>
                     </div>
                   </Card.Body>
+                  <div className="card-img-overlay d-flex align-items-center justify-content-center opacity-0 hover-overlay">
+                    <Button variant="danger" size="sm" className="me-2">
+                      <FaPlay />
+                    </Button>
+                    <Button variant="secondary" size="sm">
+                      <FaInfoCircle />
+                    </Button>
+                  </div>
                 </Card>
               </Col>
             ))}
           </Row>
-        </div>
-      </Container>
-      
-      {/* Footer */}
-      <footer className="py-5" style={{ backgroundColor: '#141414', borderTop: '1px solid #333' }}>
-        <Container>
-          <Row className="mb-4">
-            <Col md={3} sm={6} className="mb-4">
-              <h5 className="text-light mb-3">Navigation</h5>
-              <ul className="list-unstyled">
-                <li className="mb-2"><Link to="/dashboard" className="text-decoration-none">Home</Link></li>
-                <li className="mb-2"><Link to="/movies" className="text-decoration-none">Movies</Link></li>
-                <li className="mb-2"><Link to="/tv-shows" className="text-decoration-none">TV Shows</Link></li>
-                <li className="mb-2"><Link to="/new-popular" className="text-decoration-none">New & Popular</Link></li>
-              </ul>
-            </Col>
-            <Col md={3} sm={6} className="mb-4">
-              <h5 className="text-light mb-3">Categories</h5>
-              <ul className="list-unstyled">
-                <li className="mb-2"><a href="#" className="text-decoration-none">Action</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none">Comedy</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none">Drama</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none">Sci-Fi</a></li>
-              </ul>
-            </Col>
-            <Col md={3} sm={6} className="mb-4">
-              <h5 className="text-light mb-3">Account</h5>
-              <ul className="list-unstyled">
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Profile</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Settings</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Subscription</a></li>
-                <li className="mb-2"><button onClick={handleLogout} className="btn btn-link p-0 text-decoration-none text-muted">Sign Out</button></li>
-              </ul>
-            </Col>
-            <Col md={3} sm={6} className="mb-4">
-              <h5 className="text-light mb-3">Support</h5>
-              <ul className="list-unstyled">
-                <li className="mb-2"><a href="#" className="text-decoration-none">Help Center</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none">Contact Us</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none">Terms of Use</a></li>
-                <li className="mb-2"><a href="#" className="text-decoration-none">Privacy Policy</a></li>
-              </ul>
-            </Col>
-          </Row>
-          <div className="text-center pt-4 border-top border-secondary">
-            <p className="text-muted small">© 2024 MovieHub. All rights reserved.</p>
-          </div>
         </Container>
-      </footer>
-    </div>
-  );
+        
+        {/* Coming Soon Section */}
+        <Container fluid className="mb-5 px-4">
+          <h5 className="mb-3">Coming Soon</h5>
+          <Row className="g-4">
+            {comingSoon.map(item => (
+              <Col key={item.id} md={4}>
+                <Card className="bg-dark text-white border-0">
+                  <Card.Img 
+                    src={item.imgUrl} 
+                    alt={item.title} 
+                    style={{ height: '200px', objectFit: 'cover', opacity: 0.7 }}
+                  />
+                  <Card.ImgOverlay className="d-flex flex-column justify-content-end">
+                    <div className="d-flex align-items-center mb-2">
+                      <Badge bg="danger" className="me-2">Coming Soon</Badge>
+                      <div className="d-flex align-items-center">
+                        <FaCalendarAlt className="me-1" />
+                        <small>{item.releaseDate}</small>
+                      </div>
+                    </div>
+                    <Card.Title>{item.title}</Card.Title>
+                    <Card.Text>{item.description}</Card.Text>
+                    <div className="d-flex">
+                      <Button variant="outline-light" size="sm" className="me-2">
+                        <FaBell className="me-1" /> Remind Me
+                      </Button>
+                      <Button variant="outline-light" size="sm">
+                        <FaShare className="me-1" /> Share
+                      </Button>
+                    </div>
+                  </Card.ImgOverlay>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      </div>
+    );
+  };
+
+  if (!pageLoaded) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Render different dashboards based on user role
+  return isAdmin ? renderAdminDashboard() : renderUserDashboard();
 };
 
 export default Dashboard; 

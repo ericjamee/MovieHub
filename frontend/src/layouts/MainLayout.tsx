@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Container, Navbar, Nav, NavDropdown } from 'react-bootstrap';
+import { Container, Navbar, Nav, NavDropdown, Badge } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaUser, FaSignOutAlt, FaFilm } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaFilm, FaUserShield, FaTachometerAlt, FaCog } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
 interface MainLayoutProps {
@@ -12,6 +12,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, isAuthenticated, logout, isLoading } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
   
   // For debugging
   useEffect(() => {
@@ -34,8 +35,39 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     if (isAuthenticated) {
       return (
         <>
-          <Nav.Link as={Link} to="/dashboard">Home</Nav.Link>
-          <Nav.Link as={Link} to="/movies">Movies</Nav.Link>
+          <Nav.Link 
+            as={Link} 
+            to="/dashboard" 
+            active={location.pathname === '/dashboard'}
+          >
+            <FaTachometerAlt className="me-1" /> Dashboard
+          </Nav.Link>
+          <Nav.Link 
+            as={Link} 
+            to="/movies" 
+            active={location.pathname === '/movies' || location.pathname.startsWith('/movies/')}
+          >
+            <FaFilm className="me-1" /> Movies
+          </Nav.Link>
+          {isAdmin && (
+            <NavDropdown 
+              title={
+                <span>
+                  <FaUserShield className="me-1" /> Admin
+                </span>
+              } 
+              id="admin-dropdown"
+              active={location.pathname.startsWith('/admin/')}
+            >
+              <NavDropdown.Item 
+                as={Link} 
+                to="/admin/movies"
+                active={location.pathname === '/admin/movies'}
+              >
+                <FaFilm className="me-1" /> Manage Movies
+              </NavDropdown.Item>
+            </NavDropdown>
+          )}
         </>
       );
     }
@@ -50,14 +82,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           title={
             <span>
               <FaUser className="me-1" /> 
-              {currentUser?.firstName || 'User'}
+              {currentUser?.firstName || 'User'} {isAdmin && (
+                <Badge bg="danger" pill className="ms-1">Admin</Badge>
+              )}
             </span>
           } 
           id="user-dropdown"
+          align="end"
         >
-          <NavDropdown.Item as={Link} to="/profile">Profile</NavDropdown.Item>
-          {currentUser?.role === 'admin' && (
-            <NavDropdown.Item as={Link} to="/admin/movies">Admin</NavDropdown.Item>
+          <NavDropdown.Item as={Link} to="/profile">
+            <FaUser className="me-2" /> Profile
+          </NavDropdown.Item>
+          {isAdmin && (
+            <NavDropdown.Item as={Link} to="/admin/movies">
+              <FaCog className="me-2" /> Admin Panel
+            </NavDropdown.Item>
           )}
           <NavDropdown.Divider />
           <NavDropdown.Item onClick={handleLogout}>
@@ -82,7 +121,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="d-flex flex-column min-vh-100 w-100 overflow-hidden">
       {showNavbar && (
-        <Navbar bg="dark" variant="dark" expand="lg" className="p-0 w-100">
+        <Navbar bg={isAdmin ? "dark" : "dark"} variant="dark" expand="lg" className="p-0 w-100">
           <Container fluid className="px-3">
             <Navbar.Brand 
               as={Link} 
@@ -91,6 +130,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             >
               <FaFilm className="me-2" />
               MovieHub
+              {isAdmin && (
+                <Badge bg="danger" pill className="ms-2">Admin Mode</Badge>
+              )}
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="me-3" />
             <Navbar.Collapse id="basic-navbar-nav">
