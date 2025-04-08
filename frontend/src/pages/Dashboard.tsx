@@ -18,6 +18,20 @@ const styles = `
   }
 `;
 
+// Array of fallback poster images
+const fallbackPosters = [
+  "https://wallpapercave.com/wp/wp5978625.png",
+  "https://img.freepik.com/free-photo/movie-background-collage_23-2149876030.jpg",
+  "https://img.freepik.com/free-photo/assortment-cinema-elements-red-background-with-copy-space_23-2148457848.jpg?semt=ais_hybrid&w=740",
+  "https://t3.ftcdn.net/jpg/02/09/52/26/360_F_209522668_IWRapuvKgoCF2iIw6UqK54mVNYbAFGfN.jpg"
+];
+
+// Function to get a random fallback poster
+const getRandomFallbackPoster = () => {
+  const randomIndex = Math.floor(Math.random() * fallbackPosters.length);
+  return fallbackPosters[randomIndex];
+};
+
 // Mock data for continue watching section
 const continueWatching = [
   { 
@@ -83,7 +97,7 @@ const comingSoon = [
 const featuredMovie = {
   title: "Safety Last!",
   description: "A store clerk stages a publicity stunt to scale a tall building, leading to one of cinema's most iconic scenes as he dangles from a giant clock face high above the city streets.",
-  imgUrl: "https://placehold.co/600x350/333/fff?text=Safety+Last!",
+  imgUrl: "/Movie Posters/Movie Posters/Safety Last!.jpg",
   year: "1923",
   rating: "8.2/10", 
   duration: "1h 14m"
@@ -649,8 +663,13 @@ const Dashboard: React.FC = () => {
 
   // Function to get movie image URL or fallback to placeholder
   const getMovieImageUrl = (movie: Movie) => {
-    // In a real implementation, you would use movie.posterUrl or similar
-    return `https://placehold.co/600x350/333/fff?text=${encodeURIComponent(movie.title || 'Movie')}`;
+    if (!movie.title) return getRandomFallbackPoster();
+    
+    // Create the path to the movie poster
+    const posterPath = `/Movie Posters/Movie Posters/${encodeURIComponent(movie.title)}.jpg`;
+    
+    // Return the actual poster path with a fallback to placeholder if image fails to load
+    return posterPath;
   };
 
   // Function to get movie rating display
@@ -1070,6 +1089,11 @@ const Dashboard: React.FC = () => {
                             alt={movie.title} 
                             className="img-fluid rounded"
                             style={{ height: '120px', width: '100%', objectFit: 'cover' }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null; // Prevent infinite loop
+                              target.src = getRandomFallbackPoster();
+                            }}
                           />
                           <div className="position-absolute top-0 end-0 p-1">
                             <Badge bg="dark" className="opacity-75">{movie.type}</Badge>
@@ -1166,6 +1190,11 @@ const Dashboard: React.FC = () => {
                         alt={selectedMovie.title} 
                         className="img-fluid rounded"
                         style={{ width: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null; // Prevent infinite loop
+                          target.src = getRandomFallbackPoster();
+                        }}
                       />
                       <Badge bg="dark" className="position-absolute top-0 end-0 m-2">{selectedMovie.type}</Badge>
                     </div>
