@@ -1,0 +1,4 @@
+{
+  "appService.defaultWebAppToDeploy": "/subscriptions/91f7db28-088b-4145-bec8-69ddd46ae41c/resourceGroups/appsvc_windows_eastus/providers/Microsoft.Web/sites/CineNiche-Team-3-8-Backend",
+  "appService.deploySubpath": "backend\\MovieHub.API\\publish"
+}
