@@ -54,6 +54,27 @@ namespace MovieHub.API.Controllers
             return Ok(newMovie);
         }
 
+        [HttpPut("UpdateMovie/{showId}")]
+        public IActionResult UpdateMovie(string showId, [FromBody] MoviesTitle updatedMovie)
+        {
+            MoviesTitle existingMovie = _movieContext.MoviesTitles.Find(showId);
+
+            existingMovie.Type = updatedMovie.Type;
+            existingMovie.Title = updatedMovie.Title;
+            existingMovie.Director = updatedMovie.Director;
+            existingMovie.Cast = updatedMovie.Cast;
+            existingMovie.Country = updatedMovie.Country;
+            existingMovie.ReleaseYear = updatedMovie.ReleaseYear;
+            existingMovie.Rating = updatedMovie.Rating;
+            existingMovie.Duration = updatedMovie.Duration;
+            existingMovie.Description = updatedMovie.Description;
+
+            _movieContext.MoviesTitles.Update(existingMovie);
+            _movieContext.SaveChanges();
+
+            return Ok(existingMovie);
+        }
+
         [HttpGet("AdminDashboardStats")]
         public IActionResult GetAdminDashboardStats()
         {

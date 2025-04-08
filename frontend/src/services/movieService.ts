@@ -66,11 +66,21 @@ export const movieService = {
     }
   },
 
-  async updateMovie(id: string, movie: Partial<Movie>): Promise<Movie> {
-    return handleApiError(async () => {
-      const response = await axios.put(`${API_BASE_URL}/movies/${id}`, movie);
-      return response.data;
-    });
+  async updateMovie(showId: string, updatedMovie: Movie): Promise<Movie> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/UpdateMovie/${showId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedMovie),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating movie:", error);
+      throw error;
+    }
   },
 
   async deleteMovie(id: string): Promise<void> {

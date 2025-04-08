@@ -289,7 +289,6 @@ const AdminMovies: React.FC = () => {
                 name="director"
                 value={formData.director || ""}
                 onChange={handleChange}
-                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -299,7 +298,6 @@ const AdminMovies: React.FC = () => {
                 name="cast"
                 value={formData.cast || ""}
                 onChange={handleChange}
-                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -309,7 +307,6 @@ const AdminMovies: React.FC = () => {
                 name="country"
                 value={formData.country || ""}
                 onChange={handleChange}
-                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -329,7 +326,6 @@ const AdminMovies: React.FC = () => {
                 name="rating"
                 value={formData.rating || ""}
                 onChange={handleChange}
-                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -339,7 +335,6 @@ const AdminMovies: React.FC = () => {
                 name="duration"
                 value={formData.duration || ""}
                 onChange={handleChange}
-                required
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -349,7 +344,6 @@ const AdminMovies: React.FC = () => {
                 name="description"
                 value={formData.description || ""}
                 onChange={handleChange}
-                required
               />
             </Form.Group>
           </Modal.Body>
