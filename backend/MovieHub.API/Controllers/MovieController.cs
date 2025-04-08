@@ -52,19 +52,20 @@ namespace MovieHub.API.Controllers
             _movieContext.MoviesTitles.Add(newMovie);
             _movieContext.SaveChanges();
             return Ok(newMovie);
-            
+        }
+
         [HttpGet("AdminDashboardStats")]
         public IActionResult GetAdminDashboardStats()
         {
             // Get total movies count
             int totalMovies = _movieContext.MoviesTitles.Count();
-            
+
             // Get total users count
             int totalUsers = _movieContext.MoviesUsers.Select(u => u.UserId).Distinct().Count();
-            
+
             // Calculate genre percentages
             var allMovies = _movieContext.MoviesTitles.ToList();
-            
+
             // Count movies by genre
             int actionCount = allMovies.Count(m => m.Action == 1);
             int dramaCount = allMovies.Count(m => m.Dramas == 1);
@@ -74,7 +75,7 @@ namespace MovieHub.API.Controllers
             int documentaryCount = allMovies.Count(m => m.Documentaries == 1);
             int fantasyCount = allMovies.Count(m => m.Fantasy == 1);
             int horrorCount = allMovies.Count(m => m.HorrorMovies == 1);
-            
+
             // Calculate percentages
             int actionPercentage = totalMovies > 0 ? (int)Math.Round((double)actionCount / totalMovies * 100) : 0;
             int dramaPercentage = totalMovies > 0 ? (int)Math.Round((double)dramaCount / totalMovies * 100) : 0;
@@ -84,26 +85,26 @@ namespace MovieHub.API.Controllers
             int documentaryPercentage = totalMovies > 0 ? (int)Math.Round((double)documentaryCount / totalMovies * 100) : 0;
             int fantasyPercentage = totalMovies > 0 ? (int)Math.Round((double)fantasyCount / totalMovies * 100) : 0;
             int horrorPercentage = totalMovies > 0 ? (int)Math.Round((double)horrorCount / totalMovies * 100) : 0;
-            
+
             var topGenres = new List<object>
             {
-                new { name = "Action", value = actionPercentage },
-                new { name = "Drama", value = dramaPercentage },
-                new { name = "Comedy", value = comedyPercentage },
-                new { name = "Thriller", value = thrillerPercentage },
-                new { name = "Adventure", value = adventurePercentage },
-                new { name = "Documentary", value = documentaryPercentage },
-                new { name = "Fantasy", value = fantasyPercentage },
-                new { name = "Horror", value = horrorPercentage }
+            new { name = "Action", value = actionPercentage },
+            new { name = "Drama", value = dramaPercentage },
+            new { name = "Comedy", value = comedyPercentage },
+            new { name = "Thriller", value = thrillerPercentage },
+            new { name = "Adventure", value = adventurePercentage },
+            new { name = "Documentary", value = documentaryPercentage },
+            new { name = "Fantasy", value = fantasyPercentage },
+            new { name = "Horror", value = horrorPercentage }
             };
-            
+
             // Sort genres by percentage in descending order
             topGenres = topGenres.OrderByDescending(g => ((dynamic)g).value).ToList();
-            
+
             // Calculate streaming service usage
             var allUsers = _movieContext.MoviesUsers.ToList();
             int totalUsersWithService = allUsers.Count;
-            
+
             // Count users for each streaming service
             int netflixCount = allUsers.Count(u => u.Netflix == 1);
             int amazonPrimeCount = allUsers.Count(u => u.AmazonPrime == 1);
@@ -113,7 +114,7 @@ namespace MovieHub.API.Controllers
             int huluCount = allUsers.Count(u => u.Hulu == 1);
             int appleTvCount = allUsers.Count(u => u.AppleTv == 1);
             int peacockCount = allUsers.Count(u => u.Peacock == 1);
-            
+
             // Calculate percentages
             int netflixPercentage = totalUsersWithService > 0 ? (int)Math.Round((double)netflixCount / totalUsersWithService * 100) : 0;
             int amazonPrimePercentage = totalUsersWithService > 0 ? (int)Math.Round((double)amazonPrimeCount / totalUsersWithService * 100) : 0;
@@ -123,22 +124,22 @@ namespace MovieHub.API.Controllers
             int huluPercentage = totalUsersWithService > 0 ? (int)Math.Round((double)huluCount / totalUsersWithService * 100) : 0;
             int appleTvPercentage = totalUsersWithService > 0 ? (int)Math.Round((double)appleTvCount / totalUsersWithService * 100) : 0;
             int peacockPercentage = totalUsersWithService > 0 ? (int)Math.Round((double)peacockCount / totalUsersWithService * 100) : 0;
-            
+
             var streamingServices = new List<object>
             {
-                new { name = "Netflix", value = netflixPercentage },
-                new { name = "Amazon Prime", value = amazonPrimePercentage },
-                new { name = "Disney+", value = disneyPercentage },
-                new { name = "Paramount+", value = paramountPercentage },
-                new { name = "Max", value = maxPercentage },
-                new { name = "Hulu", value = huluPercentage },
-                new { name = "Apple TV+", value = appleTvPercentage },
-                new { name = "Peacock", value = peacockPercentage }
+            new { name = "Netflix", value = netflixPercentage },
+            new { name = "Amazon Prime", value = amazonPrimePercentage },
+            new { name = "Disney+", value = disneyPercentage },
+            new { name = "Paramount+", value = paramountPercentage },
+            new { name = "Max", value = maxPercentage },
+            new { name = "Hulu", value = huluPercentage },
+            new { name = "Apple TV+", value = appleTvPercentage },
+            new { name = "Peacock", value = peacockPercentage }
             };
-            
+
             // Sort streaming services by percentage in descending order
             streamingServices = streamingServices.OrderByDescending(s => ((dynamic)s).value).ToList();
-            
+
             // Get top rated movies
             var topRatedMovies = _movieContext.MoviesRatings
                 .GroupBy(r => r.ShowId)
@@ -160,17 +161,19 @@ namespace MovieHub.API.Controllers
                     };
                 })
                 .ToList();
-            
-            var dashboardStats = new
-            {
+
+                var dashboardStats = new
+                {
                 totalMovies,
                 totalUsers,
                 topGenres,
                 streamingServices,
                 topRatedMovies = topMoviesWithDetails
-            };
-            
-            return Ok(dashboardStats);
+                };
+
+                return Ok(dashboardStats);
         }
+            
+     
     }
 }
