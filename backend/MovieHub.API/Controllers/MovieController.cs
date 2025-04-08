@@ -39,6 +39,20 @@ namespace MovieHub.API.Controllers
             return Ok(returnObject);
         }
 
+        [HttpPost("AddMovie")]
+        public IActionResult AddProject([FromBody] MoviesTitle newMovie)
+        {
+            int highestId = _movieContext.MoviesTitles
+                .Select(m => m.ShowId) // Assuming Id is the "s123" format
+                .AsEnumerable()
+                .Max(m => int.Parse(m.Substring(1))) + 1;
+
+            newMovie.ShowId = "s" + highestId.ToString();
+
+            _movieContext.MoviesTitles.Add(newMovie);
+            _movieContext.SaveChanges();
+            return Ok(newMovie);
+            
         [HttpGet("AdminDashboardStats")]
         public IActionResult GetAdminDashboardStats()
         {
