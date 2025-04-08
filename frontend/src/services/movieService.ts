@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Movie, MovieResponse, MovieFilters } from "../types/movie";
+import { Movie, MovieResponse } from "../types/movie";
 
 const API_BASE_URL = "https://localhost:5000/movie"; // This will be replaced with your actual API URL
 
@@ -18,21 +18,10 @@ const handleApiError = async (apiCall: () => Promise<any>) => {
 };
 
 export const movieService = {
-  async getMovies(filters: MovieFilters): Promise<MovieResponse> {
+  async getMovies(pageSize: number, pageNum: number): Promise<MovieResponse> {
     try {
-      const { page, pageSize, genre, searchTerm } = filters;
-      let url = `${API_BASE_URL}/adminmovies?pageSize=${pageSize}&pageNum=${page}`;
-      
-      if (genre) {
-        url += `&genre=${encodeURIComponent(genre)}`;
-      }
-      
-      if (searchTerm) {
-        url += `&search=${encodeURIComponent(searchTerm)}`;
-      }
-      
       const response = await fetch(
-        url,
+        `${API_BASE_URL}/adminmovies?pageSize=${pageSize}&pageNum=${pageNum}`,
         {
           credentials: "include",
         }
@@ -41,14 +30,8 @@ export const movieService = {
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
       }
-      
-      const data = await response.json();
-      return {
-        movies: data.movies,
-        totalNumMovies: data.totalNumMovies,
-        currentPage: page,
-        totalPages: Math.ceil(data.totalNumMovies / pageSize)
-      };
+
+      return await response.json();
     } catch (error) {
       console.error("Error fetching movies:", error);
       throw error;
