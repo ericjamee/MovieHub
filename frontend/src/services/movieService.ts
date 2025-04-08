@@ -31,7 +31,6 @@ export const movieService = {
 
   async createMovie(newMovie: Movie): Promise<Movie> {
     try {
-      console.log("Data sent to backend:", newMovie); // Log the data being sent
       const response = await fetch(`${API_BASE_URL}/AddMovie`, {
         method: "POST",
         headers: {
@@ -41,8 +40,6 @@ export const movieService = {
       });
 
       if (!response.ok) {
-        console.error("Response status:", response.status); // Log the response status
-        console.error("Response body:", await response.text()); // Log the response body
         throw new Error("Failed to fetch movie");
       }
 

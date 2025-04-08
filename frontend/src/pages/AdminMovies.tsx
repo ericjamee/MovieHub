@@ -112,7 +112,6 @@ const AdminMovies: React.FC = () => {
       if (editingMovie) {
         await movieService.updateMovie(editingMovie.showId, formData);
       } else {
-        console.log("I'm here");
         await movieService.createMovie(formData as Movie);
       }
       handleCloseModal();
