@@ -432,10 +432,10 @@ const Dashboard: React.FC = () => {
   const fetchInitialMoviesData = async () => {
     try {
       setIsLoading(true);
-      const response = await movieService.getMovies({
-        page: 1,
-        pageSize: 200, // Increased to fetch more movies initially
-      });
+      const response = await movieService.getMovies(
+        200, // pageSize - Increased to fetch more movies initially
+        1    // pageNum
+      );
       
       if (response && response.movies && response.movies.length > 0) {
         setMoviesData(response.movies);
@@ -490,10 +490,10 @@ const Dashboard: React.FC = () => {
       setIsLoading(true);
       const currentMoviesCount = moviesData.length;
       
-      const response = await movieService.getMovies({
-        page: Math.floor(currentMoviesCount / 50) + 1,
-        pageSize: 50,
-      });
+      const response = await movieService.getMovies(
+        50,  // pageSize
+        Math.floor(currentMoviesCount / 50) + 1  // pageNum
+      );
       
       if (response && response.movies && response.movies.length > 0) {
         // Avoid duplicates by checking showId

@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Row, Col, Card, Button, Form, Spinner } from 'react-bootstrap';
-import { FaStar } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Row, Col, Card, Button, Form, Spinner, Container, Badge } from 'react-bootstrap';
+import { FaStar, FaArrowLeft } from 'react-icons/fa';
 import { Movie } from '../types/movie';
 import { movieService } from '../services/movieService';
 
 const MovieDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRating, setUserRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadMovie = async () => {
       try {
         setLoading(true);
+        setError(null);
         if (id) {
-          const data = await movieService.getMovieById(parseInt(id));
+          const data = await movieService.getMovieById(id);
           setMovie(data);
         }
       } catch (error) {
         console.error('Error loading movie:', error);
+        setError('Unable to load movie details. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -33,7 +37,7 @@ const MovieDetail: React.FC = () => {
   const handleRatingSubmit = async () => {
     if (movie && userRating > 0) {
       try {
-        const updatedMovie = await movieService.rateMovie(movie.id, userRating);
+        const updatedMovie = await movieService.rateMovie(movie.showId, userRating);
         setMovie(updatedMovie);
       } catch (error) {
         console.error('Error rating movie:', error);
@@ -41,28 +45,60 @@ const MovieDetail: React.FC = () => {
     }
   };
 
+  const goBack = () => {
+    navigate(-1);
+  };
+
   if (loading) {
     return (
-      <div className="text-center my-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      </div>
+      <Container className="py-5">
+        <div className="text-center my-5">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-5">
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+        <Button variant="outline-primary" onClick={goBack}>
+          <FaArrowLeft className="me-2" /> Go Back
+        </Button>
+      </Container>
     );
   }
 
   if (!movie) {
-    return <div>Movie not found</div>;
+    return (
+      <Container className="py-5">
+        <div className="alert alert-warning" role="alert">
+          Movie not found
+        </div>
+        <Button variant="outline-primary" onClick={goBack}>
+          <FaArrowLeft className="me-2" /> Go Back
+        </Button>
+      </Container>
+    );
   }
 
   return (
-    <div>
+    <Container className="py-5">
+      <Button variant="outline-primary" className="mb-4" onClick={goBack}>
+        <FaArrowLeft className="me-2" /> Back to Movies
+      </Button>
+      
       <Row>
         <Col md={4}>
           <Card>
             <Card.Img
               variant="top"
-              src={movie.imageUrl}
+              src={`https://placehold.co/600x900/333/fff?text=${encodeURIComponent(movie.title || 'Movie')}`}
               alt={movie.title}
               style={{ height: '500px', objectFit: 'cover' }}
             />
@@ -70,38 +106,56 @@ const MovieDetail: React.FC = () => {
         </Col>
         <Col md={8}>
           <h1>{movie.title}</h1>
-          <p className="text-muted">
-            {movie.releaseYear} • {movie.genre} • {movie.duration} minutes
-          </p>
+          <div className="d-flex align-items-center mb-3">
+            <Badge bg="secondary" className="me-2">{movie.type}</Badge>
+            <span className="me-3">{movie.releaseYear}</span>
+            <span className="me-3">{movie.duration}</span>
+            {movie.rating && (
+              <div className="d-flex align-items-center">
+                <FaStar className="text-warning me-1" />
+                <span>{typeof movie.rating === 'string' ? movie.rating : movie.rating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
           
-          <div className="mb-4">
-            <h5>Rating</h5>
-            <div className="d-flex align-items-center">
-              {[...Array(5)].map((_, index) => (
-                <FaStar
-                  key={index}
-                  className={`fs-4 me-1 ${
-                    index < movie.rating ? 'text-warning' : 'text-muted'
-                  }`}
-                />
-              ))}
-              <span className="ms-2">({movie.rating.toFixed(1)}/5)</span>
+          {movie.country && (
+            <div className="mb-4">
+              <h5>Country</h5>
+              <p>{movie.country}</p>
             </div>
-          </div>
+          )}
+
+          {movie.description && (
+            <div className="mb-4">
+              <h5>Description</h5>
+              <p>{movie.description}</p>
+            </div>
+          )}
+
+          {movie.cast && (
+            <div className="mb-4">
+              <h5>Cast</h5>
+              <p>{movie.cast}</p>
+            </div>
+          )}
+
+          {movie.director && (
+            <div className="mb-4">
+              <h5>Director</h5>
+              <p>{movie.director}</p>
+            </div>
+          )}
 
           <div className="mb-4">
-            <h5>Description</h5>
-            <p>{movie.description}</p>
-          </div>
-
-          <div className="mb-4">
-            <h5>Cast</h5>
-            <p>{movie.cast.join(', ')}</p>
-          </div>
-
-          <div className="mb-4">
-            <h5>Director</h5>
-            <p>{movie.director}</p>
+            <h5>Genres</h5>
+            <div className="d-flex flex-wrap gap-2">
+              {Object.entries(movie)
+                .filter(([key, value]) => value === 1 && 
+                  !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                .map(([key]) => (
+                  <Badge key={key} bg="primary">{key.replace(/([A-Z])/g, ' $1').trim()}</Badge>
+                ))}
+            </div>
           </div>
 
           <div className="mb-4">
@@ -129,17 +183,9 @@ const MovieDetail: React.FC = () => {
               </Button>
             </div>
           </div>
-
-          <div>
-            <h5>Price</h5>
-            <p className="h3">${movie.price.toFixed(2)}</p>
-            <Button variant="success" size="lg">
-              Add to Cart
-            </Button>
-          </div>
         </Col>
       </Row>
-    </div>
+    </Container>
   );
 };
 

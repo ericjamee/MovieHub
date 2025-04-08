@@ -213,7 +213,55 @@ namespace MovieHub.API.Controllers
             
             return Ok(dashboardStats);
         }
-            
-     
+
+        [HttpGet("movies/{showId}")]
+        public IActionResult GetMovieById(string showId)
+        {
+            try
+            {
+                var movie = _movieContext.MoviesTitles.Find(showId);
+
+                if (movie == null)
+                {
+                    return NotFound(new { message = "Movie not found" });
+                }
+
+                return Ok(movie);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error retrieving movie: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("movies/{showId}/rate")]
+        public IActionResult RateMovie(string showId, [FromBody] RatingRequest ratingRequest)
+        {
+            try
+            {
+                // Get the movie
+                var movie = _movieContext.MoviesTitles.Find(showId);
+                if (movie == null)
+                {
+                    return NotFound(new { message = "Movie not found" });
+                }
+
+                // In a real implementation, you would store the rating in the database
+                // and return the updated movie with the new average rating
+                // For now, we'll just return the movie
+                
+                return Ok(movie);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error rating movie: {ex.Message}" });
+            }
+        }
+
+        // Rating request model
+        public class RatingRequest
+        {
+            public int Rating { get; set; }
+        }
     }
 }

@@ -38,7 +38,7 @@ export const movieService = {
     }
   },
 
-  async getMovieById(id: number): Promise<Movie> {
+  async getMovieById(id: string): Promise<Movie> {
     return handleApiError(async () => {
       const response = await axios.get(`${API_BASE_URL}/movies/${id}`);
       return response.data;
@@ -98,7 +98,7 @@ export const movieService = {
     }
   },
 
-  async rateMovie(id: number, rating: number): Promise<Movie> {
+  async rateMovie(id: string, rating: number): Promise<Movie> {
     return handleApiError(async () => {
       const response = await axios.post(`${API_BASE_URL}/movies/${id}/rate`, {
         rating,
