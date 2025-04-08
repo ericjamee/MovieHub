@@ -107,7 +107,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               className="py-3 ms-0 d-flex align-items-center"
             >
               <FaFilm className="me-2" />
-              MovieHub
+              CineNiche
               {isAdmin && (
                 <Badge bg="danger" pill className="ms-2">Admin Mode</Badge>
               )}
@@ -134,7 +134,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <footer className="bg-dark text-light py-4 w-100">
           <Container>
             <div className="text-center">
-              <p className="mb-0">&copy; 2024 MovieHub. All rights reserved.</p>
+              <p className="mb-0">&copy; 2025 CineNiche. All rights reserved.</p>
             </div>
           </Container>
         </footer>

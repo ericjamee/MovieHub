@@ -11,8 +11,9 @@ import {
   Card,
   InputGroup,
   FormControl,
+  Collapse,
 } from "react-bootstrap";
-import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
@@ -72,6 +73,24 @@ const AdminMovies: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState<Movie>(blankMovie);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [fallbackPosters] = useState([
+    "https://wallpapercave.com/wp/wp5978625.png",
+    "https://img.freepik.com/free-photo/movie-background-collage_23-2149876030.jpg",
+    "https://img.freepik.com/free-photo/assortment-cinema-elements-red-background-with-copy-space_23-2148457848.jpg?semt=ais_hybrid&w=740",
+    "https://t3.ftcdn.net/jpg/02/09/52/26/360_F_209522668_IWRapuvKgoCF2iIw6UqK54mVNYbAFGfN.jpg"
+  ]);
+
+  // Get a random fallback poster
+  const getRandomFallbackPoster = () => {
+    const randomIndex = Math.floor(Math.random() * fallbackPosters.length);
+    return fallbackPosters[randomIndex];
+  };
+
+  // Get movie poster path
+  const getMoviePosterPath = (title: string) => {
+    return `/Movie Posters/Movie Posters/${encodeURIComponent(title)}.jpg`;
+  };
 
   const loadMovies = async () => {
     try {
@@ -148,6 +167,17 @@ const AdminMovies: React.FC = () => {
     }));
   };
 
+  // Toggle row expansion
+  const toggleRowExpansion = (id: string) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(id)) {
+      newExpandedRows.delete(id);
+    } else {
+      newExpandedRows.add(id);
+    }
+    setExpandedRows(newExpandedRows);
+  };
+
   return (
     <Container fluid className="py-4 px-4">
       <Card className="shadow-sm border-0">
@@ -196,58 +226,153 @@ const AdminMovies: React.FC = () => {
           ) : movies.length === 0 ? (
             <Alert variant="info">No movies found.</Alert>
           ) : (
-            <Table hover className="align-middle">
-              <thead className="bg-light">
-                <tr>
-                  <th>Show ID</th>
-                  <th>Type</th>
-                  <th>Title</th>
-                  <th>Director</th>
-                  <th>Cast</th>
-                  <th>Country</th>
-                  <th>Release Year</th>
-                  <th>Rating</th>
-                  <th>Duration</th>
-                  <th>Description</th>
-                  <th>Genre</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movies.map((movie) => (
-                  <tr key={movie.showId}>
-                    <td>{movie.showId}</td>
-                    <td>{movie.type}</td>
-                    <td>{movie.title}</td>
-                    <td>{movie.director}</td>
-                    <td>{movie.cast}</td>
-                    <td>{movie.country}</td>
-                    <td>{movie.releaseYear}</td>
-                    <td>{movie.rating}</td>
-                    <td>{movie.duration}</td>
-                    <td>{movie.description}</td>
-                    <td></td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleShowModal(movie)}
-                      >
-                        <FaEdit /> Edit
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(movie.showId)}
-                      >
-                        <FaTrash /> Delete
-                      </Button>
-                    </td>
+            <div className="table-responsive">
+              <Table hover striped bordered className="align-middle">
+                <thead className="bg-light">
+                  <tr>
+                    <th style={{ width: "80px" }}>Show ID</th>
+                    <th style={{ width: "80px" }}>Type</th>
+                    <th style={{ width: "180px" }}>Title <small className="text-muted">(click row to expand)</small></th>
+                    <th style={{ width: "120px" }}>Director</th>
+                    <th style={{ width: "150px" }}>Cast</th>
+                    <th style={{ width: "120px" }}>Country</th>
+                    <th style={{ width: "80px" }}>Release Year</th>
+                    <th style={{ width: "80px" }}>Rating</th>
+                    <th style={{ width: "80px" }}>Duration</th>
+                    <th style={{ width: "200px" }}>Description</th>
+                    <th style={{ width: "150px" }}>Genre</th>
+                    <th style={{ width: "180px" }} className="text-center">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {movies.map((movie) => (
+                    <React.Fragment key={movie.showId}>
+                      <tr 
+                        onClick={() => toggleRowExpansion(movie.showId)}
+                        className={expandedRows.has(movie.showId) ? "bg-light border-primary" : ""}
+                        style={{ 
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          borderLeft: expandedRows.has(movie.showId) ? "4px solid #0d6efd" : ""
+                        }}
+                      >
+                        <td>{movie.showId}</td>
+                        <td>{movie.type}</td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            {expandedRows.has(movie.showId) ? 
+                              <FaChevronDown className="me-2 text-primary" /> : 
+                              <FaChevronRight className="me-2 text-secondary" />
+                            }
+                            {movie.title}
+                          </div>
+                        </td>
+                        <td className="text-truncate" style={{ maxWidth: "150px" }}>{movie.director}</td>
+                        <td className="text-truncate" style={{ maxWidth: "150px" }}>{movie.cast}</td>
+                        <td>{movie.country}</td>
+                        <td>{movie.releaseYear}</td>
+                        <td>{movie.rating}</td>
+                        <td>{movie.duration}</td>
+                        <td className="text-truncate" style={{ maxWidth: "200px" }}>{movie.description}</td>
+                        <td className="text-truncate" style={{ maxWidth: "150px" }}>
+                          {Object.entries(movie)
+                            .filter(([key, value]) => value === 1 && 
+                              !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                            .map(([key]) => key)
+                            .join(', ')}
+                        </td>
+                        <td>
+                          <div className="d-flex justify-content-center gap-2">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="d-inline-flex align-items-center justify-content-center"
+                              style={{ width: "80px" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShowModal(movie);
+                              }}
+                            >
+                              <FaEdit className="me-1" /> Edit
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              className="d-inline-flex align-items-center justify-content-center"
+                              style={{ width: "80px" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(movie.showId);
+                              }}
+                            >
+                              <FaTrash className="me-1" /> Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={12} className="p-0">
+                          <Collapse in={expandedRows.has(movie.showId)}>
+                            <div>
+                              <div className="bg-light p-3 border-top">
+                                <Row>
+                                  <Col md={3} className="mb-3">
+                                    <div className="text-center">
+                                      <img 
+                                        src={getMoviePosterPath(movie.title || '')}
+                                        alt={movie.title}
+                                        className="img-fluid rounded shadow"
+                                        style={{ maxHeight: '250px', objectFit: 'cover' }}
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.onerror = null;
+                                          target.src = getRandomFallbackPoster();
+                                        }}
+                                      />
+                                    </div>
+                                  </Col>
+                                  <Col md={4} className="mb-3">
+                                    <h5 className="mb-3 text-primary">Movie Details</h5>
+                                    <p><strong>Title:</strong> {movie.title}</p>
+                                    <p><strong>Director:</strong> {movie.director || 'N/A'}</p>
+                                    <p><strong>Release Year:</strong> {movie.releaseYear}</p>
+                                    <p><strong>Rating:</strong> {movie.rating || 'N/A'}</p>
+                                    <p><strong>Duration:</strong> {movie.duration || 'N/A'}</p>
+                                    <p><strong>Country:</strong> {movie.country || 'N/A'}</p>
+                                    <p><strong>Type:</strong> {movie.type}</p>
+                                  </Col>
+                                  <Col md={5}>
+                                    <h5 className="mb-3 text-primary">Additional Information</h5>
+                                    <p><strong>Cast:</strong> {movie.cast || 'N/A'}</p>
+                                    <div className="mb-3">
+                                      <strong>Description:</strong>
+                                      <p className="mt-2">{movie.description || 'No description available.'}</p>
+                                    </div>
+                                    <div>
+                                      <strong>Genres:</strong>
+                                      <div className="mt-2">
+                                        {Object.entries(movie)
+                                          .filter(([key, value]) => value === 1 && 
+                                            !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                                          .map(([key], index) => (
+                                            <span key={index} className="badge bg-primary me-1 mb-1 p-2">
+                                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                                            </span>
+                                          ))}
+                                      </div>
+                                    </div>
+                                  </Col>
+                                </Row>
+                              </div>
+                            </div>
+                          </Collapse>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           )}
         </Card.Body>
       </Card>
@@ -357,16 +482,18 @@ const AdminMovies: React.FC = () => {
           </Modal.Footer>
         </Form>
       </Modal>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={(newSize) => {
-          setPageSize(newSize);
-          setCurrentPage(1);
-        }}
-      />
+      <div className="d-flex justify-content-center mt-4">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
+      </div>
     </Container>
   );
 };
