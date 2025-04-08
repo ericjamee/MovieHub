@@ -71,3 +71,10 @@ export interface AdminDashboardStats {
   streamingServices: StreamingService[];
   topRatedMovies: TopRatedMovie[];
 }
+
+export interface MovieFilters {
+  page: number;
+  pageSize: number;
+  genre?: string;
+  searchTerm?: string;
+}
