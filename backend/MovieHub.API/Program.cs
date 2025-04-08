@@ -14,17 +14,32 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<MoviesContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("MovieConnection")));
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
+
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.Name = ".AspNetCore.Identity.Application";
+});
+
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: "AllowFrontend",
-        configurePolicy: policy =>
-        {
-            policy.AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://polite-pond-00c82511e.6.azurestaticapps.net")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // ✅ Required for cookie auth
+    });
 });
+
 
 // Auth & Authorization setup
 builder.Services.AddAuthorization();
@@ -36,6 +51,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection(); // 🔥 ADD THIS
 
 // Make sure CORS comes BEFORE auth middleware
 app.UseCors("AllowFrontend");
