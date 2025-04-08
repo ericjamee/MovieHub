@@ -143,7 +143,8 @@ namespace MovieHub.API.Controllers
             // Get top rated movies
             var topRatedMovies = _movieContext.MoviesRatings
                 .GroupBy(r => r.ShowId)
-                .Select(g => new {
+                .Select(g => new
+                {
                     ShowId = g.Key,
                     AverageRating = g.Average(r => r.Rating ?? 0)
                 })
@@ -152,9 +153,11 @@ namespace MovieHub.API.Controllers
                 .ToList();
 
             var topMoviesWithDetails = topRatedMovies
-                .Select(m => {
+                .Select(m =>
+                {
                     var movieDetails = _movieContext.MoviesTitles.FirstOrDefault(mt => mt.ShowId == m.ShowId);
-                    return new {
+                    return new
+                    {
                         showId = m.ShowId,
                         title = movieDetails?.Title ?? "Unknown",
                         rating = Math.Round(m.AverageRating, 1)
@@ -169,9 +172,9 @@ namespace MovieHub.API.Controllers
                 topGenres,
                 streamingServices,
                 topRatedMovies = topMoviesWithDetails
-                };
-
-                return Ok(dashboardStats);
+            };
+            
+            return Ok(dashboardStats);
         }
             
      
