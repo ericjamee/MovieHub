@@ -1,35 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Form, Spinner } from 'react-bootstrap';
-import InfiniteScroll from 'react-infinite-scroll-component';
-import { Movie, MovieFilters } from '../types/movie';
-import { movieService } from '../services/movieService';
-import MovieCard from '../components/MovieCard';
+import React, { useState, useEffect } from "react";
+import { Row, Col, Form } from "react-bootstrap";
+import { Movie, MovieFilters } from "../types/movie";
+import { movieService } from "../services/movieService";
+import MovieCard from "../components/MovieCard";
 
 const Movies: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
   const [filters, setFilters] = useState<MovieFilters>({
     page: 1,
     pageSize: 12,
   });
-  const [genres, setGenres] = useState<string[]>([]);
 
   const loadMovies = async (reset = false) => {
     try {
-      setLoading(true);
       const response = await movieService.getMovies({
         ...filters,
         page: reset ? 1 : filters.page,
       });
-      
-      setMovies(prev => reset ? response.movies : [...prev, ...response.movies]);
-      setHasMore(response.currentPage < response.totalPages);
-      setFilters(prev => ({ ...prev, page: reset ? 2 : prev.page + 1 }));
+
+      setMovies((prev) =>
+        reset ? response.movies : [...prev, ...response.movies]
+      );
+      setFilters((prev) => ({ ...prev, page: reset ? 2 : prev.page + 1 }));
     } catch (error) {
-      console.error('Error loading movies:', error);
+      console.error("Error loading movies:", error);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -38,11 +33,11 @@ const Movies: React.FC = () => {
   }, [filters.genre, filters.searchTerm]);
 
   const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilters(prev => ({ ...prev, genre: e.target.value || undefined }));
+    setFilters((prev) => ({ ...prev, genre: e.target.value || undefined }));
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, searchTerm: e.target.value }));
+    setFilters((prev) => ({ ...prev, searchTerm: e.target.value }));
   };
 
   return (
@@ -62,41 +57,21 @@ const Movies: React.FC = () => {
           <Col md={6}>
             <Form.Group>
               <Form.Label>Filter by Genre</Form.Label>
-              <Form.Select onChange={handleGenreChange}>
-                <option value="">All Genres</option>
-                {genres.map(genre => (
-                  <option key={genre} value={genre}>
-                    {genre}
-                  </option>
-                ))}
-              </Form.Select>
+              <Form.Select onChange={handleGenreChange}></Form.Select>
             </Form.Group>
           </Col>
         </Row>
       </div>
 
-      <InfiniteScroll
-        dataLength={movies.length}
-        next={() => loadMovies()}
-        hasMore={hasMore}
-        loader={
-          <div className="text-center my-4">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
-        }
-      >
-        <Row xs={1} md={2} lg={3} xl={4} className="g-4">
-          {movies.map(movie => (
-            <Col key={movie.showId}>
-              <MovieCard movie={movie} />
-            </Col>
-          ))}
-        </Row>
-      </InfiniteScroll>
+      <Row xs={1} md={2} lg={3} xl={4} className="g-4">
+        {movies.map((movie) => (
+          <Col key={movie.showId}>
+            <MovieCard movie={movie} />
+          </Col>
+        ))}
+      </Row>
     </div>
   );
 };
 
-export default Movies; 
+export default Movies;

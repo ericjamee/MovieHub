@@ -14,43 +14,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<MoviesContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("MovieConnection")));
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
-
-// Configure Identity + EF store
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-
-// Optional: more robust claims setup
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.ClaimsIdentity.UserIdClaimType = ClaimTypes.NameIdentifier;
-    options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Email;
-});
-
-// Add custom claims principal factory (if used for roles or email claims)
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, CustomUserClaimsPrincipalFactory>();
-
-// MUST: configure cookie to support cross-site auth
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.None;           // 🔥 Required for cross-site cookies
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // 🔥 Required for SameSite=None
-    options.Cookie.Name = ".AspNetCore.Identity.Application";
-    options.LoginPath = "/login"; // Optional if using identity endpoints only
-});
-
-// Add CORS with AllowCredentials for cross-origin cookies
+// Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("https://localhost:3000") // 🔥 Frontend dev URL
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // 🔥 Crucial for cookies
-    });
+    options.AddPolicy(name: "AllowFrontend",
+        configurePolicy: policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
 });
 
 // Auth & Authorization setup
