@@ -1,52 +1,24 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Button, Card, Badge, ProgressBar, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell, FaUserShield, FaCog, FaChartLine, FaUsers, FaEdit, FaDatabase } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { movieService } from '../services/movieService';
-import { AdminDashboardStats } from '../types/movie';
+import { AdminDashboardStats, Movie } from '../types/movie';
 
-// Mock data for movie sections
-const movieSections = [
-  {
-    id: 1,
-    title: "Trending Now",
-    movies: [
-      { id: 1, title: "The Matrix Resurrections", imgUrl: "https://placehold.co/600x350/333/fff?text=The+Matrix+Resurrections", rating: 4.2 },
-      { id: 2, title: "Dune", imgUrl: "https://placehold.co/600x350/333/fff?text=Dune", rating: 4.5 },
-      { id: 3, title: "No Time to Die", imgUrl: "https://placehold.co/600x350/333/fff?text=No+Time+to+Die", rating: 4.0 },
-      { id: 4, title: "Black Widow", imgUrl: "https://placehold.co/600x350/333/fff?text=Black+Widow", rating: 3.8 },
-      { id: 5, title: "Shang-Chi", imgUrl: "https://placehold.co/600x350/333/fff?text=Shang-Chi", rating: 4.1 },
-      { id: 6, title: "F9: The Fast Saga", imgUrl: "https://placehold.co/600x350/333/fff?text=F9", rating: 3.5 },
-    ]
-  },
-  {
-    id: 2,
-    title: "Action & Adventure",
-    movies: [
-      { id: 7, title: "The Tomorrow War", imgUrl: "https://placehold.co/600x350/333/fff?text=The+Tomorrow+War", rating: 3.7 },
-      { id: 8, title: "Wonder Woman 1984", imgUrl: "https://placehold.co/600x350/333/fff?text=Wonder+Woman+1984", rating: 3.6 },
-      { id: 9, title: "Tenet", imgUrl: "https://placehold.co/600x350/333/fff?text=Tenet", rating: 4.3 },
-      { id: 10, title: "Mission: Impossible", imgUrl: "https://placehold.co/600x350/333/fff?text=Mission+Impossible", rating: 4.4 },
-      { id: 11, title: "Extraction", imgUrl: "https://placehold.co/600x350/333/fff?text=Extraction", rating: 4.0 },
-      { id: 12, title: "The Old Guard", imgUrl: "https://placehold.co/600x350/333/fff?text=The+Old+Guard", rating: 3.9 },
-    ]
-  },
-  {
-    id: 3,
-    title: "Award-Winning Films",
-    movies: [
-      { id: 13, title: "Nomadland", imgUrl: "https://placehold.co/600x350/333/fff?text=Nomadland", rating: 4.6 },
-      { id: 14, title: "Parasite", imgUrl: "https://placehold.co/600x350/333/fff?text=Parasite", rating: 4.8 },
-      { id: 15, title: "The Father", imgUrl: "https://placehold.co/600x350/333/fff?text=The+Father", rating: 4.5 },
-      { id: 16, title: "Minari", imgUrl: "https://placehold.co/600x350/333/fff?text=Minari", rating: 4.3 },
-      { id: 17, title: "Sound of Metal", imgUrl: "https://placehold.co/600x350/333/fff?text=Sound+of+Metal", rating: 4.4 },
-      { id: 18, title: "Promising Young Woman", imgUrl: "https://placehold.co/600x350/333/fff?text=Promising+Young+Woman", rating: 4.2 },
-    ]
+// Add CSS styles
+const styles = `
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
-];
+  
+  .hover-scale:hover {
+    transform: scale(1.05);
+    z-index: 1;
+  }
+`;
 
-// Continue watching data
+// Mock data for continue watching section
 const continueWatching = [
   { 
     id: 101, 
@@ -82,34 +54,24 @@ const continueWatching = [
   }
 ];
 
-// My List data
-const myList = [
-  { id: 201, title: "The Crown", imgUrl: "https://placehold.co/600x350/333/fff?text=The+Crown", rating: 4.7 },
-  { id: 202, title: "Ozark", imgUrl: "https://placehold.co/600x350/333/fff?text=Ozark", rating: 4.5 },
-  { id: 203, title: "Dark", imgUrl: "https://placehold.co/600x350/333/fff?text=Dark", rating: 4.8 },
-  { id: 204, title: "Peaky Blinders", imgUrl: "https://placehold.co/600x350/333/fff?text=Peaky+Blinders", rating: 4.6 },
-  { id: 205, title: "Narcos", imgUrl: "https://placehold.co/600x350/333/fff?text=Narcos", rating: 4.4 },
-  { id: 206, title: "Money Heist", imgUrl: "https://placehold.co/600x350/333/fff?text=Money+Heist", rating: 4.5 }
-];
-
 // Coming Soon data
 const comingSoon = [
   { 
-    id: 301, 
+    showId: "cs1", 
     title: "Squid Game: Season 2", 
     imgUrl: "https://placehold.co/600x350/333/fff?text=Squid+Game+2", 
     releaseDate: "Dec 10, 2024",
     description: "The game continues as new players enter the deadly competition for a massive cash prize."
   },
   { 
-    id: 302, 
+    showId: "cs2", 
     title: "Interstellar 2", 
     imgUrl: "https://placehold.co/600x350/333/fff?text=Interstellar+2", 
     releaseDate: "Nov 18, 2024",
     description: "Cooper's journey continues as he explores new galaxies and dimensions."
   },
   { 
-    id: 303, 
+    showId: "cs3", 
     title: "Black Mirror: Season 6", 
     imgUrl: "https://placehold.co/600x350/333/fff?text=Black+Mirror", 
     releaseDate: "Oct 15, 2024",
@@ -159,6 +121,135 @@ const adminStats = {
   ]
 };
 
+// Generate dynamic genre categories
+const CATEGORIES = [
+  { id: 'trending', title: 'Trending Now', filter: (movie: Movie) => movie.releaseYear && movie.releaseYear >= 2020 },
+  { id: 'action', title: 'Action & Adventure', filter: (movie: Movie) => movie.Action === 1 || movie.Adventure === 1 },
+  { id: 'comedies', title: 'Comedies', filter: (movie: Movie) => movie.Comedies === 1 || movie.ComediesInternationalMovies === 1 || movie.ComediesRomanticMovies === 1 },
+  { id: 'dramas', title: 'Dramas', filter: (movie: Movie) => movie.Dramas === 1 || movie.DramasInternationalMovies === 1 || movie.DramasRomanticMovies === 1 },
+  { id: 'documentaries', title: 'Documentaries', filter: (movie: Movie) => movie.Documentaries === 1 || movie.DocumentariesInternationalMovies === 1 },
+  { id: 'family', title: 'Family Movies', filter: (movie: Movie) => movie.FamilyMovies === 1 || movie.Children === 1 },
+  { id: 'thrillers', title: 'Thrillers & Horrors', filter: (movie: Movie) => movie.Thrillers === 1 || movie.HorrorMovies === 1 },
+  { id: 'fantasy', title: 'Sci-Fi & Fantasy', filter: (movie: Movie) => movie.Fantasy === 1 }
+];
+
+// Create additional categories by combining genres for "unlimited" categories
+const generateMoreCategories = (count: number) => {
+  const result = [...CATEGORIES];
+  
+  // Add more specific genre combinations with better titles
+  const genreCombinations = [
+    { id: 'action_comedy', title: 'Action Comedies', filter: (movie: Movie) => 
+      (movie.Action === 1 && movie.Comedies === 1) },
+    { id: 'crime_drama', title: 'Crime Dramas', filter: (movie: Movie) => 
+      (movie.Dramas === 1 && (movie as any).Crime === 1) },
+    { id: 'romantic_comedy', title: 'Romantic Comedies', filter: (movie: Movie) => 
+      (movie.ComediesRomanticMovies === 1) },
+    { id: 'sci_fi_adventure', title: 'Sci-Fi Adventures', filter: (movie: Movie) => 
+      ((movie as any).SciFi === 1 && movie.Adventure === 1) },
+    { id: 'family_animated', title: 'Animated Family Films', filter: (movie: Movie) => 
+      (movie.FamilyMovies === 1 && (movie as any).Animation === 1) },
+    { id: 'cult_classics', title: 'Cult Classics', filter: (movie: Movie) => 
+      ((movie as any).CultMovies === 1) },
+    { id: 'indie_gems', title: 'Independent Gems', filter: (movie: Movie) => 
+      ((movie as any).IndependentMovies === 1) },
+    { id: 'foreign_language', title: 'Foreign Language Films', filter: (movie: Movie) => 
+      (movie.DramasInternationalMovies === 1 || movie.DocumentariesInternationalMovies === 1) },
+    { id: 'true_stories', title: 'Based on True Stories', filter: (movie: Movie) => 
+      (movie.Documentaries === 1) },
+    { id: 'critically_acclaimed', title: 'Critically Acclaimed', filter: (movie: Movie) => 
+      (movie.rating ? Number(movie.rating) >= 8 : false) },
+  ];
+  
+  result.push(...genreCombinations);
+  
+  // Decade-based categories
+  const decades = [
+    { id: 'movies_2020s', title: '2020s Releases', filter: (movie: Movie) => movie.releaseYear ? movie.releaseYear >= 2020 : false },
+    { id: 'movies_2010s', title: '2010s Hits', filter: (movie: Movie) => movie.releaseYear ? (movie.releaseYear >= 2010 && movie.releaseYear < 2020) : false },
+    { id: 'movies_2000s', title: '2000s Throwbacks', filter: (movie: Movie) => movie.releaseYear ? (movie.releaseYear >= 2000 && movie.releaseYear < 2010) : false },
+    { id: 'movies_1990s', title: '90s Classics', filter: (movie: Movie) => movie.releaseYear ? (movie.releaseYear >= 1990 && movie.releaseYear < 2000) : false },
+    { id: 'movies_1980s', title: '80s Nostalgia', filter: (movie: Movie) => movie.releaseYear ? (movie.releaseYear >= 1980 && movie.releaseYear < 1990) : false },
+    { id: 'movies_classics', title: 'Golden Age Classics', filter: (movie: Movie) => movie.releaseYear ? (movie.releaseYear < 1980 && movie.releaseYear >= 1940) : false },
+    { id: 'movies_silent_era', title: 'Silent Era Masterpieces', filter: (movie: Movie) => movie.releaseYear ? movie.releaseYear < 1940 : false }
+  ];
+  
+  result.push(...decades);
+  
+  // More specific categories for added variety
+  for (let i = 0; i < count; i++) {
+    // Create countries and regions based categories
+    if (i % 6 === 0) {
+      const regions = [
+        { region: 'European', prop: 'DramasInternationalMovies' },
+        { region: 'Asian', prop: 'DramasInternationalMovies' },
+        { region: 'Latin American', prop: 'DramasInternationalMovies' },
+        { region: 'International', prop: 'DramasInternationalMovies' },
+        { region: 'Global', prop: 'DocumentariesInternationalMovies' }
+      ];
+      
+      const regionIndex = i % regions.length;
+      const region = regions[regionIndex];
+      
+      result.push({
+        id: `${region.region.toLowerCase()}_films_${i}`,
+        title: `${region.region} Cinema`,
+        filter: (movie: Movie) => movie[region.prop as keyof Movie] === 1
+      });
+    }
+    
+    // Create mood-based categories
+    if (i % 5 === 0) {
+      const moods = [
+        { mood: 'Feel-Good', filter: (movie: Movie) => movie.Comedies === 1 || movie.FamilyMovies === 1 },
+        { mood: 'Thrilling', filter: (movie: Movie) => movie.Thrillers === 1 || movie.Action === 1 },
+        { mood: 'Thought-Provoking', filter: (movie: Movie) => movie.Documentaries === 1 || movie.Dramas === 1 },
+        { mood: 'Heartwarming', filter: (movie: Movie) => movie.DramasRomanticMovies === 1 || movie.FamilyMovies === 1 },
+        { mood: 'Epic', filter: (movie: Movie) => movie.Adventure === 1 && (movie.releaseYear ? movie.releaseYear >= 2000 : false) },
+        { mood: 'Nostalgic', filter: (movie: Movie) => movie.releaseYear ? (movie.releaseYear >= 1980 && movie.releaseYear <= 1999) : false },
+        { mood: 'Award-Winning', filter: (movie: Movie) => movie.rating ? Number(movie.rating) >= 8.5 : false }
+      ];
+      
+      const moodIndex = i % moods.length;
+      const mood = moods[moodIndex];
+      
+      result.push({
+        id: `${mood.mood.toLowerCase()}_${i}`,
+        title: `${mood.mood} Movies`,
+        filter: mood.filter
+      });
+    }
+    
+    // Director or actor showcases (simulated since we don't have this data)
+    if (i % 7 === 0) {
+      const creators = [
+        'Spielberg', 'Nolan', 'Tarantino', 'Scorsese', 'Hitchcock', 
+        'Kubrick', 'Villeneuve', 'Coppola', 'Miyazaki', 'Fincher'
+      ];
+      
+      const creatorIndex = i % creators.length;
+      
+      result.push({
+        id: `${creators[creatorIndex].toLowerCase()}_showcase_${i}`,
+        title: `${creators[creatorIndex]}'s Universe`,
+        // This is a placeholder - in real implementation you'd check for director/cast
+        // Here we're just using a deterministic but seemingly random selection based on title hash
+        filter: (movie: Movie) => {
+          if (!movie.title) return false;
+          // Use a deterministic but seemingly random selection based on title hash
+          const hash = movie.title.charCodeAt(0) + (movie.title.charCodeAt(movie.title.length - 1) || 0);
+          return hash % creators.length === creatorIndex;
+        }
+      });
+    }
+  }
+  
+  return result;
+};
+
+// Create extended categories list
+const UNLIMITED_CATEGORIES = generateMoreCategories(100);
+
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -166,9 +257,15 @@ const Dashboard: React.FC = () => {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] = useState<AdminDashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [moviesData, setMoviesData] = useState<Movie[]>([]);
+  const [categoryRows, setCategoryRows] = useState<{id: string, title: string, movies: Movie[], page: number, hasMore: boolean}[]>([]);
+  const [visibleCategories, setVisibleCategories] = useState<string[]>([]);
+  const [carouselLoading, setCarouselLoading] = useState<{[key: string]: boolean}>({});
+  const [usedMovieIds, setUsedMovieIds] = useState<Set<string>>(new Set());
   
-  // References for carousel controls
-  const carouselRefs = useRef<Array<HTMLDivElement | null>>([]);
+  // References for elements
+  const carouselRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const containerRef = useRef<HTMLDivElement | null>(null);
   
   useEffect(() => {
     // Simulate loading time
@@ -183,7 +280,323 @@ const Dashboard: React.FC = () => {
     if (isAdmin && pageLoaded) {
       fetchAdminDashboardStats();
     }
+    
+    if (!isAdmin && pageLoaded) {
+      fetchInitialMoviesData();
+    }
   }, [isAdmin, pageLoaded]);
+
+  // Load more categories as user scrolls down
+  const loadMoreCategories = useCallback(() => {
+    const currentCount = visibleCategories.length;
+    
+    // Use the unlimited categories list
+    if (currentCount < UNLIMITED_CATEGORIES.length) {
+      // Find a category that has enough movies that haven't been used yet
+      let foundCategory = false;
+      let attemptedCategories = 0;
+      const maxAttempts = 50; // Try more categories before giving up
+      
+      // First, check if we have data about the visible categories
+      console.log(`Current visible categories: ${visibleCategories.length}, Trying to add more...`);
+      
+      // Try to find a suitable category by checking multiple ones
+      let categoryIndex = currentCount;
+      let categoryMovies: Movie[] = [];
+      let categoryToAdd = null;
+      
+      while (!foundCategory && attemptedCategories < maxAttempts && categoryIndex < UNLIMITED_CATEGORIES.length) {
+        const nextCategory = UNLIMITED_CATEGORIES[categoryIndex];
+        
+        // Skip if this category is already visible
+        if (visibleCategories.includes(nextCategory.id)) {
+          categoryIndex++;
+          attemptedCategories++;
+          continue;
+        }
+        
+        // Get movies for this category that haven't been used yet
+        const unusedMovies = moviesData.filter(
+          movie => nextCategory.filter(movie) && !usedMovieIds.has(movie.showId)
+        );
+        
+        console.log(`Category ${nextCategory.title}: found ${unusedMovies.length} unused movies`);
+        
+        // If we have at least 3 unique movies (lowered threshold), use this category
+        if (unusedMovies.length >= 3) {
+          foundCategory = true;
+          categoryToAdd = nextCategory;
+          categoryMovies = unusedMovies;
+        } else {
+          categoryIndex++;
+          attemptedCategories++;
+        }
+      }
+      
+      if (foundCategory && categoryToAdd) {
+        console.log(`Adding category: ${categoryToAdd.title} with ${categoryMovies.length} movies`);
+        
+        // Get the movies to display (max 10)
+        const moviesToShow = categoryMovies.slice(0, 10);
+        
+        // Add these to our visible categories
+        setVisibleCategories(prev => [...prev, categoryToAdd.id]);
+        
+        // Track which movies we've used
+        const newUsedIds = new Set(usedMovieIds);
+        moviesToShow.forEach(movie => newUsedIds.add(movie.showId));
+        setUsedMovieIds(newUsedIds);
+        
+        // Add the new category row
+        setCategoryRows(prev => [
+          ...prev,
+          {
+            id: categoryToAdd.id,
+            title: categoryToAdd.title,
+            movies: moviesToShow,
+            page: 1,
+            hasMore: categoryMovies.length > 10
+          }
+        ]);
+      } else {
+        console.log(`Couldn't find suitable category after ${attemptedCategories} attempts. Fetching more movies...`);
+        // If we tried many categories and couldn't find one with enough movies,
+        // fetch more movies or try with fewer minimum required movies
+        if (!isLoading) {
+          // Try to fetch more movies
+          if (moviesData.length < 300) {
+            fetchMoreMovies();
+          } else {
+            // If we already have plenty of movies, lower our standards
+            forceAddACategory();
+          }
+        }
+      }
+    }
+  }, [visibleCategories, moviesData, usedMovieIds, isLoading]);
+
+  // Function to force add a category even with fewer movies
+  const forceAddACategory = useCallback(() => {
+    // Start from where we left off
+    const currentCount = visibleCategories.length;
+    let categoryIndex = currentCount;
+    
+    // Loop through categories and find any with at least 1 movie
+    while (categoryIndex < UNLIMITED_CATEGORIES.length) {
+      const nextCategory = UNLIMITED_CATEGORIES[categoryIndex];
+      
+      // Skip if this category is already visible
+      if (visibleCategories.includes(nextCategory.id)) {
+        categoryIndex++;
+        continue;
+      }
+      
+      // Check if this category has any movies at all
+      const unusedMovies = moviesData.filter(
+        movie => nextCategory.filter(movie) && !usedMovieIds.has(movie.showId)
+      );
+      
+      if (unusedMovies.length > 0) {
+        console.log(`Force adding category: ${nextCategory.title} with ${unusedMovies.length} movies`);
+        
+        // Add this to our visible categories
+        setVisibleCategories(prev => [...prev, nextCategory.id]);
+        
+        // Track which movies we've used
+        const newUsedIds = new Set(usedMovieIds);
+        unusedMovies.forEach(movie => newUsedIds.add(movie.showId));
+        setUsedMovieIds(newUsedIds);
+        
+        // Add the new category row
+        setCategoryRows(prev => [
+          ...prev,
+          {
+            id: nextCategory.id,
+            title: nextCategory.title,
+            movies: unusedMovies,
+            page: 1,
+            hasMore: false // Likely no more movies
+          }
+        ]);
+        
+        return;
+      }
+      
+      categoryIndex++;
+    }
+    
+    console.log("Reached the end of all categories!");
+  }, [visibleCategories, moviesData, usedMovieIds]);
+
+  // Initial fetch to populate first set of movies
+  const fetchInitialMoviesData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await movieService.getMovies({
+        page: 1,
+        pageSize: 200, // Increased to fetch more movies initially
+      });
+      
+      if (response && response.movies && response.movies.length > 0) {
+        setMoviesData(response.movies);
+        
+        // Generate category rows from the data
+        const initialCategories = UNLIMITED_CATEGORIES.filter(category => {
+          const filteredMovies = response.movies.filter(category.filter);
+          return filteredMovies.length >= 4; // Lowered threshold to include more categories
+        }).slice(0, 5); // Start with 5 categories
+        
+        // Track used movie IDs to ensure uniqueness
+        const usedIds = new Set<string>();
+        
+        const initialRows = initialCategories.map(category => {
+          // For the first category, we don't need to filter out used movies
+          let filteredMovies = response.movies.filter(category.filter);
+          
+          if (category.id !== initialCategories[0].id) {
+            // For subsequent categories, filter out movies already used
+            filteredMovies = filteredMovies.filter(movie => !usedIds.has(movie.showId));
+          }
+          
+          // Get the first 10 movies (or less if not enough)
+          const moviesToUse = filteredMovies.slice(0, 10);
+          
+          // Add these movies to the used set
+          moviesToUse.forEach(movie => usedIds.add(movie.showId));
+          
+          return {
+            id: category.id,
+            title: category.title,
+            movies: moviesToUse,
+            page: 1,
+            hasMore: filteredMovies.length > 10
+          };
+        });
+        
+        setCategoryRows(initialRows);
+        setVisibleCategories(initialCategories.map(c => c.id));
+        setUsedMovieIds(usedIds);
+      }
+    } catch (error) {
+      console.error('Error fetching initial movies:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fetch more movies to populate categories
+  const fetchMoreMovies = async () => {
+    try {
+      setIsLoading(true);
+      const currentMoviesCount = moviesData.length;
+      
+      const response = await movieService.getMovies({
+        page: Math.floor(currentMoviesCount / 50) + 1,
+        pageSize: 50,
+      });
+      
+      if (response && response.movies && response.movies.length > 0) {
+        // Avoid duplicates by checking showId
+        const existingIds = new Set(moviesData.map(m => m.showId));
+        const newMovies = response.movies.filter(m => !existingIds.has(m.showId));
+        
+        setMoviesData(prev => [...prev, ...newMovies]);
+        
+        // After loading more movies, try to load more categories
+        setTimeout(() => {
+          loadMoreCategories();
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error fetching more movies:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Handle scroll events for infinite loading with improved throttling
+  useEffect(() => {
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+    
+    const handleScroll = () => {
+      if (scrollTimeout) return;
+      
+      scrollTimeout = setTimeout(() => {
+        if (!containerRef.current) return;
+        
+        // If we're near the bottom, load more categories
+        const scrollPosition = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        // Load more when user scrolls near the bottom (500px threshold)
+        if (scrollPosition + windowHeight > documentHeight - 500 && !isLoading) {
+          loadMoreCategories();
+        }
+        
+        scrollTimeout = null;
+      }, 200);  // Throttle scroll events
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, [loadMoreCategories, isLoading]);
+  
+  // Fetch more movies for a specific carousel when scrolling horizontally
+  const loadMoreMoviesForCarousel = async (categoryId: string) => {
+    const categoryRow = categoryRows.find(row => row.id === categoryId);
+    if (!categoryRow || !categoryRow.hasMore || carouselLoading[categoryId]) return;
+    
+    try {
+      setCarouselLoading(prev => ({ ...prev, [categoryId]: true }));
+      
+      // Find the category definition
+      const category = UNLIMITED_CATEGORIES.find(c => c.id === categoryId);
+      if (!category) return;
+      
+      // Get all unused movies that match this category
+      const unusedMoviesForCategory = moviesData.filter(
+        movie => category.filter(movie) && !usedMovieIds.has(movie.showId) && 
+        !categoryRow.movies.some(m => m.showId === movie.showId)
+      );
+      
+      const currentCount = categoryRow.movies.length;
+      const moreMovies = unusedMoviesForCategory.slice(0, 5);
+      
+      // If we don't have enough movies in our current dataset, potentially fetch more from API
+      if (moreMovies.length < 5 && moviesData.length < 300) {
+        // Optional: fetch more movies from API here if needed
+      }
+      
+      if (moreMovies.length > 0) {
+        // Track newly used movies
+        const newUsedIds = new Set(usedMovieIds);
+        moreMovies.forEach(movie => newUsedIds.add(movie.showId));
+        setUsedMovieIds(newUsedIds);
+        
+        // Update the carousel with new movies
+        setCategoryRows(prev => 
+          prev.map(row => 
+            row.id === categoryId 
+              ? { 
+                  ...row, 
+                  movies: [...row.movies, ...moreMovies],
+                  page: row.page + 1,
+                  hasMore: unusedMoviesForCategory.length > moreMovies.length
+                } 
+              : row
+          )
+        );
+      }
+    } catch (error) {
+      console.error(`Error loading more movies for carousel ${categoryId}:`, error);
+    } finally {
+      setCarouselLoading(prev => ({ ...prev, [categoryId]: false }));
+    }
+  };
   
   const fetchAdminDashboardStats = async () => {
     try {
@@ -198,9 +611,9 @@ const Dashboard: React.FC = () => {
   };
   
   // Function to scroll carousel
-  const scrollCarousel = (sectionIndex: number, direction: 'prev' | 'next') => {
+  const scrollCarousel = (categoryId: string, direction: 'prev' | 'next') => {
     const scrollAmount = 250; // Width of each card + margin
-    const carousel = carouselRefs.current[sectionIndex];
+    const carousel = carouselRefs.current[categoryId];
     if (carousel) {
       const scrollLeftMax = carousel.scrollWidth - carousel.clientWidth;
       const newScrollLeft = direction === 'next' 
@@ -211,12 +624,37 @@ const Dashboard: React.FC = () => {
         left: newScrollLeft,
         behavior: 'smooth'
       });
+      
+      // If we're near the end and there are more movies to load, load them
+      if (direction === 'next' && newScrollLeft > scrollLeftMax - 500) {
+        loadMoreMoviesForCarousel(categoryId);
+      }
     }
   };
 
-  // Properly typed ref callback
-  const setCarouselRef = (index: number) => (el: HTMLDivElement | null) => {
-    carouselRefs.current[index] = el;
+  // Track carousel scroll to load more when user scrolls near the end
+  const handleCarouselScroll = (categoryId: string) => {
+    const carousel = carouselRefs.current[categoryId];
+    if (carousel) {
+      const { scrollLeft, scrollWidth, clientWidth } = carousel;
+      const isNearEnd = scrollLeft > scrollWidth - clientWidth - 500;
+      
+      if (isNearEnd) {
+        loadMoreMoviesForCarousel(categoryId);
+      }
+    }
+  };
+
+  // Function to get movie image URL or fallback to placeholder
+  const getMovieImageUrl = (movie: Movie) => {
+    // In a real implementation, you would use movie.posterUrl or similar
+    return `https://placehold.co/600x350/333/fff?text=${encodeURIComponent(movie.title || 'Movie')}`;
+  };
+
+  // Function to get movie rating display
+  const getMovieRatingDisplay = (movie: Movie) => {
+    if (!movie.rating) return "N/A";
+    return isNaN(Number(movie.rating)) ? movie.rating : Number(movie.rating).toFixed(1);
   };
 
   // Admin Dashboard View
@@ -467,8 +905,9 @@ const Dashboard: React.FC = () => {
   // Regular User Dashboard View
   const renderUserDashboard = () => {
     return (
-      <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }}>
-        {/* Welcome message */}
+      <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }} ref={containerRef}>
+        {/* Add styles */}
+        <style>{styles}</style>
         
         {/* Hero Banner - Netflix Style */}
         <div 
@@ -537,196 +976,110 @@ const Dashboard: React.FC = () => {
                 >
                   <FaPlay className="me-2" /> Play
                 </Button>
+                <Button 
+                  variant="light" 
+                  className="d-flex align-items-center"
+                >
+                  <FaInfoCircle className="me-2" /> More Info
+                </Button>
               </div>
             </div>
           </Container>
         </div>
         
-        {/* Continue Watching Section */}
-        <Container fluid className="mb-5 px-4">
-          <h5 className="mb-3">Continue Watching</h5>
-          <div className="position-relative">
-            <div 
-              className="d-flex gap-3 overflow-auto pb-3"
-              style={{ scrollbarWidth: 'none' }}
-              ref={setCarouselRef(0)}
-            >
-              {continueWatching.map(item => (
-                <div 
-                  key={item.id} 
-                  className="movie-card" 
-                  style={{ minWidth: '250px', cursor: 'pointer' }}
-                >
-                  <div className="position-relative">
-                    <img 
-                      src={item.imgUrl} 
-                      alt={item.title} 
-                      className="img-fluid rounded"
-                      style={{ height: '140px', width: '100%', objectFit: 'cover' }}
-                    />
-                    <div className="position-absolute bottom-0 start-0 end-0 p-2">
-                      <ProgressBar 
-                        now={item.progress} 
-                        variant="danger" 
-                        style={{ height: '4px' }} 
-                      />
-                    </div>
-                  </div>
-                  <div className="d-flex justify-content-between align-items-center mt-2">
-                    <h6 className="mb-0">{item.title}</h6>
-                    <Badge bg="secondary">{item.episode}</Badge>
-                  </div>
-                  <small className="text-muted">{item.timeLeft}</small>
-                </div>
-              ))}
-            </div>
-            <Button 
-              variant="dark" 
-              className="position-absolute start-0 top-50 translate-middle-y rounded-circle p-1"
-              style={{ opacity: 0.7 }}
-              onClick={() => scrollCarousel(0, 'prev')}
-            >
-              <FaArrowLeft />
-            </Button>
-            <Button 
-              variant="dark" 
-              className="position-absolute end-0 top-50 translate-middle-y rounded-circle p-1"
-              style={{ opacity: 0.7 }}
-              onClick={() => scrollCarousel(0, 'next')}
-            >
-              <FaArrowRight />
-            </Button>
+        {/* Netflix-style Dynamic Category Rows */}
+        {isLoading && categoryRows.length === 0 ? (
+          <div className="d-flex justify-content-center my-5">
+            <Spinner animation="border" variant="danger" />
           </div>
-        </Container>
-        
-        {/* Movie Sections */}
-        {movieSections.map((section, index) => (
-          <Container fluid key={section.id} className="mb-5 px-4">
-            <h5 className="mb-3">{section.title}</h5>
-            <div className="position-relative">
-              <div 
-                className="d-flex gap-3 overflow-auto pb-3"
-                style={{ scrollbarWidth: 'none' }}
-                ref={setCarouselRef(index + 1)}
-              >
-                {section.movies.map(movie => (
+        ) : (
+          <>
+            {categoryRows.map((category) => (
+              <Container fluid key={category.id} className="mb-5 px-4">
+                <h5 className="mb-3">{category.title}</h5>
+                <div className="position-relative">
                   <div 
-                    key={movie.id} 
-                    className="movie-card" 
-                    style={{ minWidth: '200px', cursor: 'pointer' }}
+                    className="d-flex gap-3 overflow-auto pb-3 hide-scrollbar"
+                    style={{ 
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none'
+                    }}
+                    ref={el => {
+                      carouselRefs.current[category.id] = el;
+                      return undefined;
+                    }}
+                    onScroll={() => handleCarouselScroll(category.id)}
                   >
-                    <img 
-                      src={movie.imgUrl} 
-                      alt={movie.title} 
-                      className="img-fluid rounded"
-                      style={{ height: '120px', width: '100%', objectFit: 'cover' }}
-                    />
-                    <div className="d-flex justify-content-between align-items-start mt-2">
-                      <h6 className="mb-0">{movie.title}</h6>
-                      <div className="d-flex align-items-center">
-                        <FaStar className="text-warning me-1" />
-                        <small>{movie.rating.toFixed(1)}</small>
+                    {category.movies.map(movie => (
+                      <div 
+                        key={movie.showId} 
+                        className="movie-card hover-scale" 
+                        style={{ 
+                          minWidth: '200px', 
+                          cursor: 'pointer',
+                          transition: 'transform 0.3s ease'
+                        }}
+                        onClick={() => navigate(`/movies/${movie.showId}`)}
+                      >
+                        <div className="position-relative">
+                          <img 
+                            src={getMovieImageUrl(movie)} 
+                            alt={movie.title} 
+                            className="img-fluid rounded"
+                            style={{ height: '120px', width: '100%', objectFit: 'cover' }}
+                          />
+                          <div className="position-absolute top-0 end-0 p-1">
+                            <Badge bg="dark" className="opacity-75">{movie.type}</Badge>
+                          </div>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-start mt-2">
+                          <h6 className="mb-0 text-truncate" style={{ maxWidth: '140px' }}>{movie.title}</h6>
+                          <div className="d-flex align-items-center">
+                            <FaStar className="text-warning me-1" />
+                            <small>{getMovieRatingDisplay(movie)}</small>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
+                    
+                    {/* Loading indicator at end of carousel */}
+                    {carouselLoading[category.id] && (
+                      <div className="d-flex align-items-center justify-content-center" style={{ minWidth: '100px' }}>
+                        <Spinner animation="border" size="sm" />
+                      </div>
+                    )}
                   </div>
-                ))}
+                  
+                  {/* Navigation buttons */}
+                  <Button 
+                    variant="dark" 
+                    className="position-absolute start-0 top-50 translate-middle-y rounded-circle p-1"
+                    style={{ opacity: 0.7 }}
+                    onClick={() => scrollCarousel(category.id, 'prev')}
+                  >
+                    <FaArrowLeft />
+                  </Button>
+                  <Button 
+                    variant="dark" 
+                    className="position-absolute end-0 top-50 translate-middle-y rounded-circle p-1"
+                    style={{ opacity: 0.7 }}
+                    onClick={() => scrollCarousel(category.id, 'next')}
+                  >
+                    <FaArrowRight />
+                  </Button>
+                </div>
+              </Container>
+            ))}
+            
+            {/* Updated loading indicator - never shows "all categories loaded" */}
+            {(visibleCategories.length < UNLIMITED_CATEGORIES.length || isLoading) && (
+              <div className="text-center my-5">
+                <Spinner animation="border" variant="light" />
+                <p className="mt-2 text-muted">Discovering more movies for you...</p>
               </div>
-              <Button 
-                variant="dark" 
-                className="position-absolute start-0 top-50 translate-middle-y rounded-circle p-1"
-                style={{ opacity: 0.7 }}
-                onClick={() => scrollCarousel(index + 1, 'prev')}
-              >
-                <FaArrowLeft />
-              </Button>
-              <Button 
-                variant="dark" 
-                className="position-absolute end-0 top-50 translate-middle-y rounded-circle p-1"
-                style={{ opacity: 0.7 }}
-                onClick={() => scrollCarousel(index + 1, 'next')}
-              >
-                <FaArrowRight />
-              </Button>
-            </div>
-          </Container>
-        ))}
-        
-        {/* My List Section */}
-        <Container fluid className="mb-5 px-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="mb-0">My List</h5>
-            <Button variant="link" className="text-light p-0">
-              See All <FaChevronRight className="ms-1" />
-            </Button>
-          </div>
-          <Row className="row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
-            {myList.map(item => (
-              <Col key={item.id}>
-                <Card className="bg-dark text-white h-100 border-0">
-                  <Card.Img 
-                    src={item.imgUrl} 
-                    alt={item.title} 
-                    style={{ height: '150px', objectFit: 'cover' }}
-                  />
-                  <Card.Body className="p-2">
-                    <div className="d-flex justify-content-between">
-                      <Card.Title className="h6 mb-0">{item.title}</Card.Title>
-                      <div className="d-flex align-items-center">
-                        <FaStar className="text-warning me-1" />
-                        <small>{item.rating.toFixed(1)}</small>
-                      </div>
-                    </div>
-                  </Card.Body>
-                  <div className="card-img-overlay d-flex align-items-center justify-content-center opacity-0 hover-overlay">
-                    <Button variant="danger" size="sm" className="me-2">
-                      <FaPlay />
-                    </Button>
-                    <Button variant="secondary" size="sm">
-                      <FaInfoCircle />
-                    </Button>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-        
-        {/* Coming Soon Section */}
-        <Container fluid className="mb-5 px-4">
-          <h5 className="mb-3">Coming Soon</h5>
-          <Row className="g-4">
-            {comingSoon.map(item => (
-              <Col key={item.id} md={4}>
-                <Card className="bg-dark text-white border-0">
-                  <Card.Img 
-                    src={item.imgUrl} 
-                    alt={item.title} 
-                    style={{ height: '200px', objectFit: 'cover', opacity: 0.7 }}
-                  />
-                  <Card.ImgOverlay className="d-flex flex-column justify-content-end">
-                    <div className="d-flex align-items-center mb-2">
-                      <Badge bg="danger" className="me-2">Coming Soon</Badge>
-                      <div className="d-flex align-items-center">
-                        <FaCalendarAlt className="me-1" />
-                        <small>{item.releaseDate}</small>
-                      </div>
-                    </div>
-                    <Card.Title>{item.title}</Card.Title>
-                    <Card.Text>{item.description}</Card.Text>
-                    <div className="d-flex">
-                      <Button variant="outline-light" size="sm" className="me-2">
-                        <FaBell className="me-1" /> Remind Me
-                      </Button>
-                      <Button variant="outline-light" size="sm">
-                        <FaShare className="me-1" /> Share
-                      </Button>
-                    </div>
-                  </Card.ImgOverlay>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Container>
+            )}
+          </>
+        )}
       </div>
     );
   };

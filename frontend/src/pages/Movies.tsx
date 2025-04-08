@@ -89,7 +89,7 @@ const Movies: React.FC = () => {
       >
         <Row xs={1} md={2} lg={3} xl={4} className="g-4">
           {movies.map(movie => (
-            <Col key={movie.id}>
+            <Col key={movie.showId}>
               <MovieCard movie={movie} />
             </Col>
           ))}
