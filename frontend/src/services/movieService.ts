@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Movie, MovieResponse } from "../types/movie";
+import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 
 const API_BASE_URL =
   "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie"; // Updated to use the new backend URL
@@ -19,20 +19,48 @@ const handleApiError = async (apiCall: () => Promise<any>) => {
 };
 
 export const movieService = {
-  async getMovies(pageSize: number, pageNum: number): Promise<MovieResponse> {
-    try {
-      // For this API, we don't need parameters as it returns all movies
-      const url = `${API_BASE_URL}/GetMovies`;
-
+  async getMovies(pageOrFilters: number | MovieFilters, pageNum?: number): Promise<MovieResponse> {
+    return handleApiError(async () => {
+      // Extract pagination parameters and search term
+      let page = 1;
+      let pageSize = 10;
+      let searchTerm = "";
+      
+      if (typeof pageOrFilters === 'number') {
+        pageSize = pageOrFilters;
+        page = pageNum || 1;
+      } else if (pageOrFilters) {
+        pageSize = pageOrFilters.pageSize || 10;
+        page = pageOrFilters.page || 1;
+        searchTerm = pageOrFilters.searchTerm || "";
+      }
+      
+      let url = `${API_BASE_URL}/GetMovies`;
+      
+      // If we have a search term, use it in the API call
+      if (searchTerm) {
+        url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm)}`;
+      }
+      
       const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
       }
 
-      // Convert array of movie titles to proper MovieResponse format with realistic data
-      const movieTitles = await response.json();
-      const movies = movieTitles.map((title: string, index: number) => {
+      // Process response data
+      const allMovieTitles = await response.json();
+      
+      // Calculate total pages and slice the array for pagination
+      const totalItems = allMovieTitles.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      const paginatedTitles = allMovieTitles.slice(startIndex, endIndex);
+      
+      // Map titles to movie objects
+      const movies = paginatedTitles.map((title: string, index: number) => {
+        const globalIndex = startIndex + index;
         // Generate a random year between 1980 and 2023
         const releaseYear =
           Math.floor(Math.random() * (2023 - 1980 + 1)) + 1980;
@@ -88,13 +116,10 @@ export const movieService = {
 
         // Generate a placeholder description
         const description = `A ${type.toLowerCase()} about ${title.toLowerCase()} that captivates audiences with its compelling storytelling and unforgettable characters.`;
-
-        // Create a consistent ID by using the first few characters of the title
-        const showId = `s${index + 1000}-${title
-          .replace(/[^a-zA-Z0-9]/g, "")
-          .substring(0, 6)
-          .toLowerCase()}`;
-
+        
+        // Create a simpler ID that matches database format
+        const showId = `s${globalIndex + 1}`;
+        
         return {
           showId,
           title,
@@ -112,77 +137,43 @@ export const movieService = {
 
       return {
         movies,
-        totalNumMovies: movies.length,
+        totalNumMovies: totalItems,
+        currentPage: page,
+        totalPages: totalPages
       };
-    } catch (error) {
-      console.error("Error fetching movies:", error);
-      throw error;
-    }
+    });
   },
 
   async getMovieById(id: string): Promise<Movie> {
     return handleApiError(async () => {
-      const response = await axios.get(`${API_BASE_URL}/movies/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/GetMovieById/${id}`);
       return response.data;
     });
   },
 
   async createMovie(newMovie: Movie): Promise<Movie> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/AddMovie`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newMovie),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch movie");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.log("Error adding movie:", error);
-      throw error;
-    }
+    return handleApiError(async () => {
+      const response = await axios.post(`${API_BASE_URL}/AddMovie`, newMovie);
+      return response.data;
+    });
   },
 
   async updateMovie(showId: string, updatedMovie: Movie): Promise<Movie> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/UpdateMovie/${showId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedMovie),
-      });
-
-      return await response.json();
-    } catch (error) {
-      console.error("Error updating movie:", error);
-      throw error;
-    }
+    return handleApiError(async () => {
+      const response = await axios.put(`${API_BASE_URL}/UpdateMovie/${showId}`, updatedMovie);
+      return response.data;
+    });
   },
 
   async deleteMovie(showId: string): Promise<void> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/DeleteMovie/${showId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete movie");
-      }
-    } catch (error) {
-      console.error("Error deleting movie:", error);
-      throw error;
-    }
+    return handleApiError(async () => {
+      await axios.delete(`${API_BASE_URL}/DeleteMovie/${showId}`);
+    });
   },
 
   async rateMovie(id: string, rating: number): Promise<Movie> {
     return handleApiError(async () => {
-      const response = await axios.post(`${API_BASE_URL}/movies/${id}/rate`, {
+      const response = await axios.post(`${API_BASE_URL}/Rate/${id}`, {
         rating,
       });
       return response.data;

@@ -95,7 +95,11 @@ const AdminMovies: React.FC = () => {
   const loadMovies = async () => {
     try {
       setLoading(true);
-      const response = await movieService.getMovies(pageSize, currentPage);
+      const response = await movieService.getMovies({
+        page: currentPage,
+        pageSize: pageSize,
+        searchTerm: searchTerm
+      });
       setMovies(response.movies);
       setTotalPages(Math.ceil(response.totalNumMovies / pageSize));
     } catch (err) {
@@ -132,15 +136,28 @@ const AdminMovies: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setLoading(true); // Show loading state
+      setError(""); // Clear any previous errors
+      
       if (editingMovie) {
-        await movieService.updateMovie(editingMovie.showId, formData);
+        const updatedMovie = await movieService.updateMovie(editingMovie.showId, formData);
+        // Update the movie in the current list to avoid a full reload
+        setMovies(prevMovies => 
+          prevMovies.map(m => m.showId === updatedMovie.showId ? updatedMovie : m)
+        );
       } else {
-        await movieService.createMovie(formData as Movie);
+        const newMovie = await movieService.createMovie(formData as Movie);
+        // Add the new movie to the current list
+        setMovies(prevMovies => [...prevMovies, newMovie]);
       }
       handleCloseModal();
+      // Reload the movies to ensure we have the latest data
       loadMovies();
     } catch (err) {
-      setError("Failed to save movie: " + err);
+      console.error("Error saving movie:", err);
+      setError("Failed to save movie. Please check your input and try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,7 +165,12 @@ const AdminMovies: React.FC = () => {
     if (window.confirm("Are you sure you want to delete this movie?")) {
       try {
         await movieService.deleteMovie(id);
-        loadMovies();
+        // Remove the movie from the current list
+        setMovies(prevMovies => prevMovies.filter(m => m.showId !== id));
+        // If we're on the last page and it's now empty, go to previous page
+        if (movies.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        }
       } catch (err) {
         setError("Failed to delete movie: " + err);
       }
@@ -160,11 +182,20 @@ const AdminMovies: React.FC = () => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "releaseYear" ? Number(value) : value,
-    }));
+    const { name, value, type } = e.target as HTMLInputElement;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: checked ? 1 : 0,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: name === "releaseYear" ? Number(value) : value,
+      }));
+    }
   };
 
   // Toggle row expansion
@@ -176,6 +207,14 @@ const AdminMovies: React.FC = () => {
       newExpandedRows.add(id);
     }
     setExpandedRows(newExpandedRows);
+  };
+
+  // Search handler for when Enter key is pressed
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      loadMovies();
+    }
   };
 
   return (
@@ -202,14 +241,18 @@ const AdminMovies: React.FC = () => {
 
           <Row className="mb-4">
             <Col md={6} lg={4}>
-              <Form onSubmit={(e) => e.preventDefault()}>
+              <Form onSubmit={(e) => {
+                e.preventDefault();
+                loadMovies();
+              }}>
                 <InputGroup>
                   <FormControl
                     placeholder="Search movies..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleSearchKeyPress}
                   />
-                  <Button variant="primary" onClick={loadMovies}>
+                  <Button variant="primary" type="submit">
                     <FaSearch />
                   </Button>
                 </InputGroup>
@@ -230,18 +273,12 @@ const AdminMovies: React.FC = () => {
               <Table hover striped bordered className="align-middle">
                 <thead className="bg-light">
                   <tr>
-                    <th style={{ width: "80px" }}>Show ID</th>
+                    <th style={{ width: "80px" }}>ID</th>
                     <th style={{ width: "80px" }}>Type</th>
-                    <th style={{ width: "180px" }}>Title <small className="text-muted">(click row to expand)</small></th>
-                    <th style={{ width: "120px" }}>Director</th>
-                    <th style={{ width: "150px" }}>Cast</th>
-                    <th style={{ width: "120px" }}>Country</th>
-                    <th style={{ width: "80px" }}>Release Year</th>
-                    <th style={{ width: "80px" }}>Rating</th>
-                    <th style={{ width: "80px" }}>Duration</th>
-                    <th style={{ width: "200px" }}>Description</th>
-                    <th style={{ width: "150px" }}>Genre</th>
-                    <th style={{ width: "180px" }} className="text-center">Actions</th>
+                    <th>Title</th>
+                    <th>Release Year</th>
+                    <th>Rating</th>
+                    <th style={{ width: "120px" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -267,51 +304,35 @@ const AdminMovies: React.FC = () => {
                             {movie.title}
                           </div>
                         </td>
-                        <td className="text-truncate" style={{ maxWidth: "150px" }}>{movie.director}</td>
-                        <td className="text-truncate" style={{ maxWidth: "150px" }}>{movie.cast}</td>
-                        <td>{movie.country}</td>
                         <td>{movie.releaseYear}</td>
                         <td>{movie.rating}</td>
-                        <td>{movie.duration}</td>
-                        <td className="text-truncate" style={{ maxWidth: "200px" }}>{movie.description}</td>
-                        <td className="text-truncate" style={{ maxWidth: "150px" }}>
-                          {Object.entries(movie)
-                            .filter(([key, value]) => value === 1 && 
-                              !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
-                            .map(([key]) => key)
-                            .join(', ')}
-                        </td>
                         <td>
-                          <div className="d-flex justify-content-center gap-2">
+                          <div className="d-flex justify-content-between gap-1">
                             <Button
-                              variant="primary"
+                              variant="outline-primary"
                               size="sm"
-                              className="d-inline-flex align-items-center justify-content-center"
-                              style={{ width: "80px" }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleShowModal(movie);
                               }}
                             >
-                              <FaEdit className="me-1" /> Edit
+                              <FaEdit />
                             </Button>
                             <Button
-                              variant="danger"
+                              variant="outline-danger"
                               size="sm"
-                              className="d-inline-flex align-items-center justify-content-center"
-                              style={{ width: "80px" }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDelete(movie.showId);
                               }}
                             >
-                              <FaTrash className="me-1" /> Delete
+                              <FaTrash />
                             </Button>
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td colSpan={12} className="p-0">
+                        <td colSpan={6} className="p-0">
                           <Collapse in={expandedRows.has(movie.showId)}>
                             <div>
                               <div className="bg-light p-3 border-top">
@@ -471,6 +492,98 @@ const AdminMovies: React.FC = () => {
                 onChange={handleChange}
               />
             </Form.Group>
+            
+            <hr className="my-4" />
+            <h5 className="mb-3">Genres</h5>
+            <Row>
+              <Col md={4}>
+                <Form.Check
+                  type="checkbox"
+                  id="genre-action"
+                  label="Action"
+                  name="Action"
+                  checked={formData.Action === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="genre-adventure"
+                  label="Adventure"
+                  name="Adventure"
+                  checked={formData.Adventure === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="genre-comedies"
+                  label="Comedies"
+                  name="Comedies"
+                  checked={formData.Comedies === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+              </Col>
+              <Col md={4}>
+                <Form.Check
+                  type="checkbox"
+                  id="genre-dramas"
+                  label="Dramas"
+                  name="Dramas"
+                  checked={formData.Dramas === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="genre-documentaries"
+                  label="Documentaries"
+                  name="Documentaries"
+                  checked={formData.Documentaries === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="genre-family"
+                  label="Family Movies"
+                  name="FamilyMovies"
+                  checked={formData.FamilyMovies === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+              </Col>
+              <Col md={4}>
+                <Form.Check
+                  type="checkbox"
+                  id="genre-horror"
+                  label="Horror Movies"
+                  name="HorrorMovies"
+                  checked={formData.HorrorMovies === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="genre-thrillers"
+                  label="Thrillers"
+                  name="Thrillers"
+                  checked={formData.Thrillers === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+                <Form.Check
+                  type="checkbox"
+                  id="genre-fantasy"
+                  label="Fantasy"
+                  name="Fantasy"
+                  checked={formData.Fantasy === 1}
+                  onChange={handleChange}
+                  className="mb-2"
+                />
+              </Col>
+            </Row>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleCloseModal}>

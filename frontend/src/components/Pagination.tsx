@@ -54,42 +54,47 @@ const Pagination = ({
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex item-center justify-center mt-4">
-      <button
-        disabled={currentPage === 1}
-        onClick={() => onPageChange(currentPage - 1)}
-      >
-        Previous
-      </button>
+    <div className="d-flex flex-column align-items-center mt-4">
+      <div className="btn-group mb-3">
+        <button
+          className={`btn ${currentPage === 1 ? 'btn-secondary' : 'btn-primary'}`}
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+        >
+          Previous
+        </button>
 
-      {pageNumbers.map((page, index) =>
-        typeof page === "number" ? (
-          <button
-            key={index}
-            onClick={() => onPageChange(page)}
-            disabled={currentPage === page}
-          >
-            {page}
-          </button>
-        ) : (
-          <span key={index} style={{ margin: "0 5px" }}>
-            {page}
-          </span>
-        )
-      )}
+        {pageNumbers.map((page, index) =>
+          typeof page === "number" ? (
+            <button
+              key={index}
+              className={`btn ${currentPage === page ? 'btn-secondary' : 'btn-primary'}`}
+              onClick={() => onPageChange(page)}
+              disabled={currentPage === page}
+            >
+              {page}
+            </button>
+          ) : (
+            <span key={index} className="btn btn-outline-secondary disabled">
+              {page}
+            </span>
+          )
+        )}
 
-      <button
-        disabled={currentPage === totalPages}
-        onClick={() => onPageChange(currentPage + 1)}
-      >
-        Next
-      </button>
+        <button
+          className={`btn ${currentPage === totalPages ? 'btn-secondary' : 'btn-primary'}`}
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+        >
+          Next
+        </button>
+      </div>
 
-      <br />
-
-      <label>
-        Results per page:
+      <div className="d-flex align-items-center">
+        <span className="me-2">Results per page:</span>
         <select
+          className="form-select form-select-sm"
+          style={{ width: '80px' }}
           value={pageSize}
           onChange={(p) => {
             onPageSizeChange(Number(p.target.value));
@@ -99,8 +104,9 @@ const Pagination = ({
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="20">20</option>
+          <option value="50">50</option>
         </select>
-      </label>
+      </div>
     </div>
   );
 };
