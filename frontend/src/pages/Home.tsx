@@ -388,12 +388,12 @@ const Home: React.FC = () => {
                   data-bs-target="#faq1"
                   style={{ zIndex: 5, position: 'relative' }}
                 >
-                  What is MovieHub?
+                  What is CineNiche?
                 </button>
               </h3>
               <div id="faq1" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                 <div className="accordion-body">
-                  MovieHub is a streaming service that offers a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.
+                  Cine is a streaming service that offers a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.
                 </div>
               </div>
             </div>
@@ -407,12 +407,12 @@ const Home: React.FC = () => {
                   data-bs-target="#faq2"
                   style={{ zIndex: 5, position: 'relative' }}
                 >
-                  How much does MovieHub cost?
+                  How much does Cine cost?
                 </button>
               </h3>
               <div id="faq2" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                 <div className="accordion-body">
-                  Watch MovieHub on your smartphone, tablet, Smart TV, laptop, or streaming device, all for one fixed monthly fee. Plans range from $8.99 to $17.99 a month. No extra costs, no contracts.
+                  Watch Cine on your smartphone, tablet, Smart TV, laptop, or streaming device, all for one fixed monthly fee. Plans range from $8.99 to $17.99 a month. No extra costs, no contracts.
                 </div>
               </div>
             </div>
@@ -431,7 +431,7 @@ const Home: React.FC = () => {
               </h3>
               <div id="faq3" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                 <div className="accordion-body">
-                  Watch anywhere, anytime. Sign in with your MovieHub account to watch instantly on the web at moviehub.com from your personal computer or on any internet-connected device that offers the MovieHub app, including smart TVs, smartphones, tablets, streaming media players and game consoles.
+                  Watch anywhere, anytime. Sign in with your CineNiche account to watch instantly on the web at cineNiche.com from your personal computer or on any internet-connected device that offers the CineNiche app, including smart TVs, smartphones, tablets, streaming media players and game consoles.
                 </div>
               </div>
             </div>
@@ -450,7 +450,7 @@ const Home: React.FC = () => {
               </h3>
               <div id="faq4" className="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                 <div className="accordion-body">
-                  MovieHub is flexible. There are no pesky contracts and no commitments. You can easily cancel your account online in two clicks. There are no cancellation fees – start or stop your account anytime.
+                  CineNiche is flexible. There are no pesky contracts and no commitments. You can easily cancel your account online in two clicks. There are no cancellation fees – start or stop your account anytime.
                 </div>
               </div>
             </div>
@@ -481,7 +481,7 @@ const Home: React.FC = () => {
         <Container>
           <Row>
             <Col md={3} sm={6} className="mb-4">
-              <h5>MovieHub</h5>
+              <h5>CineNiche</h5>
               <ul className="list-unstyled">
                 <li><a href="#" className="text-decoration-none text-white-50">About Us</a></li>
                 <li><a href="#" className="text-decoration-none text-white-50">Jobs</a></li>
@@ -514,7 +514,7 @@ const Home: React.FC = () => {
             </Col>
           </Row>
           <div className="text-center mt-4">
-            <p>© 2024 MovieHub. All rights reserved.</p>
+            <p>© 2025 CineNiche. All rights reserved.</p>
           </div>
         </Container>
       </footer>
