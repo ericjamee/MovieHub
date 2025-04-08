@@ -28,12 +28,12 @@ export const movieService = {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch projects");
+        throw new Error("Failed to fetch movies");
       }
 
       return await response.json();
     } catch (error) {
-      console.error("Error fetching projects:", error);
+      console.error("Error fetching movies:", error);
       throw error;
     }
   },
@@ -61,7 +61,7 @@ export const movieService = {
 
       return await response.json();
     } catch (error) {
-      console.log("Error adding project:", error);
+      console.log("Error adding movie:", error);
       throw error;
     }
   },
@@ -83,10 +83,19 @@ export const movieService = {
     }
   },
 
-  async deleteMovie(id: string): Promise<void> {
-    return handleApiError(async () => {
-      await axios.delete(`${API_BASE_URL}/movies/${id}`);
-    });
+  async deleteMovie(showId: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/DeleteMovie/${showId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete movie");
+      }
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+      throw error;
+    }
   },
 
   async rateMovie(id: number, rating: number): Promise<Movie> {

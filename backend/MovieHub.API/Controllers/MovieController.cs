@@ -40,7 +40,7 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpPost("AddMovie")]
-        public IActionResult AddProject([FromBody] MoviesTitle newMovie)
+        public IActionResult AddMovie([FromBody] MoviesTitle newMovie)
         {
             int highestId = _movieContext.MoviesTitles
                 .Select(m => m.ShowId) // Assuming Id is the "s123" format
@@ -73,6 +73,22 @@ namespace MovieHub.API.Controllers
             _movieContext.SaveChanges();
 
             return Ok(existingMovie);
+        }
+
+        [HttpDelete("DeleteMovie/{showId}")]
+        public IActionResult DeleteMovie(string showId)
+        {
+            MoviesTitle movie = _movieContext.MoviesTitles.Find(showId);
+
+            if (movie == null)
+            {
+                return NotFound(new { message = "Movie not found" });
+            }
+
+            _movieContext.MoviesTitles.Remove(movie);
+            _movieContext.SaveChanges();
+
+            return NoContent();
         }
 
         [HttpGet("AdminDashboardStats")]
