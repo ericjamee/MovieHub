@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MovieHub.API.Data;
+using MovieHub.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,8 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
 });
+
+builder.Services.AddSingleton<RecommendationStore>();
 
 
 var app = builder.Build();
