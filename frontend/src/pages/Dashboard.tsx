@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Button, Card, Badge, ProgressBar, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Badge, ProgressBar, Alert, Spinner, Modal } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell, FaUserShield, FaCog, FaChartLine, FaUsers, FaEdit, FaDatabase } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
@@ -262,6 +262,8 @@ const Dashboard: React.FC = () => {
   const [visibleCategories, setVisibleCategories] = useState<string[]>([]);
   const [carouselLoading, setCarouselLoading] = useState<{[key: string]: boolean}>({});
   const [usedMovieIds, setUsedMovieIds] = useState<Set<string>>(new Set());
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [showModal, setShowModal] = useState(false);
   
   // References for elements
   const carouselRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
@@ -657,6 +659,18 @@ const Dashboard: React.FC = () => {
     return isNaN(Number(movie.rating)) ? movie.rating : Number(movie.rating).toFixed(1);
   };
 
+  // Function to open the movie details modal
+  const openMovieDetails = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setShowModal(true);
+  };
+
+  // Function to close the movie details modal
+  const closeMovieDetails = () => {
+    setShowModal(false);
+    setSelectedMovie(null);
+  };
+
   // Admin Dashboard View
   const renderAdminDashboard = () => {
     const stats = dashboardStats || adminStats;
@@ -907,7 +921,35 @@ const Dashboard: React.FC = () => {
     return (
       <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }} ref={containerRef}>
         {/* Add styles */}
-        <style>{styles}</style>
+        <style>{styles + `
+          .movie-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1;
+            position: relative;
+          }
+          
+          .movie-card:hover {
+            transform: scale(1.15);
+            z-index: 2;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+          }
+          
+          .movie-details {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 60%, transparent 100%);
+            padding: 40px 10px 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 0 0 4px 4px;
+          }
+          
+          .movie-card:hover .movie-details {
+            opacity: 1;
+          }
+        `}</style>
         
         {/* Hero Banner - Netflix Style */}
         <div 
@@ -1002,7 +1044,9 @@ const Dashboard: React.FC = () => {
                     className="d-flex gap-3 overflow-auto pb-3 hide-scrollbar"
                     style={{ 
                       scrollbarWidth: 'none',
-                      msOverflowStyle: 'none'
+                      msOverflowStyle: 'none',
+                      paddingTop: '10px',
+                      paddingBottom: '30px'
                     }}
                     ref={el => {
                       carouselRefs.current[category.id] = el;
@@ -1013,13 +1057,12 @@ const Dashboard: React.FC = () => {
                     {category.movies.map(movie => (
                       <div 
                         key={movie.showId} 
-                        className="movie-card hover-scale" 
+                        className="movie-card" 
                         style={{ 
                           minWidth: '200px', 
                           cursor: 'pointer',
-                          transition: 'transform 0.3s ease'
                         }}
-                        onClick={() => navigate(`/movies/${movie.showId}`)}
+                        onClick={() => openMovieDetails(movie)}
                       >
                         <div className="position-relative">
                           <img 
@@ -1030,6 +1073,26 @@ const Dashboard: React.FC = () => {
                           />
                           <div className="position-absolute top-0 end-0 p-1">
                             <Badge bg="dark" className="opacity-75">{movie.type}</Badge>
+                          </div>
+                          
+                          {/* Details that appear on hover */}
+                          <div className="movie-details">
+                            <small className="d-block text-white">{movie.releaseYear}</small>
+                            <small className="d-block text-white">{movie.duration}</small>
+                            {movie.description && (
+                              <small className="d-block text-white text-truncate">{movie.description}</small>
+                            )}
+                            <div className="mt-1">
+                              {Object.entries(movie)
+                                .filter(([key, value]) => value === 1 && 
+                                  !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                                .slice(0, 2)
+                                .map(([key], index) => (
+                                  <Badge key={index} bg="danger" className="me-1" style={{ fontSize: '0.6rem' }}>
+                                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                                  </Badge>
+                                ))}
+                            </div>
                           </div>
                         </div>
                         <div className="d-flex justify-content-between align-items-start mt-2">
@@ -1080,6 +1143,99 @@ const Dashboard: React.FC = () => {
             )}
           </>
         )}
+
+        {/* Movie Details Modal */}
+        <Modal 
+          show={showModal} 
+          onHide={closeMovieDetails} 
+          size="lg" 
+          centered
+          contentClassName="bg-dark text-white"
+        >
+          {selectedMovie && (
+            <>
+              <Modal.Header closeButton closeVariant="white">
+                <Modal.Title>{selectedMovie.title}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Row>
+                  <Col md={5}>
+                    <div className="position-relative mb-3">
+                      <img 
+                        src={getMovieImageUrl(selectedMovie)} 
+                        alt={selectedMovie.title} 
+                        className="img-fluid rounded"
+                        style={{ width: '100%', objectFit: 'cover' }}
+                      />
+                      <Badge bg="dark" className="position-absolute top-0 end-0 m-2">{selectedMovie.type}</Badge>
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <Badge bg="secondary" className="me-2">{selectedMovie.releaseYear}</Badge>
+                        <Badge bg="secondary">{selectedMovie.duration}</Badge>
+                      </div>
+                      <div className="d-flex align-items-center">
+                        <FaStar className="text-warning me-1" />
+                        <span>{getMovieRatingDisplay(selectedMovie)}</span>
+                      </div>
+                    </div>
+                  </Col>
+                  <Col md={7}>
+                    {selectedMovie.description && (
+                      <div className="mb-3">
+                        <h5>Description</h5>
+                        <p>{selectedMovie.description}</p>
+                      </div>
+                    )}
+                    
+                    {selectedMovie.director && (
+                      <div className="mb-3">
+                        <h5>Director</h5>
+                        <p>{selectedMovie.director}</p>
+                      </div>
+                    )}
+                    
+                    {selectedMovie.cast && (
+                      <div className="mb-3">
+                        <h5>Cast</h5>
+                        <p>{selectedMovie.cast}</p>
+                      </div>
+                    )}
+                    
+                    {selectedMovie.country && (
+                      <div className="mb-3">
+                        <h5>Country</h5>
+                        <p>{selectedMovie.country}</p>
+                      </div>
+                    )}
+                    
+                    <div className="mb-3">
+                      <h5>Genres</h5>
+                      <div className="d-flex flex-wrap gap-2">
+                        {Object.entries(selectedMovie)
+                          .filter(([key, value]) => value === 1 && 
+                            !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                          .map(([key], index) => (
+                            <Badge key={index} bg="primary">
+                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  </Col>
+                </Row>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="danger" className="me-2">
+                  <FaPlay className="me-2" />Watch Now
+                </Button>
+                <Button variant="secondary" onClick={closeMovieDetails}>
+                  Close
+                </Button>
+              </Modal.Footer>
+            </>
+          )}
+        </Modal>
       </div>
     );
   };
