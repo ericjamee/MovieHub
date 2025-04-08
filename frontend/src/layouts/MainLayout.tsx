@@ -42,31 +42,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <FaTachometerAlt className="me-1" /> Dashboard
           </Nav.Link>
-          <Nav.Link 
-            as={Link} 
-            to="/movies" 
-            active={location.pathname === '/movies' || location.pathname.startsWith('/movies/')}
-          >
-            <FaFilm className="me-1" /> Movies
-          </Nav.Link>
-          {isAdmin && (
-            <NavDropdown 
-              title={
-                <span>
-                  <FaUserShield className="me-1" /> Admin
-                </span>
-              } 
-              id="admin-dropdown"
-              active={location.pathname.startsWith('/admin/')}
+          {!isAdmin && (
+            <Nav.Link 
+              as={Link} 
+              to="/movies" 
+              active={location.pathname === '/movies' || location.pathname.startsWith('/movies/')}
             >
-              <NavDropdown.Item 
-                as={Link} 
-                to="/admin/movies"
-                active={location.pathname === '/admin/movies'}
-              >
-                <FaFilm className="me-1" /> Manage Movies
-              </NavDropdown.Item>
-            </NavDropdown>
+              <FaFilm className="me-1" /> Movies
+            </Nav.Link>
+          )}
+          {isAdmin && (
+            <Nav.Link 
+              as={Link} 
+              to="/admin/movies"
+              active={location.pathname === '/admin/movies'}
+            >
+              <FaUserShield className="me-1" /> Admin Movies
+            </Nav.Link>
           )}
         </>
       );
@@ -93,11 +85,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <NavDropdown.Item as={Link} to="/profile">
             <FaUser className="me-2" /> Profile
           </NavDropdown.Item>
-          {isAdmin && (
-            <NavDropdown.Item as={Link} to="/admin/movies">
-              <FaCog className="me-2" /> Admin Panel
-            </NavDropdown.Item>
-          )}
           <NavDropdown.Divider />
           <NavDropdown.Item onClick={handleLogout}>
             <FaSignOutAlt className="me-2" /> Sign Out

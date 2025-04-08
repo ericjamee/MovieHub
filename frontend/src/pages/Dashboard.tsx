@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Container, Row, Col, Button, Card, Badge, ProgressBar, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Badge, ProgressBar, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaFilm, FaStar, FaComments, FaChevronRight, FaPlay, FaInfoCircle, FaArrowLeft, FaArrowRight, FaCalendarAlt, FaHeart, FaPlus, FaThumbsUp, FaShare, FaBell, FaUserShield, FaCog, FaChartLine, FaUsers, FaEdit, FaDatabase } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
+import { movieService } from '../services/movieService';
+import { AdminDashboardStats } from '../types/movie';
 
 // Mock data for movie sections
 const movieSections = [
@@ -125,7 +127,7 @@ const featuredMovie = {
   duration: "2h 28m"
 };
 
-// Mock admin stats data
+// Mock admin stats data - Will be replaced with real data
 const adminStats = {
   totalMovies: 287,
   totalUsers: 1423,
@@ -136,13 +138,24 @@ const adminStats = {
     { name: "Action", value: 32 },
     { name: "Drama", value: 28 },
     { name: "Comedy", value: 22 },
-    { name: "Sci-Fi", value: 18 }
+    { name: "Thriller", value: 18 },
+    { name: "Adventure", value: 15 },
+    { name: "Documentary", value: 12 },
+    { name: "Fantasy", value: 10 },
+    { name: "Horror", value: 8 }
   ],
-  recentActivity: [
-    { id: 1, type: "new_movie", title: "The Batman", time: "2 hours ago" },
-    { id: 2, type: "new_user", name: "John Smith", time: "4 hours ago" },
-    { id: 3, type: "rental", title: "Dune", user: "Emily Johnson", time: "5 hours ago" },
-    { id: 4, type: "rating", title: "No Time to Die", rating: 4.5, time: "6 hours ago" }
+  streamingServices: [
+    { name: "Netflix", value: 75 },
+    { name: "Amazon Prime", value: 15 },
+    { name: "Hulu", value: 5 },
+    { name: "Disney+", value: 5 },
+    { name: "Apple TV+", value: 3 },
+    { name: "Other", value: 10 }
+  ],
+  topRatedMovies: [
+    { showId: "s1", title: "The Shawshank Redemption", rating: 9.3 },
+    { showId: "s2", title: "The Godfather", rating: 9.2 },
+    { showId: "s3", title: "The Dark Knight", rating: 9.0 }
   ]
 };
 
@@ -151,6 +164,8 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const isAdmin = currentUser?.role === 'admin';
   const [pageLoaded, setPageLoaded] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState<AdminDashboardStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // References for carousel controls
   const carouselRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -163,6 +178,24 @@ const Dashboard: React.FC = () => {
     
     return () => clearTimeout(timer);
   }, []);
+  
+  useEffect(() => {
+    if (isAdmin && pageLoaded) {
+      fetchAdminDashboardStats();
+    }
+  }, [isAdmin, pageLoaded]);
+  
+  const fetchAdminDashboardStats = async () => {
+    try {
+      setIsLoading(true);
+      const data = await movieService.getAdminDashboardStats();
+      setDashboardStats(data);
+    } catch (error) {
+      console.error('Error fetching admin dashboard stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Function to scroll carousel
   const scrollCarousel = (sectionIndex: number, direction: 'prev' | 'next') => {
@@ -188,6 +221,8 @@ const Dashboard: React.FC = () => {
 
   // Admin Dashboard View
   const renderAdminDashboard = () => {
+    const stats = dashboardStats || adminStats;
+    
     return (
       <Container fluid className="py-4">
         <Row className="mb-4">
@@ -206,161 +241,166 @@ const Dashboard: React.FC = () => {
           </Col>
         </Row>
 
-        <Row>
-          {/* Total Movies Card */}
-          <Col xl={3} md={6} className="mb-4">
-            <Card className="border-left-primary shadow h-100 admin-card">
-              <Card.Body>
-                <Row className="no-gutters align-items-center">
-                  <Col className="mr-2">
-                    <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                      Total Movies
+        {isLoading ? (
+          <div className="text-center my-5">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading dashboard data...</span>
+            </Spinner>
+          </div>
+        ) : (
+          <>
+            <Row>
+              {/* Total Movies Card */}
+              <Col xl={3} md={6} className="mb-4">
+                <Card className="border-left-primary shadow h-100 admin-card">
+                  <Card.Body>
+                    <Row className="no-gutters align-items-center">
+                      <Col className="mr-2">
+                        <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                          Total Movies
+                        </Card.Title>
+                        <Card.Text className="h3 mb-0 font-weight-bold" style={{ fontSize: '2.5rem' }}>{stats.totalMovies}</Card.Text>
+                      </Col>
+                      <Col xs="auto">
+                        <FaFilm className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+
+              {/* Total Users Card */}
+              <Col xl={3} md={6} className="mb-4">
+                <Card className="border-left-success shadow h-100 admin-card">
+                  <Card.Body>
+                    <Row className="no-gutters align-items-center">
+                      <Col className="mr-2">
+                        <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                          Total Users
+                        </Card.Title>
+                        <Card.Text className="h3 mb-0 font-weight-bold" style={{ fontSize: '2.5rem' }}>{stats.totalUsers}</Card.Text>
+                      </Col>
+                      <Col xs="auto">
+                        <FaUsers className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+
+              {/* Top Rated Movies Card */}
+              <Col xl={6} md={12} className="mb-4">
+                <Card className="border-left-info shadow h-100 admin-card">
+                  <Card.Body>
+                    <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-3">
+                      Top Rated Movies
                     </Card.Title>
-                    <Card.Text className="h5 mb-0 font-weight-bold">{adminStats.totalMovies}</Card.Text>
-                  </Col>
-                  <Col xs="auto">
-                    <FaFilm className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          </Col>
+                    {stats.topRatedMovies && stats.topRatedMovies.length > 0 ? (
+                      <div>
+                        {stats.topRatedMovies.map((movie, index) => (
+                          <div key={movie.showId} className={`d-flex align-items-center ${index < stats.topRatedMovies.length - 1 ? 'mb-2' : ''}`}>
+                            <Badge 
+                              bg={index === 0 ? 'warning' : index === 1 ? 'secondary' : 'light'} 
+                              text={index === 2 ? 'dark' : 'white'}
+                              className="me-2"
+                            >
+                              #{index + 1}
+                            </Badge>
+                            <div className="d-flex justify-content-between align-items-center w-100">
+                              <span className="text-truncate" style={{ maxWidth: '200px' }}>{movie.title}</span>
+                              <div className="d-flex align-items-center">
+                                <FaStar className="text-warning me-1" />
+                                <span>{movie.rating}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mb-0">No rating data available</p>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
 
-          {/* Total Users Card */}
-          <Col xl={3} md={6} className="mb-4">
-            <Card className="border-left-success shadow h-100 admin-card">
-              <Card.Body>
-                <Row className="no-gutters align-items-center">
-                  <Col className="mr-2">
-                    <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                      Total Users
-                    </Card.Title>
-                    <Card.Text className="h5 mb-0 font-weight-bold">{adminStats.totalUsers}</Card.Text>
-                    <small className="text-success">+{adminStats.newUsersToday} today</small>
-                  </Col>
-                  <Col xs="auto">
-                    <FaUsers className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Active Rentals Card */}
-          <Col xl={3} md={6} className="mb-4">
-            <Card className="border-left-info shadow h-100 admin-card">
-              <Card.Body>
-                <Row className="no-gutters align-items-center">
-                  <Col className="mr-2">
-                    <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-1">
-                      Active Rentals
-                    </Card.Title>
-                    <Card.Text className="h5 mb-0 font-weight-bold">{adminStats.activeRentals}</Card.Text>
-                  </Col>
-                  <Col xs="auto">
-                    <FaDatabase className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Monthly Revenue Card */}
-          <Col xl={3} md={6} className="mb-4">
-            <Card className="border-left-warning shadow h-100 admin-card">
-              <Card.Body>
-                <Row className="no-gutters align-items-center">
-                  <Col className="mr-2">
-                    <Card.Title className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                      Monthly Revenue
-                    </Card.Title>
-                    <Card.Text className="h5 mb-0 font-weight-bold">${adminStats.revenueThisMonth.toLocaleString()}</Card.Text>
-                  </Col>
-                  <Col xs="auto">
-                    <FaChartLine className="fa-2x text-gray-300" style={{ fontSize: '2rem', opacity: 0.3 }} />
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        <Row>
-          {/* Top Genres */}
-          <Col lg={6} className="mb-4">
-            <Card className="shadow mb-4 admin-card">
-              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 className="m-0 font-weight-bold">Popular Genres</h6>
-              </Card.Header>
-              <Card.Body>
-                {adminStats.topGenres.map((genre, index) => (
-                  <div key={index} className="mb-3">
-                    <div className="d-flex justify-content-between mb-1">
-                      <span>{genre.name}</span>
-                      <span>{genre.value}%</span>
-                    </div>
-                    <ProgressBar 
-                      now={genre.value} 
-                      variant={
-                        index === 0 ? "primary" : 
-                        index === 1 ? "success" : 
-                        index === 2 ? "info" : 
-                        "warning"
-                      } 
-                      className="mb-2" 
-                    />
-                  </div>
-                ))}
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Recent Activity */}
-          <Col lg={6} className="mb-4">
-            <Card className="shadow mb-4 admin-card">
-              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 className="m-0 font-weight-bold">Recent Activity</h6>
-              </Card.Header>
-              <Card.Body>
-                <div style={{ maxHeight: '300px', overflow: 'auto' }}>
-                  {adminStats.recentActivity.map(activity => (
-                    <div key={activity.id} className="border-bottom py-2">
-                      {activity.type === 'new_movie' && (
-                        <div className="d-flex align-items-center">
-                          <Badge bg="primary" className="me-2">NEW</Badge>
-                          <span>Movie <strong>{activity.title}</strong> was added</span>
-                          <small className="ms-auto text-muted">{activity.time}</small>
+            <Row>
+              {/* Top Genres */}
+              <Col lg={6} className="mb-4">
+                <Card className="shadow mb-4 admin-card">
+                  <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 className="m-0 font-weight-bold">Popular Genres</h6>
+                  </Card.Header>
+                  <Card.Body>
+                    {stats.topGenres && stats.topGenres.length > 0 ? (
+                      stats.topGenres.map((genre, index) => (
+                        <div key={index} className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>{genre.name}</span>
+                            <span>{genre.value}%</span>
+                          </div>
+                          <ProgressBar 
+                            now={genre.value} 
+                            variant={
+                              index === 0 ? "primary" : 
+                              index === 1 ? "success" : 
+                              index === 2 ? "info" : 
+                              index === 3 ? "warning" :
+                              index === 4 ? "danger" :
+                              index === 5 ? "secondary" :
+                              index === 6 ? "dark" :
+                              "light"
+                            } 
+                            className="mb-2" 
+                          />
                         </div>
-                      )}
-                      {activity.type === 'new_user' && (
-                        <div className="d-flex align-items-center">
-                          <Badge bg="success" className="me-2">USER</Badge>
-                          <span><strong>{activity.name}</strong> joined the platform</span>
-                          <small className="ms-auto text-muted">{activity.time}</small>
-                        </div>
-                      )}
-                      {activity.type === 'rental' && (
-                        <div className="d-flex align-items-center">
-                          <Badge bg="info" className="me-2">RENTAL</Badge>
-                          <span><strong>{activity.user}</strong> rented <strong>{activity.title}</strong></span>
-                          <small className="ms-auto text-muted">{activity.time}</small>
-                        </div>
-                      )}
-                      {activity.type === 'rating' && (
-                        <div className="d-flex align-items-center">
-                          <Badge bg="warning" className="me-2">RATING</Badge>
-                          <span>Movie <strong>{activity.title}</strong> received {activity.rating} stars</span>
-                          <small className="ms-auto text-muted">{activity.time}</small>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+                      ))
+                    ) : (
+                      <p>No genre data available</p>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
 
+              {/* Streaming Services */}
+              <Col lg={6} className="mb-4">
+                <Card className="shadow mb-4 admin-card">
+                  <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 className="m-0 font-weight-bold">Streaming Services</h6>
+                  </Card.Header>
+                  <Card.Body>
+                    {stats.streamingServices && stats.streamingServices.length > 0 ? (
+                      stats.streamingServices.map((service, index) => (
+                        <div key={index} className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>{service.name}</span>
+                            <span>{service.value}%</span>
+                          </div>
+                          <ProgressBar 
+                            now={service.value} 
+                            variant={
+                              index === 0 ? "primary" : 
+                              index === 1 ? "success" : 
+                              index === 2 ? "info" : 
+                              index === 3 ? "warning" :
+                              index === 4 ? "danger" :
+                              index === 5 ? "secondary" :
+                              index === 6 ? "dark" : "light"
+                            } 
+                            className="mb-2" 
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <p>No streaming service data available</p>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </>
+        )}
+        
         <Row className="mb-4">
           <Col>
             <Card className="shadow admin-card">

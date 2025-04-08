@@ -80,13 +80,17 @@ const AdminMovies: React.FC = () => {
       setMovies(response.movies);
       setTotalPages(Math.ceil(response.totalNumMovies / pageSize));
     } catch (err) {
-      setError("Failed to load movies: " + err);
+      console.error("Error loading movies:", err);
+      setError(
+        "Failed to load movies. Please try again later or contact support if the issue persists."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log("AdminMovies component mounted");
     loadMovies();
   }, [currentPage, pageSize]);
 

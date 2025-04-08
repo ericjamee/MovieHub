@@ -47,3 +47,27 @@ export interface MovieResponse {
   movies: Movie[];
   totalNumMovies: number;
 }
+
+export interface Genre {
+  name: string;
+  value: number;
+}
+
+export interface StreamingService {
+  name: string;
+  value: number;
+}
+
+export interface TopRatedMovie {
+  showId: string;
+  title: string;
+  rating: number;
+}
+
+export interface AdminDashboardStats {
+  totalMovies: number;
+  totalUsers: number;
+  topGenres: Genre[];
+  streamingServices: StreamingService[];
+  topRatedMovies: TopRatedMovie[];
+}
