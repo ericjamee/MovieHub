@@ -76,7 +76,8 @@ const Home: React.FC = () => {
           backgroundPosition: 'center',
           minHeight: '80vh',
           display: 'flex',
-          alignItems: 'center'
+          alignItems: 'center',
+          filter: 'brightness(200%)'
         }}
       >
         {/* Overlay gradient */}
@@ -155,7 +156,7 @@ const Home: React.FC = () => {
                 }}
               >
                 <img
-                  src="https://placehold.co/600x400/333/fff?text=TV+Device"
+                  src="https://cdn.thewirecutter.com/wp-content/media/2024/11/streamingdevices-2048px-00404-2x1-1.jpg?width=2048&quality=75&crop=2:1&auto=webp"
                   alt="TV"
                   className="img-fluid"
                   style={{ borderRadius: '8px' }}
@@ -198,10 +199,10 @@ const Home: React.FC = () => {
                 }}
               >
                 <img
-                  src="https://placehold.co/600x400/333/fff?text=Mobile+Download"
+                  src="/DownloadImg.PNG"
                   alt="Mobile download"
                   className="img-fluid"
-                  style={{ borderRadius: '8px' }}
+                  style={{ borderRadius: '8px', width: '70%' }}
                 />
               </div>
             </Col>

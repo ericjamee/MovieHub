@@ -42,15 +42,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <FaTachometerAlt className="me-1" /> Dashboard
           </Nav.Link>
-          {!isAdmin && (
-            <Nav.Link 
-              as={Link} 
-              to="/movies" 
-              active={location.pathname === '/movies' || location.pathname.startsWith('/movies/')}
-            >
-              <FaFilm className="me-1" /> Movies
-            </Nav.Link>
-          )}
           {isAdmin && (
             <Nav.Link 
               as={Link} 
