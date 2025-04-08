@@ -9,30 +9,16 @@ import {
   Form,
   Alert,
   Card,
-  Badge,
   InputGroup,
   FormControl,
-  Dropdown,
-  DropdownButton,
 } from "react-bootstrap";
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSort } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
 
 const AdminMovies: React.FC = () => {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
-  const [showModal, setShowModal] = useState(false);
-  const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [genreFilter, setGenreFilter] = useState("");
-  const [formData, setFormData] = useState<Partial<Movie>>({
+  const blankMovie = {
     showId: "",
     type: "",
     title: "",
@@ -41,26 +27,60 @@ const AdminMovies: React.FC = () => {
     country: "",
     releaseYear: new Date().getFullYear(),
     rating: "",
-    duration: 0,
+    duration: "0",
     description: "",
-    imageUrl: "",
-    genre: "",
-  });
+    Action: 0,
+    Adventure: 0,
+    AnimeSeriesInternationalTVShows: 0,
+    BritishTVShowsDocuseriesInternationalTVShows: 0,
+    Children: 0,
+    Comedies: 0,
+    ComediesDramasInternationalMovies: 0,
+    ComediesInternationalMovies: 0,
+    ComediesRomanticMovies: 0,
+    CrimeTVShowsDocuseries: 0,
+    Documentaries: 0,
+    DocumentariesInternationalMovies: 0,
+    Docuseries: 0,
+    Dramas: 0,
+    DramasInternationalMovies: 0,
+    DramasRomanticMovies: 0,
+    FamilyMovies: 0,
+    Fantasy: 0,
+    HorrorMovies: 0,
+    InternationalMoviesThrillers: 0,
+    InternationalTVShowsRomanticTVShowsTVDramas: 0,
+    KidsTV: 0,
+    LanguageTVShows: 0,
+    Musicals: 0,
+    NatureTV: 0,
+    RealityTV: 0,
+    Spirituality: 0,
+    TVAction: 0,
+    TVComedies: 0,
+    TVDramas: 0,
+    TalkShowsTVComedies: 0,
+    Thrillers: 0,
+  };
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [formData, setFormData] = useState<Movie>(blankMovie);
 
   const loadMovies = async () => {
     try {
       setLoading(true);
-      const response = await movieService.getMovies({
-        pageSize,
-        page: currentPage,
-        searchTerm: searchTerm || undefined,
-        genre: genreFilter || undefined,
-      });
+      const response = await movieService.getMovies(pageSize, currentPage);
       setMovies(response.movies);
       setTotalPages(Math.ceil(response.totalNumMovies / pageSize));
-      setTotalCount(response.totalNumMovies);
     } catch (err) {
-      setError("Failed to load movies");
+      setError("Failed to load movies: " + err);
     } finally {
       setLoading(false);
     }
@@ -68,7 +88,7 @@ const AdminMovies: React.FC = () => {
 
   useEffect(() => {
     loadMovies();
-  }, [currentPage, pageSize, searchTerm, genreFilter]);
+  }, [currentPage, pageSize]);
 
   const handleShowModal = (movie?: Movie) => {
     if (movie) {
@@ -76,20 +96,7 @@ const AdminMovies: React.FC = () => {
       setFormData(movie);
     } else {
       setEditingMovie(null);
-      setFormData({
-        showId: "",
-        type: "",
-        title: "",
-        director: "",
-        cast: "",
-        country: "",
-        releaseYear: new Date().getFullYear(),
-        rating: "",
-        duration: 0,
-        description: "",
-        imageUrl: "",
-        genre: "",
-      });
+      setFormData(blankMovie);
     }
     setShowModal(true);
   };
@@ -105,12 +112,13 @@ const AdminMovies: React.FC = () => {
       if (editingMovie) {
         await movieService.updateMovie(editingMovie.showId, formData);
       } else {
+        console.log("I'm here");
         await movieService.createMovie(formData as Movie);
       }
       handleCloseModal();
       loadMovies();
     } catch (err) {
-      setError("Failed to save movie");
+      setError("Failed to save movie: " + err);
     }
   };
 
@@ -120,7 +128,7 @@ const AdminMovies: React.FC = () => {
         await movieService.deleteMovie(id);
         loadMovies();
       } catch (err) {
-        setError("Failed to delete movie");
+        setError("Failed to delete movie: " + err);
       }
     }
   };
@@ -133,15 +141,8 @@ const AdminMovies: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "releaseYear" || name === "duration" ? Number(value) : value,
+      [name]: name === "releaseYear" ? Number(value) : value,
     }));
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setGenreFilter("");
-    setCurrentPage(1);
   };
 
   return (
@@ -195,20 +196,34 @@ const AdminMovies: React.FC = () => {
             <Table hover className="align-middle">
               <thead className="bg-light">
                 <tr>
+                  <th>Show ID</th>
+                  <th>Type</th>
                   <th>Title</th>
-                  <th>Genre</th>
-                  <th>Year</th>
+                  <th>Director</th>
+                  <th>Cast</th>
+                  <th>Country</th>
+                  <th>Release Year</th>
                   <th>Rating</th>
+                  <th>Duration</th>
+                  <th>Description</th>
+                  <th>Genre</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {movies.map((movie) => (
                   <tr key={movie.showId}>
+                    <td>{movie.showId}</td>
+                    <td>{movie.type}</td>
                     <td>{movie.title}</td>
-                    <td>{movie.genre}</td>
+                    <td>{movie.director}</td>
+                    <td>{movie.cast}</td>
+                    <td>{movie.country}</td>
                     <td>{movie.releaseYear}</td>
                     <td>{movie.rating}</td>
+                    <td>{movie.duration}</td>
+                    <td>{movie.description}</td>
+                    <td></td>
                     <td>
                       <Button
                         variant="outline-primary"
@@ -245,6 +260,16 @@ const AdminMovies: React.FC = () => {
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
             <Form.Group className="mb-3">
+              <Form.Label>Type</Form.Label>
+              <Form.Control
+                type="text"
+                name="type"
+                value={formData.type || ""}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Title</Form.Label>
               <Form.Control
                 type="text"
@@ -255,11 +280,31 @@ const AdminMovies: React.FC = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Genre</Form.Label>
+              <Form.Label>Director</Form.Label>
               <Form.Control
                 type="text"
-                name="genre"
-                value={formData.genre || ""}
+                name="director"
+                value={formData.director || ""}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Cast</Form.Label>
+              <Form.Control
+                type="text"
+                name="cast"
+                value={formData.cast || ""}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Country</Form.Label>
+              <Form.Control
+                type="text"
+                name="country"
+                value={formData.country || ""}
                 onChange={handleChange}
                 required
               />
@@ -280,6 +325,26 @@ const AdminMovies: React.FC = () => {
                 type="text"
                 name="rating"
                 value={formData.rating || ""}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Duration</Form.Label>
+              <Form.Control
+                type="text"
+                name="duration"
+                value={formData.duration || ""}
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                type="text"
+                name="description"
+                value={formData.description || ""}
                 onChange={handleChange}
                 required
               />

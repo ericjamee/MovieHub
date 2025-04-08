@@ -1,14 +1,27 @@
 import axios from "axios";
-import { Movie, MovieFilters, MovieResponse } from "../types/movie";
+import { Movie, MovieResponse } from "../types/movie";
 
 const API_BASE_URL = "https://localhost:5000/movie"; // This will be replaced with your actual API URL
 
 export const movieService = {
-  async getMovies(filters: MovieFilters): Promise<MovieResponse> {
-    const response = await axios.get(`${API_BASE_URL}/adminmovies`, {
-      params: filters,
-    });
-    return response.data;
+  async getMovies(pageSize: number, pageNum: number): Promise<MovieResponse> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/adminmovies?pageSize=${pageSize}&pageNum=${pageNum}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch projects");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      throw error;
+    }
   },
 
   async getMovieById(id: number): Promise<Movie> {
@@ -16,9 +29,28 @@ export const movieService = {
     return response.data;
   },
 
-  async createMovie(movie: Omit<Movie, "id">): Promise<Movie> {
-    const response = await axios.post(`${API_BASE_URL}/movies`, movie);
-    return response.data;
+  async createMovie(newMovie: Movie): Promise<Movie> {
+    try {
+      console.log("Data sent to backend:", newMovie); // Log the data being sent
+      const response = await fetch(`${API_BASE_URL}/AddMovie`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMovie),
+      });
+
+      if (!response.ok) {
+        console.error("Response status:", response.status); // Log the response status
+        console.error("Response body:", await response.text()); // Log the response body
+        throw new Error("Failed to fetch movie");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.log("Error adding project:", error);
+      throw error;
+    }
   },
 
   async updateMovie(id: string, movie: Partial<Movie>): Promise<Movie> {

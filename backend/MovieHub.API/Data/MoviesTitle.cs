@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace MovieHub.API.Data;
 
 public partial class MoviesTitle
 {
-    public string? ShowId { get; set; }
+    [Key]
+    public string ShowId { get; set; }
 
     public string? Type { get; set; }
 

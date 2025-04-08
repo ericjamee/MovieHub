@@ -7,10 +7,8 @@ export interface Movie {
   country: string;
   releaseYear: number;
   rating: string;
-  duration: number;
+  duration: string;
   description: string;
-  imageUrl: string;
-  genre: string;
   Action: number;
   Adventure: number;
   AnimeSeriesInternationalTVShows: number;
@@ -43,13 +41,6 @@ export interface Movie {
   TVDramas: number;
   TalkShowsTVComedies: number;
   Thrillers: number;
-}
-
-export interface MovieFilters {
-  genre?: string;
-  searchTerm?: string;
-  page: number;
-  pageSize: number;
 }
 
 export interface MovieResponse {
