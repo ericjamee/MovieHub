@@ -119,12 +119,12 @@ const comingSoon = [
 
 // Featured movie for hero banner
 const featuredMovie = {
-  title: "Inception",
-  description: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
-  imgUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW92aWUlMjBiYWNrZ3JvdW5kfGVufDB8fDB8fHww",
-  year: "2010",
-  rating: "8.8/10",
-  duration: "2h 28m"
+  title: "Safety Last!",
+  description: "A store clerk stages a publicity stunt to scale a tall building, leading to one of cinema's most iconic scenes as he dangles from a giant clock face high above the city streets.",
+  imgUrl: "https://placehold.co/600x350/333/fff?text=Safety+Last!",
+  year: "1923",
+  rating: "8.2/10", 
+  duration: "1h 14m"
 };
 
 // Mock admin stats data - Will be replaced with real data
@@ -469,13 +469,6 @@ const Dashboard: React.FC = () => {
     return (
       <div className="homepage p-0 overflow-hidden" style={{ backgroundColor: '#141414', color: '#fff' }}>
         {/* Welcome message */}
-        <div className="py-3 px-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
-          <Container>
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="m-0">Welcome back, {currentUser?.firstName || 'User'}</h5>
-            </div>
-          </Container>
-        </div>
         
         {/* Hero Banner - Netflix Style */}
         <div 
@@ -490,7 +483,7 @@ const Dashboard: React.FC = () => {
             overflow: 'hidden'
           }}
         >
-          {/* Background image */}
+          {/* YouTube video background instead of image */}
           <div 
             style={{
               position: 'absolute',
@@ -498,29 +491,51 @@ const Dashboard: React.FC = () => {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundImage: `url(${featuredMovie.imgUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
               zIndex: -1,
-              opacity: 0.5
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none' // Prevents clicks on the video from interfering with banner content
             }}
-          />
+          >
+            <iframe 
+              width="100%" 
+              height="100%" 
+              src="https://www.youtube.com/embed/harUjkxPnyg?si=zDq_kBItd2Xx2wLH&amp;controls=0&amp;start=3818&amp;autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=harUjkxPnyg" 
+              title="YouTube video player" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              referrerPolicy="strict-origin-when-cross-origin" 
+              allowFullScreen
+              style={{
+                width: '100%',
+                height: '190%',
+                objectFit: 'cover',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                minWidth: '130%',
+                minHeight: '130%'
+              }}
+            />
+          </div>
           
-          <Container className="h-100 d-flex align-items-center">
-            <div className="w-50">
+          <Container className="h-100 d-flex align-items-center justify-content-center">
+            <div className="text-center" style={{ maxWidth: "600px" }}>
               <h1 className="display-4 fw-bold mb-2">{featuredMovie.title}</h1>
-              <div className="mb-3 d-flex align-items-center">
+              <div className="mb-3 d-flex align-items-center justify-content-center">
                 <span className="me-3">{featuredMovie.year}</span>
                 <Badge bg="danger" className="me-3">{featuredMovie.rating}</Badge>
                 <span>{featuredMovie.duration}</span>
               </div>
               <p className="lead mb-4">{featuredMovie.description}</p>
-              <div className="d-flex">
-                <Button variant="danger" className="me-2 d-flex align-items-center">
+              <div className="d-flex justify-content-center">
+                <Button 
+                  variant="danger" 
+                  className="me-2 d-flex align-items-center"
+                  onClick={() => window.open('https://www.youtube.com/watch?v=harUjkxPnyg', '_blank')}
+                >
                   <FaPlay className="me-2" /> Play
-                </Button>
-                <Button variant="secondary" className="d-flex align-items-center">
-                  <FaInfoCircle className="me-2" /> More Info
                 </Button>
               </div>
             </div>
