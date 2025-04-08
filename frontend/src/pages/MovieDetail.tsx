@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Card, Button, Form, Spinner, Container, Badge } from 'react-bootstrap';
-import { FaStar, FaArrowLeft } from 'react-icons/fa';
-import { Movie } from '../types/movie';
-import { movieService } from '../services/movieService';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Row,
+  Col,
+  Card,
+  Button,
+  Spinner,
+  Container,
+  Badge,
+} from "react-bootstrap";
+import { FaStar, FaArrowLeft } from "react-icons/fa";
+import { Movie } from "../types/movie";
+import { movieService } from "../services/movieService";
 
 const MovieDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,8 +32,8 @@ const MovieDetail: React.FC = () => {
           setMovie(data);
         }
       } catch (error) {
-        console.error('Error loading movie:', error);
-        setError('Unable to load movie details. Please try again later.');
+        console.error("Error loading movie:", error);
+        setError("Unable to load movie details. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -37,10 +45,13 @@ const MovieDetail: React.FC = () => {
   const handleRatingSubmit = async () => {
     if (movie && userRating > 0) {
       try {
-        const updatedMovie = await movieService.rateMovie(movie.showId, userRating);
+        const updatedMovie = await movieService.rateMovie(
+          movie.showId,
+          userRating
+        );
         setMovie(updatedMovie);
       } catch (error) {
-        console.error('Error rating movie:', error);
+        console.error("Error rating movie:", error);
       }
     }
   };
@@ -92,32 +103,38 @@ const MovieDetail: React.FC = () => {
       <Button variant="outline-primary" className="mb-4" onClick={goBack}>
         <FaArrowLeft className="me-2" /> Back to Movies
       </Button>
-      
+
       <Row>
         <Col md={4}>
           <Card>
             <Card.Img
               variant="top"
-              src={`https://placehold.co/600x900/333/fff?text=${encodeURIComponent(movie.title || 'Movie')}`}
+              src={`https://placehold.co/600x900/333/fff?text=${encodeURIComponent(movie.title || "Movie")}`}
               alt={movie.title}
-              style={{ height: '500px', objectFit: 'cover' }}
+              style={{ height: "500px", objectFit: "cover" }}
             />
           </Card>
         </Col>
         <Col md={8}>
           <h1>{movie.title}</h1>
           <div className="d-flex align-items-center mb-3">
-            <Badge bg="secondary" className="me-2">{movie.type}</Badge>
+            <Badge bg="secondary" className="me-2">
+              {movie.type}
+            </Badge>
             <span className="me-3">{movie.releaseYear}</span>
             <span className="me-3">{movie.duration}</span>
             {movie.rating && (
               <div className="d-flex align-items-center">
                 <FaStar className="text-warning me-1" />
-                <span>{typeof movie.rating === 'string' ? movie.rating : movie.rating.toFixed(1)}</span>
+                <span>
+                  {typeof movie.rating === "string"
+                    ? movie.rating
+                    : Number(movie.rating).toFixed(1)}
+                </span>
               </div>
             )}
           </div>
-          
+
           {movie.country && (
             <div className="mb-4">
               <h5>Country</h5>
@@ -150,10 +167,26 @@ const MovieDetail: React.FC = () => {
             <h5>Genres</h5>
             <div className="d-flex flex-wrap gap-2">
               {Object.entries(movie)
-                .filter(([key, value]) => value === 1 && 
-                  !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                .filter(
+                  ([key, value]) =>
+                    value === 1 &&
+                    ![
+                      "showId",
+                      "type",
+                      "title",
+                      "director",
+                      "cast",
+                      "country",
+                      "releaseYear",
+                      "rating",
+                      "duration",
+                      "description",
+                    ].includes(key)
+                )
                 .map(([key]) => (
-                  <Badge key={key} bg="primary">{key.replace(/([A-Z])/g, ' $1').trim()}</Badge>
+                  <Badge key={key} bg="primary">
+                    {key.replace(/([A-Z])/g, " $1").trim()}
+                  </Badge>
                 ))}
             </div>
           </div>
@@ -165,12 +198,14 @@ const MovieDetail: React.FC = () => {
                 <FaStar
                   key={star}
                   className={`fs-4 me-1 ${
-                    star <= (hoveredRating || userRating) ? 'text-warning' : 'text-muted'
+                    star <= (hoveredRating || userRating)
+                      ? "text-warning"
+                      : "text-muted"
                   }`}
                   onMouseEnter={() => setHoveredRating(star)}
                   onMouseLeave={() => setHoveredRating(0)}
                   onClick={() => setUserRating(star)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: "pointer" }}
                 />
               ))}
               <Button
@@ -189,4 +224,4 @@ const MovieDetail: React.FC = () => {
   );
 };
 
-export default MovieDetail; 
+export default MovieDetail;
