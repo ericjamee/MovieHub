@@ -1,13 +1,10 @@
-import { useNavigate } from 'react-router-dom';
-
 function Logout(props: { children: React.ReactNode }) {
-  const navigate = useNavigate();
 
   const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/logout', {
+      const response = await fetch('https://localhost:5000/logout', {
         method: 'POST',
         credentials: 'include', // Ensure cookies are sent
         headers: {
@@ -16,7 +13,7 @@ function Logout(props: { children: React.ReactNode }) {
       });
 
       if (response.ok) {
-        navigate('/login');
+        window.location.href = "/login";
       } else {
         console.error('Logout failed:', response.status);
       }

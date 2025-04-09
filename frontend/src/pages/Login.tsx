@@ -39,8 +39,8 @@ function LoginPage() {
     }
   
     const loginUrl = rememberme
-      ? 'https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true'
-      : 'https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true';
+      ? 'https://localhost:5000/login?useCookies=true'
+      : 'https://localhost:5000/login?useSessionCookies=true';
   
     try {
       const response = await fetch(loginUrl, {
@@ -62,7 +62,7 @@ function LoginPage() {
         throw new Error(data?.message || 'Invalid email or password.');
       }
   
-      const ping = await fetch('https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth', {
+      const ping = await fetch('https://localhost:5000/pingauth', {
         method: 'GET',
         credentials: 'include',
       });
@@ -71,7 +71,7 @@ function LoginPage() {
   
       if (ping.ok) {
         console.log("✅ Ping success — navigating to /movies");
-        window.location.href = '/movies'; // 🔥 Force full page reload to re-evaluate auth
+        window.location.href = '/dashboard'; // 🔥 Force full page reload to re-evaluate auth
   
         setTimeout(() => {
           console.log("🚨 Reloading after login");

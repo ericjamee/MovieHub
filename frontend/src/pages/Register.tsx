@@ -23,44 +23,47 @@ function Register() {
     if (name === 'confirmPassword') setConfirmPassword(value);
   };
 
-  // handle submit event for the form
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // validate email and passwords
+  
     if (!email || !password || !confirmPassword) {
       setError('Please fill in all fields.');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return;
+    }
+  
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address.');
-    } else if (password !== confirmPassword) {
+      return;
+    }
+  
+    if (password !== confirmPassword) {
       setError('Passwords do not match.');
-    } else {
-      // clear error message
-      setError('');
-      // post data to the /register api
-      fetch('https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/register', {
+      return;
+    }
+  
+    try {
+      const response = await fetch('https://localhost:5000/register', {
         method: 'POST',
+        credentials: 'include', // ✅ Cookie-based login
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      })
-        //.then((response) => response.json())
-        .then((data) => {
-          // handle success or error from the server
-          console.log(data);
-          if (data.ok) setError('Successful registration. Please log in.');
-          else setError('Error registering.');
-        })
-        .catch((error) => {
-          // handle network error
-          console.error(error);
-          setError('Error registering.');
-        });
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (response.ok) {
+        setError('');
+        navigate('/login');
+      } else {
+        const errorData = await response.json();
+        setError(errorData?.message || 'Registration failed.');
+      }
+    } catch (err) {
+      console.error('❌ Network error:', err);
+      setError('Error registering.');
     }
   };
+  
 
   return (
     <div className="container">
