@@ -1,65 +1,65 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
   // state variables for email and passwords
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [rememberme, setRememberme] = useState<boolean>(false);
 
   // state variable for error messages
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const navigate = useNavigate();
 
   // handle change events for input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, type, checked, value } = e.target;
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       setRememberme(checked);
-    } else if (name === 'email') {
+    } else if (name === "email") {
       setEmail(value);
-    } else if (name === 'password') {
+    } else if (name === "password") {
       setPassword(value);
     }
   };
 
   const handleRegisterClick = () => {
-    navigate('/register');
+    navigate("/register");
   };
 
   // handle submit event for the form
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     console.log("🧪 Attempting login...");
-  
+
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError("Please fill in all fields.");
       return;
     }
-  
+
     const loginUrl = rememberme
       ? 'https://localhost:5000/login?useCookies=true'
       : 'https://localhost:5000/login?useSessionCookies=true';
   
     try {
       const response = await fetch(loginUrl, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-  
+
       console.log("🔁 Login response:", response);
-  
-      const contentLength = response.headers.get('content-length');
+
+      const contentLength = response.headers.get("content-length");
       let data = null;
       if (contentLength && parseInt(contentLength, 10) > 0) {
         data = await response.json();
       }
-  
+
       if (!response.ok) {
-        throw new Error(data?.message || 'Invalid email or password.');
+        throw new Error(data?.message || "Invalid email or password.");
       }
   
       const ping = await fetch('https://localhost:5000/pingauth', {
@@ -68,11 +68,11 @@ function LoginPage() {
       });
   
       console.log("📡 Pingauth response:", ping);
-  
+
       if (ping.ok) {
-        console.log("✅ Ping success — navigating to /movies");
-        window.location.href = '/dashboard'; // 🔥 Force full page reload to re-evaluate auth
-  
+        console.log("✅ Ping success — navigating to /dashboard");
+        navigate("/dashboard");
+
         setTimeout(() => {
           console.log("🚨 Reloading after login");
           window.location.reload();
@@ -80,13 +80,11 @@ function LoginPage() {
       } else {
         console.log("❌ Ping failed after login");
       }
-  
     } catch (error: any) {
-      setError(error.message || 'Error logging in.');
-      console.error('❌ Fetch attempt failed:', error);
+      setError(error.message || "Error logging in.");
+      console.error("❌ Fetch attempt failed:", error);
     }
   };
-  
 
   return (
     <div className="container">
