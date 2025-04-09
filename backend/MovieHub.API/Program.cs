@@ -81,4 +81,20 @@ app.MapGet("/pingauth", (ClaimsPrincipal user) =>
     return Results.Json(new { email });
 }).RequireAuthorization();
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["Access-Control-Allow-Origin"] = "https://lively-mushroom-0e516051e.6.azurestaticapps.net";
+    context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type";
+        context.Response.StatusCode = 204;
+        return;
+    }
+
+    await next();
+});
+
 app.Run();
