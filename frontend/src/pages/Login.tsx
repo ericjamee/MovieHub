@@ -39,9 +39,9 @@ function LoginPage() {
     }
 
     const loginUrl = rememberme
-      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true"
-      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true";
-
+      ? 'https://localhost:5000/login?useCookies=true'
+      : 'https://localhost:5000/login?useSessionCookies=true';
+  
     try {
       const response = await fetch(loginUrl, {
         method: "POST",
@@ -61,15 +61,12 @@ function LoginPage() {
       if (!response.ok) {
         throw new Error(data?.message || "Invalid email or password.");
       }
-
-      const ping = await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
+  
+      const ping = await fetch('https://localhost:5000/pingauth', {
+        method: 'GET',
+        credentials: 'include',
+      });
+  
       console.log("📡 Pingauth response:", ping);
 
       if (ping.ok) {
