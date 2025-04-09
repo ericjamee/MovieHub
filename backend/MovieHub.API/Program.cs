@@ -33,10 +33,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://polite-pond-00c82511e.6.azurestaticapps.net")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // ✅ Required for cookie auth
+            policy.WithOrigins("https://polite-pond-00c82511e.6.azurestaticapps.net",
+                "http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+
     });
 });
 
@@ -51,8 +53,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection(); // 🔥 ADD THIS
 
 // Make sure CORS comes BEFORE auth middleware
 app.UseCors("AllowFrontend");
