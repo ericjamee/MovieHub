@@ -1,24 +1,26 @@
 function Logout(props: { children: React.ReactNode }) {
-
   const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://localhost:5000/logout', {
-        method: 'POST',
-        credentials: 'include', // Ensure cookies are sent
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        "https://lively-mushroom-0e516051e.6.azurestaticapps.net/logout",
+        {
+          method: "POST",
+          credentials: "include", // Ensure cookies are sent
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.ok) {
         window.location.href = "/login";
       } else {
-        console.error('Logout failed:', response.status);
+        console.error("Logout failed:", response.status);
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 

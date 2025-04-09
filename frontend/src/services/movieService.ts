@@ -2,7 +2,7 @@ import axios from "axios";
 import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 
 const API_BASE_URL =
-  "https://localhost:5000/Movie"; // Updated to use the new backend URL
+  "https://lively-mushroom-0e516051e.6.azurestaticapps.net/Movie"; // Updated to use the new backend URL
 
 // Add error handling wrapper
 const handleApiError = async (apiCall: () => Promise<any>) => {

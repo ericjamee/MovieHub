@@ -1,69 +1,71 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
   // state variables for email and passwords
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
   // state variable for error messages
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleLoginClick = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
   // handle change events for input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'email') setEmail(value);
-    if (name === 'password') setPassword(value);
-    if (name === 'confirmPassword') setConfirmPassword(value);
+    if (name === "email") setEmail(value);
+    if (name === "password") setPassword(value);
+    if (name === "confirmPassword") setConfirmPassword(value);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     if (!email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
+      setError("Please fill in all fields.");
       return;
     }
-  
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Please enter a valid email address.');
+      setError("Please enter a valid email address.");
       return;
     }
-  
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       return;
     }
-  
+
     try {
-      const response = await fetch('https://localhost:5000/register', {
-        method: 'POST',
-        credentials: 'include', // ✅ Cookie-based login
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-  
+      const response = await fetch(
+        "https://lively-mushroom-0e516051e.6.azurestaticapps.net/register",
+        {
+          method: "POST",
+          credentials: "include", // ✅ Cookie-based login
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
       if (response.ok) {
-        setError('');
-        navigate('/login');
+        setError("");
+        navigate("/login");
       } else {
         const errorData = await response.json();
-        setError(errorData?.message || 'Registration failed.');
+        setError(errorData?.message || "Registration failed.");
       }
     } catch (err) {
-      console.error('❌ Network error:', err);
-      setError('Error registering.');
+      console.error("❌ Network error:", err);
+      setError("Error registering.");
     }
   };
-  
 
   return (
     <div className="container">

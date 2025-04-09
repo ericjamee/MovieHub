@@ -39,9 +39,9 @@ function LoginPage() {
     }
 
     const loginUrl = rememberme
-      ? 'https://localhost:5000/login?useCookies=true'
-      : 'https://localhost:5000/login?useSessionCookies=true';
-  
+      ? "https://lively-mushroom-0e516051e.6.azurestaticapps.net/login?useCookies=true"
+      : "https://lively-mushroom-0e516051e.6.azurestaticapps.net/login?useSessionCookies=true";
+
     try {
       const response = await fetch(loginUrl, {
         method: "POST",
@@ -61,12 +61,15 @@ function LoginPage() {
       if (!response.ok) {
         throw new Error(data?.message || "Invalid email or password.");
       }
-  
-      const ping = await fetch('https://localhost:5000/pingauth', {
-        method: 'GET',
-        credentials: 'include',
-      });
-  
+
+      const ping = await fetch(
+        "https://lively-mushroom-0e516051e.6.azurestaticapps.net/pingauth",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
       console.log("📡 Pingauth response:", ping);
 
       if (ping.ok) {
