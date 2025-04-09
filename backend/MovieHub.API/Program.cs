@@ -39,6 +39,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // ✅ Required for cookies
+
     });
 });
 
@@ -51,10 +52,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection(); // ✅ Avoid mixed content errors (https + http)
-
-// ✅ Middleware order matters!
+// Make sure CORS comes BEFORE auth middleware
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
