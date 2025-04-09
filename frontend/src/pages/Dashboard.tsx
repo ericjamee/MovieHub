@@ -828,7 +828,7 @@ const Dashboard: React.FC = () => {
     if (!movie.title) return getRandomFallbackPoster();
 
     // Create the path to the movie poster
-    const posterPath = `/Movie Posters/Movie Posters/${encodeURIComponent(movie.title)}.jpg`;
+    const posterPath = `https://inteximages38.blob.core.windows.net/images/Movie%20Posters/${encodeURIComponent(movie.title)}.jpg`;
 
     // Return the actual poster path with a fallback to placeholder if image fails to load
     return posterPath;
