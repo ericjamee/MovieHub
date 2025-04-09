@@ -13,7 +13,14 @@ import {
   FormControl,
   Collapse,
 } from "react-bootstrap";
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaChevronDown, FaChevronRight } from "react-icons/fa";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+  FaChevronDown,
+  FaChevronRight,
+} from "react-icons/fa";
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
@@ -78,7 +85,7 @@ const AdminMovies: React.FC = () => {
     "https://wallpapercave.com/wp/wp5978625.png",
     "https://img.freepik.com/free-photo/movie-background-collage_23-2149876030.jpg",
     "https://img.freepik.com/free-photo/assortment-cinema-elements-red-background-with-copy-space_23-2148457848.jpg?semt=ais_hybrid&w=740",
-    "https://t3.ftcdn.net/jpg/02/09/52/26/360_F_209522668_IWRapuvKgoCF2iIw6UqK54mVNYbAFGfN.jpg"
+    "https://t3.ftcdn.net/jpg/02/09/52/26/360_F_209522668_IWRapuvKgoCF2iIw6UqK54mVNYbAFGfN.jpg",
   ]);
 
   // Get a random fallback poster
@@ -95,11 +102,7 @@ const AdminMovies: React.FC = () => {
   const loadMovies = async () => {
     try {
       setLoading(true);
-      const response = await movieService.getMovies({
-        page: currentPage,
-        pageSize: pageSize,
-        searchTerm: searchTerm
-      });
+      const response = await movieService.getAdminMovies(pageSize, currentPage);
       setMovies(response.movies);
       setTotalPages(Math.ceil(response.totalNumMovies / pageSize));
     } catch (err) {
@@ -138,17 +141,22 @@ const AdminMovies: React.FC = () => {
     try {
       setLoading(true); // Show loading state
       setError(""); // Clear any previous errors
-      
+
       if (editingMovie) {
-        const updatedMovie = await movieService.updateMovie(editingMovie.showId, formData);
+        const updatedMovie = await movieService.updateMovie(
+          editingMovie.showId,
+          formData
+        );
         // Update the movie in the current list to avoid a full reload
-        setMovies(prevMovies => 
-          prevMovies.map(m => m.showId === updatedMovie.showId ? updatedMovie : m)
+        setMovies((prevMovies) =>
+          prevMovies.map((m) =>
+            m.showId === updatedMovie.showId ? updatedMovie : m
+          )
         );
       } else {
         const newMovie = await movieService.createMovie(formData as Movie);
         // Add the new movie to the current list
-        setMovies(prevMovies => [...prevMovies, newMovie]);
+        setMovies((prevMovies) => [...prevMovies, newMovie]);
       }
       handleCloseModal();
       // Reload the movies to ensure we have the latest data
@@ -166,7 +174,7 @@ const AdminMovies: React.FC = () => {
       try {
         await movieService.deleteMovie(id);
         // Remove the movie from the current list
-        setMovies(prevMovies => prevMovies.filter(m => m.showId !== id));
+        setMovies((prevMovies) => prevMovies.filter((m) => m.showId !== id));
         // If we're on the last page and it's now empty, go to previous page
         if (movies.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
@@ -183,8 +191,8 @@ const AdminMovies: React.FC = () => {
     >
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
-    
-    if (type === 'checkbox') {
+
+    if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData((prev) => ({
         ...prev,
@@ -211,7 +219,7 @@ const AdminMovies: React.FC = () => {
 
   // Search handler for when Enter key is pressed
   const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       loadMovies();
     }
@@ -241,10 +249,12 @@ const AdminMovies: React.FC = () => {
 
           <Row className="mb-4">
             <Col md={6} lg={4}>
-              <Form onSubmit={(e) => {
-                e.preventDefault();
-                loadMovies();
-              }}>
+              <Form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  loadMovies();
+                }}
+              >
                 <InputGroup>
                   <FormControl
                     placeholder="Search movies..."
@@ -284,23 +294,30 @@ const AdminMovies: React.FC = () => {
                 <tbody>
                   {movies.map((movie) => (
                     <React.Fragment key={movie.showId}>
-                      <tr 
+                      <tr
                         onClick={() => toggleRowExpansion(movie.showId)}
-                        className={expandedRows.has(movie.showId) ? "bg-light border-primary" : ""}
-                        style={{ 
+                        className={
+                          expandedRows.has(movie.showId)
+                            ? "bg-light border-primary"
+                            : ""
+                        }
+                        style={{
                           cursor: "pointer",
                           transition: "all 0.2s",
-                          borderLeft: expandedRows.has(movie.showId) ? "4px solid #0d6efd" : ""
+                          borderLeft: expandedRows.has(movie.showId)
+                            ? "4px solid #0d6efd"
+                            : "",
                         }}
                       >
                         <td>{movie.showId}</td>
                         <td>{movie.type}</td>
                         <td>
                           <div className="d-flex align-items-center">
-                            {expandedRows.has(movie.showId) ? 
-                              <FaChevronDown className="me-2 text-primary" /> : 
+                            {expandedRows.has(movie.showId) ? (
+                              <FaChevronDown className="me-2 text-primary" />
+                            ) : (
                               <FaChevronRight className="me-2 text-secondary" />
-                            }
+                            )}
                             {movie.title}
                           </div>
                         </td>
@@ -339,45 +356,100 @@ const AdminMovies: React.FC = () => {
                                 <Row>
                                   <Col md={3} className="mb-3">
                                     <div className="text-center">
-                                      <img 
-                                        src={getMoviePosterPath(movie.title || '')}
+                                      <img
+                                        src={getMoviePosterPath(
+                                          movie.title || ""
+                                        )}
                                         alt={movie.title}
                                         className="img-fluid rounded shadow"
-                                        style={{ maxHeight: '250px', objectFit: 'cover' }}
+                                        style={{
+                                          maxHeight: "250px",
+                                          objectFit: "cover",
+                                        }}
                                         onError={(e) => {
-                                          const target = e.target as HTMLImageElement;
+                                          const target =
+                                            e.target as HTMLImageElement;
                                           target.onerror = null;
-                                          target.src = getRandomFallbackPoster();
+                                          target.src =
+                                            getRandomFallbackPoster();
                                         }}
                                       />
                                     </div>
                                   </Col>
                                   <Col md={4} className="mb-3">
-                                    <h5 className="mb-3 text-primary">Movie Details</h5>
-                                    <p><strong>Title:</strong> {movie.title}</p>
-                                    <p><strong>Director:</strong> {movie.director || 'N/A'}</p>
-                                    <p><strong>Release Year:</strong> {movie.releaseYear}</p>
-                                    <p><strong>Rating:</strong> {movie.rating || 'N/A'}</p>
-                                    <p><strong>Duration:</strong> {movie.duration || 'N/A'}</p>
-                                    <p><strong>Country:</strong> {movie.country || 'N/A'}</p>
-                                    <p><strong>Type:</strong> {movie.type}</p>
+                                    <h5 className="mb-3 text-primary">
+                                      Movie Details
+                                    </h5>
+                                    <p>
+                                      <strong>Title:</strong> {movie.title}
+                                    </p>
+                                    <p>
+                                      <strong>Director:</strong>{" "}
+                                      {movie.director || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong>Release Year:</strong>{" "}
+                                      {movie.releaseYear}
+                                    </p>
+                                    <p>
+                                      <strong>Rating:</strong>{" "}
+                                      {movie.rating || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong>Duration:</strong>{" "}
+                                      {movie.duration || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong>Country:</strong>{" "}
+                                      {movie.country || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong>Type:</strong> {movie.type}
+                                    </p>
                                   </Col>
                                   <Col md={5}>
-                                    <h5 className="mb-3 text-primary">Additional Information</h5>
-                                    <p><strong>Cast:</strong> {movie.cast || 'N/A'}</p>
+                                    <h5 className="mb-3 text-primary">
+                                      Additional Information
+                                    </h5>
+                                    <p>
+                                      <strong>Cast:</strong>{" "}
+                                      {movie.cast || "N/A"}
+                                    </p>
                                     <div className="mb-3">
                                       <strong>Description:</strong>
-                                      <p className="mt-2">{movie.description || 'No description available.'}</p>
+                                      <p className="mt-2">
+                                        {movie.description ||
+                                          "No description available."}
+                                      </p>
                                     </div>
                                     <div>
                                       <strong>Genres:</strong>
                                       <div className="mt-2">
                                         {Object.entries(movie)
-                                          .filter(([key, value]) => value === 1 && 
-                                            !['showId', 'type', 'title', 'director', 'cast', 'country', 'releaseYear', 'rating', 'duration', 'description'].includes(key))
+                                          .filter(
+                                            ([key, value]) =>
+                                              value === 1 &&
+                                              ![
+                                                "showId",
+                                                "type",
+                                                "title",
+                                                "director",
+                                                "cast",
+                                                "country",
+                                                "releaseYear",
+                                                "rating",
+                                                "duration",
+                                                "description",
+                                              ].includes(key)
+                                          )
                                           .map(([key], index) => (
-                                            <span key={index} className="badge bg-primary me-1 mb-1 p-2">
-                                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                                            <span
+                                              key={index}
+                                              className="badge bg-primary me-1 mb-1 p-2"
+                                            >
+                                              {key
+                                                .replace(/([A-Z])/g, " $1")
+                                                .trim()}
                                             </span>
                                           ))}
                                       </div>
@@ -492,7 +564,7 @@ const AdminMovies: React.FC = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-            
+
             <hr className="my-4" />
             <h5 className="mb-3">Genres</h5>
             <Row>

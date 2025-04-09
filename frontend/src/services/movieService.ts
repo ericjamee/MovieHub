@@ -19,14 +19,17 @@ const handleApiError = async (apiCall: () => Promise<any>) => {
 };
 
 export const movieService = {
-  async getMovies(pageOrFilters: number | MovieFilters, pageNum?: number): Promise<MovieResponse> {
+  async getMovies(
+    pageOrFilters: number | MovieFilters,
+    pageNum?: number
+  ): Promise<MovieResponse> {
     return handleApiError(async () => {
       // Extract pagination parameters and search term
       let page = 1;
       let pageSize = 10;
       let searchTerm = "";
-      
-      if (typeof pageOrFilters === 'number') {
+
+      if (typeof pageOrFilters === "number") {
         pageSize = pageOrFilters;
         page = pageNum || 1;
       } else if (pageOrFilters) {
@@ -34,14 +37,14 @@ export const movieService = {
         page = pageOrFilters.page || 1;
         searchTerm = pageOrFilters.searchTerm || "";
       }
-      
+
       let url = `${API_BASE_URL}/GetMovies`;
-      
+
       // If we have a search term, use it in the API call
       if (searchTerm) {
         url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm)}`;
       }
-      
+
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -50,14 +53,14 @@ export const movieService = {
 
       // Process response data
       const allMovieTitles = await response.json();
-      
+
       // Calculate total pages and slice the array for pagination
       const totalItems = allMovieTitles.length;
       const totalPages = Math.ceil(totalItems / pageSize);
       const startIndex = (page - 1) * pageSize;
       const endIndex = Math.min(startIndex + pageSize, totalItems);
       const paginatedTitles = allMovieTitles.slice(startIndex, endIndex);
-      
+
       // Map titles to movie objects
       const movies = paginatedTitles.map((title: string, index: number) => {
         const globalIndex = startIndex + index;
@@ -116,10 +119,10 @@ export const movieService = {
 
         // Generate a placeholder description
         const description = `A ${type.toLowerCase()} about ${title.toLowerCase()} that captivates audiences with its compelling storytelling and unforgettable characters.`;
-        
+
         // Create a simpler ID that matches database format
         const showId = `s${globalIndex + 1}`;
-        
+
         return {
           showId,
           title,
@@ -139,7 +142,7 @@ export const movieService = {
         movies,
         totalNumMovies: totalItems,
         currentPage: page,
-        totalPages: totalPages
+        totalPages: totalPages,
       };
     });
   },
@@ -151,6 +154,27 @@ export const movieService = {
     });
   },
 
+  async getAdminMovies(
+    pageSize: number,
+    pageNum: number
+  ): Promise<MovieResponse> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/adminmovies?pageSize=${pageSize}&pageNum=${pageNum}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch movies");
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+      throw error;
+    }
+  },
+
   async createMovie(newMovie: Movie): Promise<Movie> {
     return handleApiError(async () => {
       const response = await axios.post(`${API_BASE_URL}/AddMovie`, newMovie);
@@ -160,7 +184,10 @@ export const movieService = {
 
   async updateMovie(showId: string, updatedMovie: Movie): Promise<Movie> {
     return handleApiError(async () => {
-      const response = await axios.put(`${API_BASE_URL}/UpdateMovie/${showId}`, updatedMovie);
+      const response = await axios.put(
+        `${API_BASE_URL}/UpdateMovie/${showId}`,
+        updatedMovie
+      );
       return response.data;
     });
   },
