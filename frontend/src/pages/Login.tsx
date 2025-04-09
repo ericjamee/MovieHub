@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Row, Col, Card, Button, Form, Alert } from "react-bootstrap";
+import { FaGoogle, FaFacebook } from "react-icons/fa";
 
 function LoginPage() {
   // state variables for email and passwords
@@ -90,91 +92,92 @@ function LoginPage() {
   };
 
   return (
-    <div className="container">
-      <div className="row">
-        <div className="card border-0 shadow rounded-3 ">
-          <div className="card-body p-4 p-sm-5">
-            <h5 className="card-title text-center mb-5 fw-light fs-5">
-              Sign In
-            </h5>
-            <form onSubmit={handleSubmit}>
-              <div className="form-floating mb-3">
-                <input
-                  className="form-control"
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={email}
-                  onChange={handleChange}
-                />
-                <label htmlFor="email">Email address</label>
-              </div>
-              <div className="form-floating mb-3">
-                <input
-                  className="form-control"
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={password}
-                  onChange={handleChange}
-                />
-                <label htmlFor="password">Password</label>
-              </div>
+    <div className="min-vh-100 d-flex align-items-center py-5" style={{ backgroundColor: "#121212" }}>
+      <Container>
+        <Row className="justify-content-center">
+          <Col md={6} lg={5}>
+            <Card className="border-0 shadow-lg bg-dark text-light">
+              <Card.Body className="p-4 p-sm-5">
+                <h2 className="text-center mb-4 fw-bold text-light">Welcome Back</h2>
+                <p className="text-center text-muted mb-4">Sign in to continue to CineNiche</p>
+                
+                {error && (
+                  <Alert variant="danger" className="mb-4">
+                    {error}
+                  </Alert>
+                )}
 
-              <div className="form-check mb-3">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value=""
-                  id="rememberme"
-                  name="rememberme"
-                  checked={rememberme}
-                  onChange={handleChange}
-                />
-                <label className="form-check-label" htmlFor="rememberme">
-                  Remember password
-                </label>
-              </div>
-              <div className="d-grid mb-2">
-                <button
-                  className="btn btn-primary btn-login text-uppercase fw-bold"
-                  type="submit"
-                >
-                  Sign in
-                </button>
-              </div>
-              <div className="d-grid mb-2">
-                <button
-                  className="btn btn-primary btn-login text-uppercase fw-bold"
-                  onClick={handleRegisterClick}
-                >
-                  Register
-                </button>
-              </div>
-              <hr className="my-4" />
-              <div className="d-grid mb-2">
-                <button
-                  className="btn btn-google btn-login text-uppercase fw-bold"
-                  type="button"
-                >
-                  <i className="fa-brands fa-google me-2"></i> Sign in with
-                  Google
-                </button>
-              </div>
-              <div className="d-grid mb-2">
-                <button
-                  className="btn btn-facebook btn-login text-uppercase fw-bold"
-                  type="button"
-                >
-                  <i className="fa-brands fa-facebook-f me-2"></i> Sign in with
-                  Facebook
-                </button>
-              </div>
-            </form>
-            {error && <p className="error">{error}</p>}
-          </div>
-        </div>
-      </div>
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="text-light">Email address</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={email}
+                      onChange={handleChange}
+                      placeholder="Enter your email"
+                      required
+                      className="bg-dark text-light border-secondary"
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label className="text-light">Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      required
+                      className="bg-dark text-light border-secondary"
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-4">
+                    <Form.Check
+                      type="checkbox"
+                      id="rememberme"
+                      name="rememberme"
+                      checked={rememberme}
+                      onChange={handleChange}
+                      label="Remember me"
+                      className="text-light"
+                    />
+                  </Form.Group>
+
+                  <div className="d-grid gap-2 mb-4">
+                    <Button variant="danger" type="submit" size="lg" className="fw-bold">
+                      Sign In
+                    </Button>
+                    <Button
+                      variant="outline-light"
+                      size="lg"
+                      onClick={handleRegisterClick}
+                      className="fw-bold"
+                    >
+                      Create Account
+                    </Button>
+                  </div>
+
+                  <div className="text-center mb-4">
+                    <span className="text-muted">Or continue with</span>
+                  </div>
+
+                  <div className="d-grid gap-2">
+                    <Button variant="outline-danger" size="lg" className="d-flex align-items-center justify-content-center gap-2">
+                      <FaGoogle /> Sign in with Google
+                    </Button>
+                    <Button variant="outline-primary" size="lg" className="d-flex align-items-center justify-content-center gap-2">
+                      <FaFacebook /> Sign in with Facebook
+                    </Button>
+                  </div>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 }
