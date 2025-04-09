@@ -3,6 +3,8 @@ import { Row, Col, Form } from "react-bootstrap";
 import { Movie, MovieFilters } from "../types/movie";
 import { movieService } from "../services/movieService";
 import MovieCard from "../components/MovieCard";
+import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
+import Logout from '../components/Logout';
 
 const Movies: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -41,7 +43,16 @@ const Movies: React.FC = () => {
   };
 
   return (
-    <div>
+    <AuthorizeView>
+      <span>
+        <Logout>
+          Logout <AuthorizedUser value="email" />
+        </Logout>
+      </span>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Movie List</h2>
+      </div>
+  
       <div className="mb-4">
         <Row>
           <Col md={6}>
@@ -62,7 +73,7 @@ const Movies: React.FC = () => {
           </Col>
         </Row>
       </div>
-
+  
       <Row xs={1} md={2} lg={3} xl={4} className="g-4">
         {movies.map((movie) => (
           <Col key={movie.showId}>
@@ -70,7 +81,7 @@ const Movies: React.FC = () => {
           </Col>
         ))}
       </Row>
-    </div>
+    </AuthorizeView>
   );
 };
 

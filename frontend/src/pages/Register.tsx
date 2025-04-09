@@ -1,171 +1,133 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, Alert } from 'react-bootstrap';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
-import { RegisterCredentials } from '../types/auth';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Register: React.FC = () => {
+function Register() {
+  // state variables for email and passwords
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  const [credentials, setCredentials] = useState<RegisterCredentials>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState(false);
 
-  // If user is already authenticated, redirect to dashboard
-  if (isAuthenticated && !isLoading) {
-    return <Navigate to="/dashboard" />;
-  }
+  // state variable for error messages
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (credentials.password !== credentials.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // For demo purposes, just redirect to login
-      alert('Registration successful! Please login with your credentials.');
-      navigate('/login');
-    } catch (err) {
-      setError('Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const handleLoginClick = () => {
+    navigate('/login');
   };
 
+  // handle change events for input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCredentials(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (name === 'email') setEmail(value);
+    if (name === 'password') setPassword(value);
+    if (name === 'confirmPassword') setConfirmPassword(value);
+  };
+
+  // handle submit event for the form
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // validate email and passwords
+    if (!email || !password || !confirmPassword) {
+      setError('Please fill in all fields.');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address.');
+    } else if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+    } else {
+      // clear error message
+      setError('');
+      // post data to the /register api
+      fetch('https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      })
+        //.then((response) => response.json())
+        .then((data) => {
+          // handle success or error from the server
+          console.log(data);
+          if (data.ok) setError('Successful registration. Please log in.');
+          else setError('Error registering.');
+        })
+        .catch((error) => {
+          // handle network error
+          console.error(error);
+          setError('Error registering.');
+        });
+    }
   };
 
   return (
-    <div className="register-page py-5" style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#000', 
-      backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 100%), url(https://static.vecteezy.com/system/resources/thumbnails/043/555/242/small_2x/realistic-3d-cinema-film-strip-in-perspective-isolated-on-blue-background-template-cinema-festival-movie-design-cinema-film-strip-for-ad-poster-presentation-show-brochure-banner-or-flyer-vector.jpg)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      display: 'flex',
-      alignItems: 'center'
-    }}>
-      <Container>
-        <Row className="justify-content-center">
-          <Col md={8} lg={6}>
-            <Card className="bg-dark text-white border-0 shadow">
-              <Card.Body className="p-4">
-                <h2 className="text-center mb-4 fw-bold">Create Account</h2>
-                
-                {error && (
-                  <Alert variant="danger" dismissible onClose={() => setError('')}>
-                    {error}
-                  </Alert>
-                )}
+    <div className="container">
+      <div className="row">
+        <div className="card border-0 shadow rounded-3 ">
+          <div className="card-body p-4 p-sm-5">
+            <h5 className="card-title text-center mb-5 fw-light fs-5">
+              Register
+            </h5>
+            <form onSubmit={handleSubmit}>
+              <div className="form-floating mb-3">
+                <input
+                  className="form-control"
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={handleChange}
+                />
+                <label htmlFor="email">Email address</label>
+              </div>
+              <div className="form-floating mb-3">
+                <input
+                  className="form-control"
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={handleChange}
+                />
+                <label htmlFor="password">Password</label>
+              </div>
+              <div className="form-floating mb-3">
+                <input
+                  className="form-control"
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={handleChange}
+                />
+                <label htmlFor="confirmPassword">Confirm Password</label>
+              </div>
 
-                <Form onSubmit={handleSubmit}>
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Control
-                          type="text"
-                          name="firstName"
-                          value={credentials.firstName}
-                          onChange={handleChange}
-                          placeholder="First Name"
-                          required
-                          className="py-2 bg-dark text-white border-secondary"
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Control
-                          type="text"
-                          name="lastName"
-                          value={credentials.lastName}
-                          onChange={handleChange}
-                          placeholder="Last Name"
-                          required
-                          className="py-2 bg-dark text-white border-secondary"
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-
-                  <Form.Group className="mb-3">
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      value={credentials.email}
-                      onChange={handleChange}
-                      placeholder="Email Address"
-                      required
-                      className="py-2 bg-dark text-white border-secondary"
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Control
-                      type="password"
-                      name="password"
-                      value={credentials.password}
-                      onChange={handleChange}
-                      placeholder="Password"
-                      required
-                      className="py-2 bg-dark text-white border-secondary"
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-4">
-                    <Form.Control
-                      type="password"
-                      name="confirmPassword"
-                      value={credentials.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="Confirm Password"
-                      required
-                      className="py-2 bg-dark text-white border-secondary"
-                    />
-                  </Form.Group>
-
-                  <Button
-                    variant="danger"
-                    type="submit"
-                    className="w-100 py-2 mb-3"
-                    disabled={loading}
-                    style={{ backgroundColor: '#E50914', border: 'none' }}
-                  >
-                    {loading ? 'Creating Account...' : 'Create Account'}
-                  </Button>
-
-                  <div className="text-center">
-                    <p className="text-muted mb-0">
-                      Already have an account?{' '}
-                      <Link to="/login" className="text-white">Sign in now</Link>
-                    </p>
-                  </div>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+              <div className="d-grid mb-2">
+                <button
+                  className="btn btn-primary btn-login text-uppercase fw-bold"
+                  type="submit"
+                >
+                  Register
+                </button>
+              </div>
+              <div className="d-grid mb-2">
+                <button
+                  className="btn btn-primary btn-login text-uppercase fw-bold"
+                  onClick={handleLoginClick}
+                >
+                  Go to Login
+                </button>
+              </div>
+            </form>
+            <strong>{error && <p className="error">{error}</p>}</strong>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
-export default Register; 
+export default Register;

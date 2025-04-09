@@ -17,6 +17,8 @@ import { FaPlus, FaEdit, FaTrash, FaSearch, FaChevronDown, FaChevronRight } from
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
+import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
+import Logout from '../components/Logout';
 
 const AdminMovies: React.FC = () => {
   const blankMovie = {
@@ -218,6 +220,12 @@ const AdminMovies: React.FC = () => {
   };
 
   return (
+    <AuthorizeView>
+    <span>
+      <Logout>
+        Logout <AuthorizedUser value="email" />
+      </Logout>
+      </span>
     <Container fluid className="py-4 px-4">
       <Card className="shadow-sm border-0">
         <Card.Header className="bg-primary text-white py-3">
@@ -608,6 +616,7 @@ const AdminMovies: React.FC = () => {
         />
       </div>
     </Container>
+    </AuthorizeView>
   );
 };
 
