@@ -36,8 +36,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
 
-            policy.WithOrigins("https://lively-mushroom-0e516051e.6.azurestaticapps.net",
-                "http://localhost:3000")
+            policy.WithOrigins("https://lively-mushroom-0e516051e.6.azurestaticapps.net")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
