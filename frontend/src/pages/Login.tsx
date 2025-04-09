@@ -76,10 +76,10 @@ function LoginPage() {
         console.log("✅ Ping success — navigating to /dashboard");
         navigate("/dashboard");
 
-        // setTimeout(() => {
-        //   console.log("🚨 Reloading after login");
-        //   window.location.reload();
-        // }, 100);
+        setTimeout(() => {
+          console.log("🚨 Reloading after login");
+          window.location.reload();
+        }, 100);
       } else {
         console.log("❌ Ping failed after login");
       }
