@@ -1,156 +1,181 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, Alert } from 'react-bootstrap';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
-import { LoginCredentials } from '../types/auth';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Login: React.FC = () => {
-  const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading } = useAuth();
-  
-  const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
-    password: '',
-  });
+function LoginPage() {
+  // state variables for email and passwords
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [rememberme, setRememberme] = useState<boolean>(false);
+
+  // state variable for error messages
   const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // If user is already authenticated, redirect to dashboard
-  if (isAuthenticated && !isLoading) {
-    return <Navigate to="/dashboard" />;
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(credentials);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid email or password');
-    } finally {
-      setLoading(false);
+  // handle change events for input fields
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, type, checked, value } = e.target;
+    if (type === 'checkbox') {
+      setRememberme(checked);
+    } else if (name === 'email') {
+      setEmail(value);
+    } else if (name === 'password') {
+      setPassword(value);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleRegisterClick = () => {
+    navigate('/register');
   };
 
-  const fillDemoUser = () => {
-    setCredentials({
-      email: 'user@example.com',
-      password: 'password123'
-    });
+  // handle submit event for the form
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    console.log("🧪 Attempting login...");
+  
+    if (!email || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+  
+    const loginUrl = rememberme
+      ? 'https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true'
+      : 'https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true';
+  
+    try {
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      console.log("🔁 Login response:", response);
+  
+      const contentLength = response.headers.get('content-length');
+      let data = null;
+      if (contentLength && parseInt(contentLength, 10) > 0) {
+        data = await response.json();
+      }
+  
+      if (!response.ok) {
+        throw new Error(data?.message || 'Invalid email or password.');
+      }
+  
+      const ping = await fetch('https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth', {
+        method: 'GET',
+        credentials: 'include',
+      });
+  
+      console.log("📡 Pingauth response:", ping);
+  
+      if (ping.ok) {
+        console.log("✅ Ping success — navigating to /movies");
+        window.location.href = '/movies'; // 🔥 Force full page reload to re-evaluate auth
+  
+        setTimeout(() => {
+          console.log("🚨 Reloading after login");
+          window.location.reload();
+        }, 100);
+      } else {
+        console.log("❌ Ping failed after login");
+      }
+  
+    } catch (error: any) {
+      setError(error.message || 'Error logging in.');
+      console.error('❌ Fetch attempt failed:', error);
+    }
   };
-
-  const fillDemoAdmin = () => {
-    setCredentials({
-      email: 'admin@example.com',
-      password: 'admin123'
-    });
-  };
+  
 
   return (
-    <div className="login-page py-5" style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#000', 
-      backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 100%), url(https://static.vecteezy.com/system/resources/thumbnails/043/555/242/small_2x/realistic-3d-cinema-film-strip-in-perspective-isolated-on-blue-background-template-cinema-festival-movie-design-cinema-film-strip-for-ad-poster-presentation-show-brochure-banner-or-flyer-vector.jpg)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      display: 'flex',
-      alignItems: 'center'
-    }}>
-      <Container>
-        <Row className="justify-content-center">
-          <Col md={6} lg={5} xl={4}>
-            <Card className="bg-dark text-white border-0 shadow">
-              <Card.Body className="p-4">
-                <h2 className="text-center mb-4 fw-bold">Sign In</h2>
-                
-                {error && (
-                  <Alert variant="danger" dismissible onClose={() => setError('')}>
-                    {error}
-                  </Alert>
-                )}
+    <div className="container">
+      <div className="row">
+        <div className="card border-0 shadow rounded-3 ">
+          <div className="card-body p-4 p-sm-5">
+            <h5 className="card-title text-center mb-5 fw-light fs-5">
+              Sign In
+            </h5>
+            <form onSubmit={handleSubmit}>
+              <div className="form-floating mb-3">
+                <input
+                  className="form-control"
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={handleChange}
+                />
+                <label htmlFor="email">Email address</label>
+              </div>
+              <div className="form-floating mb-3">
+                <input
+                  className="form-control"
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={handleChange}
+                />
+                <label htmlFor="password">Password</label>
+              </div>
 
-                <div className="mb-4 small text-light">
-                  <p className="mb-2">Demo accounts:</p>
-                  <div className="d-flex gap-2 mb-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline-light" 
-                      onClick={fillDemoUser}
-                      className="w-100"
-                    >
-                      User Account
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline-light" 
-                      onClick={fillDemoAdmin}
-                      className="w-100"
-                    >
-                      Admin Account
-                    </Button>
-                  </div>
-                </div>
-
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3">
-                    <Form.Control
-                      type="email"
-                      name="email"
-                      value={credentials.email}
-                      onChange={handleChange}
-                      placeholder="Email address"
-                      required
-                      className="py-2 bg-dark text-white border-secondary"
-                    />
-                  </Form.Group>
-
-                  <Form.Group className="mb-4">
-                    <Form.Control
-                      type="password"
-                      name="password"
-                      value={credentials.password}
-                      onChange={handleChange}
-                      placeholder="Password"
-                      required
-                      className="py-2 bg-dark text-white border-secondary"
-                    />
-                  </Form.Group>
-
-                  <Button
-                    variant="danger"
-                    type="submit"
-                    className="w-100 py-2 mb-3"
-                    disabled={loading}
-                    style={{ backgroundColor: '#E50914', border: 'none' }}
-                  >
-                    {loading ? 'Signing in...' : 'Sign In'}
-                  </Button>
-
-                  <div className="text-center">
-                    <p className="text-muted mb-0">
-                      New to MovieHub?{' '}
-                      <Link to="/register" className="text-white">Sign up now</Link>
-                    </p>
-                  </div>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+              <div className="form-check mb-3">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  value=""
+                  id="rememberme"
+                  name="rememberme"
+                  checked={rememberme}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="rememberme">
+                  Remember password
+                </label>
+              </div>
+              <div className="d-grid mb-2">
+                <button
+                  className="btn btn-primary btn-login text-uppercase fw-bold"
+                  type="submit"
+                >
+                  Sign in
+                </button>
+              </div>
+              <div className="d-grid mb-2">
+                <button
+                  className="btn btn-primary btn-login text-uppercase fw-bold"
+                  onClick={handleRegisterClick}
+                >
+                  Register
+                </button>
+              </div>
+              <hr className="my-4" />
+              <div className="d-grid mb-2">
+                <button
+                  className="btn btn-google btn-login text-uppercase fw-bold"
+                  type="button"
+                >
+                  <i className="fa-brands fa-google me-2"></i> Sign in with
+                  Google
+                </button>
+              </div>
+              <div className="d-grid mb-2">
+                <button
+                  className="btn btn-facebook btn-login text-uppercase fw-bold"
+                  type="button"
+                >
+                  <i className="fa-brands fa-facebook-f me-2"></i> Sign in with
+                  Facebook
+                </button>
+              </div>
+            </form>
+            {error && <p className="error">{error}</p>}
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
-export default Login; 
+export default LoginPage;

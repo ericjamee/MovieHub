@@ -12,6 +12,8 @@ import {
 import { FaStar, FaArrowLeft } from "react-icons/fa";
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
+import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
+import Logout from '../components/Logout';
 
 const MovieDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -99,6 +101,12 @@ const MovieDetail: React.FC = () => {
   }
 
   return (
+    <AuthorizeView>
+    <span>
+      <Logout>
+        Logout <AuthorizedUser value="email" />
+      </Logout>
+    </span>
     <Container className="py-5">
       <Button variant="outline-primary" className="mb-4" onClick={goBack}>
         <FaArrowLeft className="me-2" /> Back to Movies
@@ -221,6 +229,7 @@ const MovieDetail: React.FC = () => {
         </Col>
       </Row>
     </Container>
+    </AuthorizeView>
   );
 };
 

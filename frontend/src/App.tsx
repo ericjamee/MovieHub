@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
@@ -9,65 +8,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Privacy from './pages/Privacy';
 import AdminMovies from './pages/AdminMovies';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthorizeView from './components/AuthorizeView'; // ✅ your working guard
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Admin route component
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, currentUser } = useAuth();
-  
-  console.log('AdminRoute check:', { 
-    isAuthenticated, 
-    isLoading, 
-    userRole: currentUser?.role,
-    isAdmin: currentUser?.role === 'admin'
-  });
-  
-  if (isLoading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated) {
-    console.log('User not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (currentUser?.role !== 'admin') {
-    console.log('User not admin, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  console.log('User is admin, rendering admin component');
-  return <>{children}</>;
-};
 
 function AppRoutes() {
   return (
@@ -80,29 +23,29 @@ function AppRoutes() {
       
       {/* Protected routes */}
       <Route path="/dashboard" element={
-        <ProtectedRoute>
+        <AuthorizeView>
           <Dashboard />
-        </ProtectedRoute>
+        </AuthorizeView>
       } />
       <Route path="/movies" element={
-        <ProtectedRoute>
+        <AuthorizeView>
           <Movies />
-        </ProtectedRoute>
+        </AuthorizeView>
       } />
       <Route path="/movies/:id" element={
-        <ProtectedRoute>
+        <AuthorizeView>
           <MovieDetail />
-        </ProtectedRoute>
+        </AuthorizeView>
       } />
       
-      {/* Admin routes */}
+      {/* Admin routes (if needed later) */}
       <Route path="/admin/movies" element={
-        <AdminRoute>
+        <AuthorizeView>
           <AdminMovies />
-        </AdminRoute>
+        </AuthorizeView>
       } />
       
-      {/* Redirect any unknown routes to home */}
+      {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
@@ -111,11 +54,9 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <MainLayout>
-          <AppRoutes />
-        </MainLayout>
-      </AuthProvider>
+      <MainLayout>
+        <AppRoutes />
+      </MainLayout>
     </Router>
   );
 }

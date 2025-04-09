@@ -24,9 +24,11 @@ import {
   FaChartLine,
   FaUsers,
 } from "react-icons/fa";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuthorizedUser } from "../components/AuthorizeView";
 import { movieService } from "../services/movieService";
 import { AdminDashboardStats, Movie } from "../types/movie";
+import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
+import Logout from '../components/Logout';
 
 // Add CSS styles
 const styles = `
@@ -387,8 +389,8 @@ const generateMoreCategories = (count: number) => {
 const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 
 const Dashboard: React.FC = () => {
-  const { currentUser } = useAuth();
-  const isAdmin = currentUser?.role === "admin";
+  const currentUser = useAuthorizedUser();
+  const isAdmin = currentUser?.email === "admin@example.com"; // or however you define admin  
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -857,6 +859,12 @@ const Dashboard: React.FC = () => {
     const stats = dashboardStats || adminStats;
 
     return (
+      <AuthorizeView>
+      <span>
+        <Logout>
+          Logout <AuthorizedUser value="email" />
+        </Logout>
+      </span>
       <Container fluid className="py-4">
         <Row className="mb-4">
           <Col>
@@ -1149,6 +1157,7 @@ const Dashboard: React.FC = () => {
           </div>
         </Alert>
       </Container>
+      </AuthorizeView>
     );
   };
 
