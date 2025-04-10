@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace MovieHub.API.Controllers;
 
-[Route("api/role")]
+[Route("[controller]")]
 [ApiController]
-[Authorize(Roles = "Administrator")]
+
 public class RoleController : ControllerBase
 {
     private readonly RoleManager<IdentityRole> _roleManager;

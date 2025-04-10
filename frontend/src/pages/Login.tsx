@@ -86,14 +86,26 @@ function LoginPage() {
       console.log("📡 Pingauth response:", ping);
 
       if (ping.ok) {
-        console.log("✅ Ping success — navigating to /dashboard");
-        navigate("/dashboard");
-
+        const userData = await ping.json();
+        const roles = userData.roles || [];
+      
+        console.log("✅ Ping success — roles:", roles);
+      
+        if (roles.includes("Administrator")) {
+          console.log("👑 Redirecting admin to /admin/movies");
+          navigate("/admin/movies");
+        } else {
+          console.log("👤 Redirecting user to /dashboard");
+          navigate("/dashboard");
+        }
+      
+        // Optional: reload app to rehydrate any auth state
         setTimeout(() => {
-          console.log("🚨 Reloading after login");
+          console.log("🔄 Reloading after login");
           window.location.reload();
         }, 100);
-      } else {
+      }      
+      else {
         console.log("❌ Ping failed after login");
       }
     } catch (error: any) {

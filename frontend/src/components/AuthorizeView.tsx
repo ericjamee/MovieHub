@@ -1,29 +1,27 @@
 import React, { useState, useEffect, createContext } from "react";
 import { Navigate } from "react-router-dom";
 
-const UserContext = createContext<User | null>(null);
-
 interface User {
   email: string;
+  roles: string[];
 }
+
+const UserContext = createContext<User | null>(null);
 
 function AuthorizeView(props: { children: React.ReactNode }) {
   const [authorized, setAuthorized] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [user, setUser] = useState<User>({ email: "" });
+  const [user, setUser] = useState<User>({ email: "", roles: [] });
 
   useEffect(() => {
     console.log("🚀 AuthorizeView useEffect running");
 
     async function checkAuth() {
       try {
-        const response = await fetch(
-          "https://localhost:5000/pingauth",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const response = await fetch("https://localhost:5000/pingauth", {
+          method: "GET",
+          credentials: "include",
+        });
 
         console.log("📡 /pingauth status:", response.status);
 
@@ -32,8 +30,8 @@ function AuthorizeView(props: { children: React.ReactNode }) {
         const data = await response.json();
         console.log("🎉 Authenticated user:", data);
 
-        if (data.email) {
-          setUser({ email: data.email }); // no role
+        if (data.email && data.roles) {
+          setUser({ email: data.email, roles: data.roles || [] });
           setAuthorized(true);
         } else {
           throw new Error("No email returned");
@@ -66,6 +64,7 @@ export function AuthorizedUser(props: { value: string }) {
   if (!user) return null;
   return props.value === "email" ? <>{user.email}</> : null;
 }
+
 export const useAuthorizedUser = () => React.useContext(UserContext);
 
 export default AuthorizeView;
