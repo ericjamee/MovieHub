@@ -45,7 +45,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   // Hide navbar on certain unauthenticated pages
   const isLandingPage = location.pathname === "/" && !isAuthenticated;
-  const isAuthPage = ["/login", "/register"].includes(location.pathname) && !isAuthenticated;
+  const isAuthPage =
+    ["/login", "/register"].includes(location.pathname) && !isAuthenticated;
   const showNavbar = !isLandingPage && !isAuthPage;
 
   return (
@@ -114,8 +115,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </NavDropdown>
                 ) : (
                   <>
-                    <Nav.Link as={Link} to="/login">Sign In</Nav.Link>
-                    <Nav.Link as={Link} to="/register">Sign Up</Nav.Link>
+                    <Nav.Link as={Link} to="/login">
+                      Sign In
+                    </Nav.Link>
+                    <Nav.Link as={Link} to="/register">
+                      Sign Up
+                    </Nav.Link>
                   </>
                 )}
               </Nav>
@@ -132,7 +137,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <footer className="bg-dark text-light py-4 w-100">
           <Container>
             <div className="text-center">
-              <p className="mb-0">&copy; 2025 CineNiche. All rights reserved.</p>
+              <p className="mb-0">
+                &copy; 2025 CineNiche. All rights reserved.
+              </p>
             </div>
           </Container>
         </footer>
