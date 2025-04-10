@@ -390,7 +390,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
-  const isAdmin = currentUser?.email === "admin@example.com"; // or however you define admin  
+  const isAdmin = currentUser?.roles?.includes("Administrator");
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
