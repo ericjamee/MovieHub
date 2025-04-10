@@ -169,4 +169,11 @@ export const movieService = {
       return response.data;
     });
   },
+
+  async getRecommendedMovies(movieId: string): Promise<Movie[]> {
+    return handleApiError(async () => {
+      const response = await axios.get(`${API_BASE_URL}/recommendations/azure/${movieId}`);
+      return response.data.recommendations;
+    });
+  },
 };
