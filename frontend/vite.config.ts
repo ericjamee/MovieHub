@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: "/",
   server: {
     port: 3000,
     headers: {
@@ -20,4 +21,21 @@ export default defineConfig({
       `.replace(/\n/g, ""),
     },
   },
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    sourcemap: false,
+    minify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: [
+            'react',
+            'react-dom',
+            'react-router-dom'
+          ]
+        }
+      }
+    }
+  }
 });

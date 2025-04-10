@@ -73,7 +73,7 @@ function AppRoutes() {
       />
 
       {/* Catch-all redirect */}
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
