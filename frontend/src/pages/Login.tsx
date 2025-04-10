@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  Container,
-  Row,
-  Col,
-  Form,
-  Button,
-  Card,
-  Alert,
-} from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Card, Alert } from "react-bootstrap";
 import { FaGoogle, FaFacebookF, FaUser, FaLock, FaFilm } from "react-icons/fa";
 
 function LoginPage() {
@@ -52,8 +44,8 @@ function LoginPage() {
     }
 
     const loginUrl = rememberme
-      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true"
-      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true";
+      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//login?useCookies=true"
+      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//login?useSessionCookies=true";
 
     try {
       const response = await fetch(loginUrl, {
@@ -76,7 +68,7 @@ function LoginPage() {
       }
 
       const ping = await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//pingauth",
         {
           method: "GET",
           credentials: "include",
@@ -105,32 +97,24 @@ function LoginPage() {
   };
 
   return (
-    <div
-      className="login-page py-5"
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #121212 0%, #1e1e1e 100%)",
-        backgroundSize: "cover",
-        backgroundAttachment: "fixed",
-      }}
-    >
+    <div className="login-page py-5" style={{ 
+      minHeight: "100vh", 
+      display: "flex", 
+      alignItems: "center",
+      background: "linear-gradient(135deg, #121212 0%, #1e1e1e 100%)",
+      backgroundSize: "cover",
+      backgroundAttachment: "fixed"
+    }}>
       <Container>
         <Row className="justify-content-center">
           <Col xs={12} sm={10} md={8} lg={6} xl={5}>
-            <Card
-              className="border-0 shadow-lg rounded-4 overflow-hidden"
-              style={{
-                background: "rgba(18, 18, 18, 0.8)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255, 255, 255, 0.05)",
-              }}
-            >
-              <div
-                className="text-center p-4"
-                style={{ background: "rgba(33, 37, 41, 0.7)" }}
-              >
+            <Card className="border-0 shadow-lg rounded-4 overflow-hidden" 
+                  style={{ 
+                    background: "rgba(18, 18, 18, 0.8)",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255, 255, 255, 0.05)"
+                  }}>
+              <div className="text-center p-4" style={{ background: "rgba(33, 37, 41, 0.7)" }}>
                 <h2 className="fw-bold mb-2 text-danger">
                   <FaFilm className="me-2" />
                   CineNiche
@@ -141,30 +125,22 @@ function LoginPage() {
                 </h4>
                 <p className="text-light mt-2 mb-0">Sign in to your account</p>
               </div>
-              <Card.Body
-                className="p-4 p-md-5"
-                style={{ background: "rgba(33, 37, 41, 0.4)" }}
-              >
+              <Card.Body className="p-4 p-md-5" style={{ background: "rgba(33, 37, 41, 0.4)" }}>
                 {error && (
                   <Alert variant="danger" className="mb-4 border-0 shadow-sm">
                     {error}
                   </Alert>
                 )}
-
+                
                 <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-4" controlId="email">
-                    <Form.Label className="fw-semibold text-light">
-                      Email Address
-                    </Form.Label>
+                    <Form.Label className="fw-semibold text-light">Email Address</Form.Label>
                     <div className="input-group">
-                      <span
-                        className="input-group-text"
-                        style={{
-                          background: "rgba(33, 37, 41, 0.7)",
-                          color: "#e9ecef",
-                          borderColor: "rgba(255, 255, 255, 0.15)",
-                        }}
-                      >
+                      <span className="input-group-text" style={{ 
+                        background: "rgba(33, 37, 41, 0.7)",
+                        color: "#e9ecef",
+                        borderColor: "rgba(255, 255, 255, 0.15)"
+                      }}>
                         <FaUser />
                       </span>
                       <Form.Control
@@ -173,30 +149,25 @@ function LoginPage() {
                         placeholder="name@example.com"
                         value={email}
                         onChange={handleChange}
-                        style={{
+                        style={{ 
                           background: "rgba(33, 37, 41, 0.5)",
                           color: "#e9ecef",
-                          borderColor: "rgba(255, 255, 255, 0.15)",
+                          borderColor: "rgba(255, 255, 255, 0.15)"
                         }}
                         className="py-2 border-start-0"
                         required
                       />
                     </div>
                   </Form.Group>
-
+                  
                   <Form.Group className="mb-4" controlId="password">
-                    <Form.Label className="fw-semibold text-light">
-                      Password
-                    </Form.Label>
+                    <Form.Label className="fw-semibold text-light">Password</Form.Label>
                     <div className="input-group">
-                      <span
-                        className="input-group-text"
-                        style={{
-                          background: "rgba(33, 37, 41, 0.7)",
-                          color: "#e9ecef",
-                          borderColor: "rgba(255, 255, 255, 0.15)",
-                        }}
-                      >
+                      <span className="input-group-text" style={{ 
+                        background: "rgba(33, 37, 41, 0.7)",
+                        color: "#e9ecef",
+                        borderColor: "rgba(255, 255, 255, 0.15)"
+                      }}>
                         <FaLock />
                       </span>
                       <Form.Control
@@ -205,10 +176,10 @@ function LoginPage() {
                         placeholder="Enter your password"
                         value={password}
                         onChange={handleChange}
-                        style={{
+                        style={{ 
                           background: "rgba(33, 37, 41, 0.5)",
                           color: "#e9ecef",
-                          borderColor: "rgba(255, 255, 255, 0.15)",
+                          borderColor: "rgba(255, 255, 255, 0.15)"
                         }}
                         className="py-2 border-start-0"
                         required
@@ -226,83 +197,74 @@ function LoginPage() {
                         onChange={handleChange}
                         className="user-select-none text-light"
                       />
-                      <Link
-                        to="#"
-                        className="text-decoration-none small text-danger"
-                      >
-                        Forgot password?
-                      </Link>
+                      <Link to="#" className="text-decoration-none small text-danger">Forgot password?</Link>
                     </div>
                   </Form.Group>
-
+                  
                   <div className="d-grid gap-3">
                     <Button
                       variant="danger"
                       type="submit"
                       className="py-2 fw-semibold"
                       disabled={isLoading}
-                      style={{
-                        background:
-                          "linear-gradient(to right, #dc3545, #b02a37)",
+                      style={{ 
+                        background: "linear-gradient(to right, #dc3545, #b02a37)",
                         border: "none",
-                        boxShadow: "0 4px 6px rgba(220, 53, 69, 0.2)",
+                        boxShadow: "0 4px 6px rgba(220, 53, 69, 0.2)"
                       }}
                     >
-                      {isLoading ? "Signing in..." : "Sign In"}
+                      {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
-
+                    
                     <Button
                       variant="outline-light"
                       onClick={handleRegisterClick}
                       className="py-2 fw-semibold"
                       disabled={isLoading}
-                      style={{
+                      style={{ 
                         borderColor: "rgba(255, 255, 255, 0.2)",
-                        transition: "all 0.3s ease",
+                        transition: "all 0.3s ease"
                       }}
                     >
                       Create Account
                     </Button>
                   </div>
                 </Form>
-
+                
                 <div className="text-center mt-4">
                   <p className="text-light mb-4">Or sign in with</p>
                   <div className="d-flex justify-content-center gap-3">
-                    <Button
-                      variant="outline-danger"
+                    <Button 
+                      variant="outline-danger" 
                       className="rounded-circle p-2"
-                      style={{
-                        width: "45px",
+                      style={{ 
+                        width: "45px", 
                         height: "45px",
                         borderColor: "rgba(220, 53, 69, 0.5)",
-                        background: "rgba(33, 37, 41, 0.5)",
+                        background: "rgba(33, 37, 41, 0.5)"
                       }}
                     >
                       <FaGoogle />
                     </Button>
-                    <Button
-                      variant="outline-primary"
+                    <Button 
+                      variant="outline-primary" 
                       className="rounded-circle p-2"
-                      style={{
-                        width: "45px",
+                      style={{ 
+                        width: "45px", 
                         height: "45px",
                         borderColor: "rgba(13, 110, 253, 0.5)",
-                        background: "rgba(33, 37, 41, 0.5)",
+                        background: "rgba(33, 37, 41, 0.5)"
                       }}
                     >
                       <FaFacebookF />
                     </Button>
                   </div>
                 </div>
-
+                
                 <div className="text-center mt-4">
                   <p className="mb-0 text-light">
-                    Don't have an account?{" "}
-                    <Link
-                      to="/register"
-                      className="text-decoration-none fw-semibold text-danger"
-                    >
+                    Don't have an account? {' '}
+                    <Link to="/register" className="text-decoration-none fw-semibold text-danger">
                       Sign up
                     </Link>
                   </p>
