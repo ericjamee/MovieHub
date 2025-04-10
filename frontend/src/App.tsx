@@ -8,7 +8,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Privacy from './pages/Privacy';
 import AdminMovies from './pages/AdminMovies';
-import AuthorizeView from './components/AuthorizeView'; // ✅ your working guard
+import Profile from './pages/Profile';
+import AuthorizeView from './components/AuthorizeView'; // your working guard
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -25,6 +26,11 @@ function AppRoutes() {
       <Route path="/dashboard" element={
         <AuthorizeView>
           <Dashboard />
+        </AuthorizeView>
+      } />
+      <Route path="/profile" element={
+        <AuthorizeView>
+          <Profile />
         </AuthorizeView>
       } />
       <Route path="/movies" element={
