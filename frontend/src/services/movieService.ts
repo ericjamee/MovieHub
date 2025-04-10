@@ -94,26 +94,59 @@ export const movieService = {
   },
 
   async createMovie(newMovie: Movie): Promise<Movie> {
-    return handleApiError(async () => {
-      const response = await axios.post(`${API_BASE_URL}/AddMovie`, newMovie);
-      return response.data;
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/AddMovie`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMovie),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch movie");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.log("Error adding movie:", error);
+      throw error;
+    }
   },
 
   async updateMovie(showId: string, updatedMovie: Movie): Promise<Movie> {
-    return handleApiError(async () => {
-      const response = await axios.put(
-        `${API_BASE_URL}/UpdateMovie/${showId}`,
-        updatedMovie
-      );
-      return response.data;
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/UpdateMovie/${showId}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedMovie),
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating movie:", error);
+      throw error;
+    }
   },
 
   async deleteMovie(showId: string): Promise<void> {
-    return handleApiError(async () => {
-      await axios.delete(`${API_BASE_URL}/DeleteMovie/${showId}`);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/DeleteMovie/${showId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete movie");
+      }
+    } catch (error) {
+      console.error("Error deleting movie:", error);
+      throw error;
+    }
   },
 
   async rateMovie(id: string, rating: number): Promise<Movie> {
@@ -132,30 +165,10 @@ export const movieService = {
     });
   },
 
-  async getMovieRecommendations(movieTitle: string): Promise<string[]> {
+  async getRecommendedMovies(movieId: string): Promise<Movie[]> {
     return handleApiError(async () => {
-      // Fetch the recommendations JSON file
-      const response = await axios.get("/api/data/movie_recommendations.json");
-      const recommendations = response.data;
-
-      // Find the recommendations for the specified movie
-      const movieRec = recommendations.find(
-        (rec: any) => rec.movie_title.toLowerCase() === movieTitle.toLowerCase()
-      );
-
-      if (movieRec) {
-        // Return an array of the 5 recommended movie titles
-        return [
-          movieRec.rec_1,
-          movieRec.rec_2,
-          movieRec.rec_3,
-          movieRec.rec_4,
-          movieRec.rec_5,
-        ];
-      }
-
-      // Return empty array if no recommendations found
-      return [];
+      const response = await axios.get(`${API_BASE_URL}/recommendations/azure/${movieId}`);
+      return response.data.recommendations;
     });
   },
 };

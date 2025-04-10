@@ -89,6 +89,11 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts(); // 🔒 Enforce HTTPS strictly in production
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -113,25 +118,31 @@ app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> s
 {
     await signInManager.SignOutAsync();
 
-    context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
+    context.Response.Cookies.Append(".AspNetCore.Identity.Application", "", new CookieOptions
     {
-        HttpOnly = true,
+        Expires = DateTimeOffset.UnixEpoch,
+        Path = "/", // Make sure this matches the original cookie's path
         Secure = true,
-        SameSite = SameSiteMode.None,
-        Path = "/",
+        HttpOnly = true,
+        SameSite = SameSiteMode.None
     });
 
     return Results.Ok(new { message = "Logout successful" });
-}).RequireAuthorization();
+});
 
-// ✅ Auth check for frontend
-app.MapGet("/pingauth", (ClaimsPrincipal user) =>
+app.MapGet("/pingauth", async (ClaimsPrincipal user, UserManager<IdentityUser> userManager) =>
 {
     if (!user.Identity?.IsAuthenticated ?? false)
         return Results.Unauthorized();
 
     var email = user.FindFirstValue(ClaimTypes.Email) ?? "unknown@example.com";
-    return Results.Json(new { email });
+    var identityUser = await userManager.FindByEmailAsync(email);
+    var roles = identityUser is not null
+        ? await userManager.GetRolesAsync(identityUser)
+        : new List<string>();
+
+    return Results.Json(new { email, roles });
 }).RequireAuthorization();
+
 
 app.Run();

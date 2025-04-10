@@ -24,10 +24,16 @@ import {
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
-import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
+import AuthorizeView, { AuthorizedUser, useAuthorizedUser } from '../components/AuthorizeView';
 import Logout from '../components/Logout';
+import { Navigate } from "react-router-dom";
 
 const AdminMovies: React.FC = () => {
+  const user = useAuthorizedUser();
+  if (!user?.roles.includes("Administrator")) {
+    return <Navigate to="/unauthorized" />;
+  }
+
   const blankMovie = {
     showId: "",
     type: "",

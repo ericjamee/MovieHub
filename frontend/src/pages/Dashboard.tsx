@@ -432,7 +432,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
-  const isAdmin = currentUser?.email === "admin@example.com"; // or however you define admin
+  const isAdmin = currentUser?.roles?.includes("Administrator");
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -924,7 +924,7 @@ const Dashboard: React.FC = () => {
   };
 
   // Function to open the movie details modal
-  const openMovieDetails = async (movie: Movie) => {
+  const openMovieDetails = (movie: Movie) => {
     setSelectedMovie(movie);
     setShowModal(true);
 

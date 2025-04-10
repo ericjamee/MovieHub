@@ -21,19 +21,24 @@ const MovieDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [movie, setMovie] = useState<Movie | null>(null);
+  const [recommendedMovies, setRecommendedMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRating, setUserRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadMovie = async () => {
+    const loadMovieAndRecommendations = async () => {
       try {
         setLoading(true);
         setError(null);
         if (id) {
-          const data = await movieService.getMovieById(id);
-          setMovie(data);
+          const [movieData, recommendationsData] = await Promise.all([
+            movieService.getMovieById(id),
+            movieService.getRecommendedMovies(id)
+          ]);
+          setMovie(movieData);
+          setRecommendedMovies(recommendationsData);
         }
       } catch (error) {
         console.error("Error loading movie:", error);
@@ -43,7 +48,7 @@ const MovieDetail: React.FC = () => {
       }
     };
 
-    loadMovie();
+    loadMovieAndRecommendations();
   }, [id]);
 
   const handleRatingSubmit = async () => {
@@ -230,6 +235,46 @@ const MovieDetail: React.FC = () => {
           </div>
         </Col>
       </Row>
+
+      {recommendedMovies.length > 0 && (
+        <div className="mt-5">
+          <h3 className="mb-4">Recommended Movies</h3>
+          <Row xs={1} md={2} lg={3} className="g-4">
+            {recommendedMovies.map((recommendedMovie) => (
+              <Col key={recommendedMovie.showId}>
+                <Card 
+                  className="h-100 movie-card" 
+                  onClick={() => navigate(`/movies/${recommendedMovie.showId}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Card.Img
+                    variant="top"
+                    src={`https://placehold.co/600x900/333/fff?text=${encodeURIComponent(recommendedMovie.title)}`}
+                    alt={recommendedMovie.title}
+                    style={{ height: "300px", objectFit: "cover" }}
+                  />
+                  <Card.Body>
+                    <Card.Title>{recommendedMovie.title}</Card.Title>
+                    <div className="d-flex align-items-center">
+                      {recommendedMovie.rating && (
+                        <div className="d-flex align-items-center me-3">
+                          <FaStar className="text-warning me-1" />
+                          <span>
+                            {typeof recommendedMovie.rating === "string"
+                              ? recommendedMovie.rating
+                              : Number(recommendedMovie.rating).toFixed(1)}
+                          </span>
+                        </div>
+                      )}
+                      <Badge bg="secondary">{recommendedMovie.type}</Badge>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      )}
     </Container>
     </AuthorizeView>
   );
