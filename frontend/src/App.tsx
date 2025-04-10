@@ -11,7 +11,6 @@ import AdminMovies from './pages/AdminMovies';
 import AuthorizeView from './components/AuthorizeView'; // ✅ your working guard
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import CookieConsentBanner from './components/CookieConsentBanner';
 
 function AppRoutes() {
   return (
@@ -57,7 +56,6 @@ function App() {
     <Router>
       <MainLayout>
         <AppRoutes />
-        <CookieConsentBanner />
       </MainLayout>
     </Router>
   );
