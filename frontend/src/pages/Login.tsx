@@ -44,8 +44,8 @@ function LoginPage() {
     }
 
     const loginUrl = rememberme
-      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true"
-      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true";
+      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//login?useCookies=true"
+      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//login?useSessionCookies=true";
 
     try {
       const response = await fetch(loginUrl, {
@@ -68,7 +68,7 @@ function LoginPage() {
       }
 
       const ping = await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//pingauth",
         {
           method: "GET",
           credentials: "include",

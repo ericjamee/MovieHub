@@ -1,27 +1,26 @@
-import { useNavigate } from 'react-router-dom';
-
 function Logout(props: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-
   const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/logout', {
-        method: 'POST',
-        credentials: 'include', // Ensure cookies are sent
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//logout",
+        {
+          method: "POST",
+          credentials: "include", // Ensure cookies are sent
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.ok) {
-        navigate('/login');
+        window.location.href = "/login";
       } else {
-        console.error('Logout failed:', response.status);
+        console.error("Logout failed:", response.status);
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
