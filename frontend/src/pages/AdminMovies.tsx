@@ -29,6 +29,14 @@ import Logout from '../components/Logout';
 import { Navigate } from "react-router-dom";
 
 const AdminMovies: React.FC = () => {
+  useEffect(() => {
+    const hasSeenBanner = document.cookie.includes("adminBannerSeen=true");
+    if (!hasSeenBanner) {
+      alert("👋 Welcome, Admin! You've got full access here.");
+      document.cookie = "adminBannerSeen=true; path=/; max-age=31536000";
+    }
+  }, []);
+
   const user = useAuthorizedUser();
   if (!user?.roles.includes("Administrator")) {
     return <Navigate to="/unauthorized" />;
