@@ -8,7 +8,6 @@ import {
   FaUserShield,
   FaTachometerAlt,
 } from "react-icons/fa";
-import Logout from "../components/Logout";
 
 interface MainLayoutProps {
   children: React.ReactNode;

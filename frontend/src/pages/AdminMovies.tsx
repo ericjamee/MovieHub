@@ -24,8 +24,7 @@ import {
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
-import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
-import Logout from "../components/Logout";
+import AuthorizeView from "../components/AuthorizeView";
 
 const AdminMovies: React.FC = () => {
   const blankMovie = {
