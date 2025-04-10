@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { fetchRecommendationsForMovie } from "../services/recommendations";
 import {
   Row,
   Col,
@@ -16,6 +17,7 @@ import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
 import Logout from '../components/Logout';
 
 const MovieDetail: React.FC = () => {
+  const [recommendations, setRecommendations] = useState<string[]>([]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [movie, setMovie] = useState<Movie | null>(null);
