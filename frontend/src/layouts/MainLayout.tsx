@@ -24,10 +24,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("https://localhost:5000/pingauth", {
-          method: "GET",
-          credentials: "include", // Include cookies
-        });
+        const response = await fetch(
+          "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
+          {
+            method: "GET",
+            credentials: "include", // Include cookies
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -47,10 +50,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Logout handler
   const handleLogout = async () => {
     try {
-      await fetch("https://localhost:5000/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await fetch(
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
       setUserEmail(null); // Clear user email on logout
       navigate("/login"); // Navigate to login page
     } catch (err) {

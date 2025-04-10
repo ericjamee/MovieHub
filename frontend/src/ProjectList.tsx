@@ -11,7 +11,7 @@ function ProjectList() {
   useEffect(() => {
     const fetchProjects = async () => {
       const response = await fetch(
-        `https://localhost:5000/Water/AllProjects?pagesize=${pageSize}&pageNum=${pageNum}`,
+        `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Water/AllProjects?pagesize=${pageSize}&pageNum=${pageNum}`,
         {
           credentials: "include",
         }
