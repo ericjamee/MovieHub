@@ -432,7 +432,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
-  const isAdmin = currentUser?.roles?.includes("Administrator");
+  const isAdmin = currentUser?.email === "admin@example.com"; // or however you define admin
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -924,34 +924,34 @@ const Dashboard: React.FC = () => {
   };
 
   // Function to open the movie details modal
-  const openMovieDetails = (movie: Movie) => {
+  const openMovieDetails = async (movie: Movie) => {
     setSelectedMovie(movie);
     setShowModal(true);
 
     // Fetch movie recommendations
-    try {
-      setLoadingRecommendations(true);
-      const recommendedTitles = await movieService.getMovieRecommendations(
-        movie.title
-      );
+    // try {
+    //   setLoadingRecommendations(true);
+    //   const recommendedTitles = await movieService.getMovieRecommendations(
+    //     movie.title
+    //   );
 
-      if (recommendedTitles.length > 0) {
-        // Find the actual movie objects for the recommended titles
-        const recommendedMovies = filteredMovies.filter((m) =>
-          recommendedTitles.some(
-            (title) => title.toLowerCase() === m.title.toLowerCase()
-          )
-        );
-        setMovieRecommendations(recommendedMovies);
-      } else {
-        setMovieRecommendations([]);
-      }
-    } catch (error) {
-      console.error("Error fetching movie recommendations:", error);
-      setMovieRecommendations([]);
-    } finally {
-      setLoadingRecommendations(false);
-    }
+    //   if (recommendedTitles.length > 0) {
+    //     // Find the actual movie objects for the recommended titles
+    //     const recommendedMovies = filteredMovies.filter((m) =>
+    //       recommendedTitles.some(
+    //         (title) => title.toLowerCase() === m.title.toLowerCase()
+    //       )
+    //     );
+    //     setMovieRecommendations(recommendedMovies);
+    //   } else {
+    //     setMovieRecommendations([]);
+    //   }
+    // } catch (error) {
+    //   console.error("Error fetching movie recommendations:", error);
+    //   setMovieRecommendations([]);
+    // } finally {
+    //   setLoadingRecommendations(false);
+    // }
   };
 
   // Function to close the movie details modal
