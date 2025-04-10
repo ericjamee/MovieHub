@@ -17,7 +17,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false); // Placeholder for future role handling
+  const [isAdmin] = useState(false); // Placeholder for future role handling
 
   // Fetch user email from /pingauth
   useEffect(() => {
