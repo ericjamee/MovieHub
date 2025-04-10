@@ -28,7 +28,6 @@ import { useAuthorizedUser } from "../components/AuthorizeView";
 import { movieService } from "../services/movieService";
 import { AdminDashboardStats, Movie } from "../types/movie";
 import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
-import Logout from '../components/Logout';
 
 // Add CSS styles
 const styles = `
@@ -860,11 +859,6 @@ const Dashboard: React.FC = () => {
 
     return (
       <AuthorizeView>
-      <span>
-        <Logout>
-          Logout <AuthorizedUser value="email" />
-        </Logout>
-      </span>
       <Container fluid className="py-4">
         <Row className="mb-4">
           <Col>

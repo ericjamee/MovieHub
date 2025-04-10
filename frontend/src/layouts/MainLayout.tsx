@@ -18,9 +18,18 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = useAuthorizedUser();
+  const isLoading = currentUser === null
   const isAuthenticated = !!currentUser?.email;
   const isAdmin = currentUser?.roles?.includes("Administrator");
-
+  
+  if (isLoading) {
+    return (
+      <div className="text-center p-4">
+        <span className="spinner-border text-primary" /> Loading layout...
+      </div>
+    );
+  }
+  
   const handleLogout = async () => {
     try {
       await fetch("https://localhost:5000/logout", {
@@ -113,6 +122,7 @@ const MainLayout: React.FC = () => {
                     <NavDropdown.Item onClick={handleLogout}>
                       <FaSignOutAlt className="me-2" /> Sign Out
                     </NavDropdown.Item>
+                    
                   </NavDropdown>
                 ) : (
                   <>

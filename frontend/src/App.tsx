@@ -23,63 +23,38 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
+        {/* Public routes (no layout, no auth) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Main layout routes */}
-        <Route element={<MainLayout />}>
+        {/* Main layout routes (wrapped in AuthorizeView for full context) */}
+        <Route
+          element={
+            <AuthorizeView>
+              <MainLayout />
+            </AuthorizeView>
+          }
+        >
+          {/* Public layout pages */}
           <Route path="/" element={<Home />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route
-            path="/dashboard"
-            element={
-              <AuthorizeView>
-                <Dashboard />
-              </AuthorizeView>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <AuthorizeView>
-                <Profile />
-              </AuthorizeView>
-            }
-          />
-          <Route
-            path="/movies"
-            element={
-              <AuthorizeView>
-                <Movies />
-              </AuthorizeView>
-            }
-          />
-          <Route
-            path="/movies/:id"
-            element={
-              <AuthorizeView>
-                <MovieDetail />
-              </AuthorizeView>
-            }
-          />
-          <Route
-            path="/admin/movies"
-            element={
-              <AuthorizeView>
-                <AdminMovies />
-              </AuthorizeView>
-            }
-          />
+
+          {/* Protected pages */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/movies/:id" element={<MovieDetail />} />
+          <Route path="/admin/movies" element={<AdminMovies />} />
         </Route>
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+
+      {/* Persistent footer/banner stuff */}
       <CookieConsentBanner />
     </Router>
   );
 }
 
 export default App;
-
