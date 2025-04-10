@@ -55,9 +55,15 @@ function Register() {
         setError('');
         navigate('/login');
       } else {
-        const errorData = await response.json();
-        setError(errorData?.message || 'Registration failed.');
-      }
+        const data = await response.json();
+      
+        if (data?.errors) {
+          const firstKey = Object.keys(data.errors)[0];
+          setError(data.errors[firstKey][0] || 'Registration failed.');
+        } else {
+          setError(data?.message || 'Registration failed.');
+        }
+      }      
     } catch (err) {
       console.error('❌ Network error:', err);
       setError('Error registering.');

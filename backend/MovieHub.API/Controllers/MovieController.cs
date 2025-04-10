@@ -7,6 +7,8 @@ namespace MovieHub.API.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [Authorize]
+
     public class MovieController : ControllerBase
     {
         private MoviesContext _movieContext;
