@@ -7,6 +7,7 @@ import {
   FaFilm,
   FaUserShield,
   FaTachometerAlt,
+  FaUserCircle,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
 
@@ -96,26 +97,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Nav>
               <Nav className="me-0">
                 {isAuthenticated ? (
-                  <NavDropdown
-                    title={
-                      <span>
-                        <FaUser className="me-1" />
-                        {currentUser.email || "User"}
-                        {isAdmin && (
-                          <Badge bg="danger" pill className="ms-1">
-                            Admin
-                          </Badge>
-                        )}
-                      </span>
-                    }
-                    id="user-dropdown"
-                    align="end"
-                  >
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item onClick={handleLogout}>
-                      <FaSignOutAlt className="me-2" /> Sign Out
-                    </NavDropdown.Item>
-                  </NavDropdown>
+                  <>
+                    <Nav.Link as={Link} to="/profile">
+                      <FaUserCircle className="me-1" /> Profile
+                    </Nav.Link>
+                    <Nav.Link onClick={handleLogout}>
+                      <FaSignOutAlt className="me-1" /> Sign Out
+                    </Nav.Link>
+                  </>
                 ) : (
                   <>
                     <Nav.Link as={Link} to="/login">
