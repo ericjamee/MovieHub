@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Navbar, Nav, NavDropdown, Badge } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -8,7 +8,7 @@ import {
   FaUserShield,
   FaTachometerAlt,
 } from "react-icons/fa";
-import { useAuthorizedUser } from "../components/AuthorizeView";
+import Logout from "../components/Logout";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -17,9 +17,32 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = useAuthorizedUser();
-  const isAuthenticated = !!currentUser?.email;
-  const isAdmin = false; // Placeholder for future role handling
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false); // Placeholder for future role handling
+
+  // Fetch user email from /pingauth
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("https://localhost:5000/pingauth", {
+          method: "GET",
+          credentials: "include", // Include cookies
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserEmail(data.email);
+        } else {
+          setUserEmail(null); // User is not logged in
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        setUserEmail(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   // Logout handler
   const handleLogout = async () => {
@@ -28,25 +51,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         method: "POST",
         credentials: "include",
       });
-      navigate("/login"); // Navigate without full reload
+      setUserEmail(null); // Clear user email on logout
+      navigate("/login"); // Navigate to login page
     } catch (err) {
       console.error("Logout failed:", err);
     }
   };
 
-  // Debug logs
-  useEffect(() => {
-    console.log("MainLayout - Auth state:", {
-      isAuthenticated,
-      currentUser,
-    });
-    console.log("MainLayout - Current path:", location.pathname);
-  }, [isAuthenticated, currentUser, location.pathname]);
-
   // Hide navbar on certain unauthenticated pages
-  const isLandingPage = location.pathname === "/" && !isAuthenticated;
+  const isLandingPage = location.pathname === "/" && !userEmail;
   const isAuthPage =
-    ["/login", "/register"].includes(location.pathname) && !isAuthenticated;
+    ["/login", "/register"].includes(location.pathname) && !userEmail;
   const showNavbar = !isLandingPage && !isAuthPage;
 
   return (
@@ -56,7 +71,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Container fluid className="px-3">
             <Navbar.Brand
               as={Link}
-              to={isAuthenticated ? "/dashboard" : "/"}
+              to={userEmail ? "/dashboard" : "/"}
               className="py-3 ms-0 d-flex align-items-center"
             >
               <FaFilm className="me-2" /> CineNiche
@@ -69,7 +84,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="me-3" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="me-auto">
-                {isAuthenticated && (
+                {userEmail && (
                   <Nav.Link
                     as={Link}
                     to="/dashboard"
@@ -92,12 +107,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </Nav.Link>
               </Nav>
               <Nav className="me-0">
-                {isAuthenticated ? (
+                {userEmail ? (
                   <NavDropdown
                     title={
                       <span>
                         <FaUser className="me-1" />
-                        {currentUser.email || "User"}
+                        {userEmail}
                         {isAdmin && (
                           <Badge bg="danger" pill className="ms-1">
                             Admin
