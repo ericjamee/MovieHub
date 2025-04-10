@@ -862,7 +862,7 @@ const Dashboard: React.FC = () => {
       
       // Encode the movie title for the URL
       const encodedTitle = encodeURIComponent(movieTitle.trim());
-      const url = `https://localhost:5000/Movie/recommendations/${encodedTitle}`;
+      const url = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/recommendations/${encodedTitle}`;
       
       console.log('Request URL:', url);
       
@@ -1666,7 +1666,7 @@ const Dashboard: React.FC = () => {
                                   console.log(`Searching for movie: "${title}"`);
                                   
                                   // First try the SearchMovies endpoint with the exact title
-                                  const searchUrl = `https://localhost:5000/Movie/SearchMovies?searchTerm=${encodeURIComponent(title)}`;
+                                  const searchUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/SearchMovies?searchTerm=${encodeURIComponent(title)}`;
                                   
                                   console.log('Searching using URL:', searchUrl);
                                   
@@ -1725,7 +1725,7 @@ const Dashboard: React.FC = () => {
                                   console.log('No exact matches found, trying broader search...');
                                   
                                   // Try to get a batch of movies to search through
-                                  const adminMoviesUrl = `https://localhost:5000/Movie/AdminMovies?pageSize=100&pageNum=1`;
+                                  const adminMoviesUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/AdminMovies?pageSize=100&pageNum=1`;
                                   
                                   const adminResponse = await fetch(adminMoviesUrl, {
                                     method: 'GET',
@@ -1833,7 +1833,7 @@ const Dashboard: React.FC = () => {
                                     console.log('Attempting final search strategy...');
                                     
                                     // Get all movies in one bigger batch
-                                    const finalUrl = `https://localhost:5000/Movie/AdminMovies?pageSize=500&pageNum=1`;
+                                    const finalUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/AdminMovies?pageSize=500&pageNum=1`;
                                     
                                     const finalResponse = await fetch(finalUrl, {
                                       method: 'GET',
