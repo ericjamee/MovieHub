@@ -9,14 +9,14 @@ export default defineConfig({
     headers: {
       "Content-Security-Policy": `
         script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:;
-        style-src 'self' 'unsafe-inline';
-        font-src 'self' data:;
+      style-src 'self' 'unsafe-inline';
+      font-src 'self' data:;
         img-src * data: blob:;
         connect-src *;
-        object-src 'none';
-        frame-ancestors 'none';
-        base-uri 'self';
-        form-action 'self';
+      object-src 'none';
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
       `.replace(/\n/g, ""),
     },
   },

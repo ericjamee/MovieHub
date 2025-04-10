@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieHub.API.Services;
 
-namespace MovieHub.API.Controllers;
+namespace MovieHub.API.Controllers
+{
 [ApiController]
 [Route("[controller]")]
-[Authorize]
+    [Authorize]
 public class RecommendationsController : ControllerBase
 {
     private readonly IAzureRecommenderService _recommenderService;
