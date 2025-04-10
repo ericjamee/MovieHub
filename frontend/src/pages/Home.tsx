@@ -1,6 +1,8 @@
 import React from "react";
 import { Container, Row, Col, Button, Card } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { fetchUserRecommendations } from "../services/recommendations"; // adjust if path is different
 import {
   FaCheck,
   FaFilm,
@@ -10,6 +12,17 @@ import {
 } from "react-icons/fa";
 
 const Home: React.FC = () => {
+  const [recs, setRecs] = useState<string[]>([]);
+  const userId = "1"; // eventually replace this with dynamic auth logic
+
+  useEffect(() => {
+    async function loadRecs() {
+      const result = await fetchUserRecommendations(userId);
+      setRecs(result);
+    }
+    loadRecs();
+  }, []);
+
   const navigate = useNavigate();
 
   const handleRegisterClick = () => {
@@ -97,6 +110,45 @@ const Home: React.FC = () => {
               Sign In
             </Button>
           </div>
+        </Container>
+      </div>
+
+      <div
+        className="py-5"
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          borderTop: "8px solid #222",
+        }}
+      >
+        <Container>
+          <h2 className="display-5 fw-bold mb-4">Top Picks For You</h2>
+          <Row className="g-4 flex-nowrap overflow-auto">
+            {recs.map((showId) => (
+              <Col
+                key={showId}
+                style={{
+                  flex: "0 0 auto",
+                  maxWidth: "200px",
+                }}
+              >
+                <Card className="bg-dark text-white h-100">
+                  <Card.Img
+                    variant="top"
+                    src={`/images/posters/${showId}.jpg`} // Adjust path or use a placeholder
+                    onError={(e) =>
+                      (e.currentTarget.src =
+                        "https://via.placeholder.com/200x300?text=Poster")
+                    }
+                  />
+                  <Card.Body>
+                    <Card.Title>{showId}</Card.Title>
+                    {/* Replace showId with actual title if enriched later */}
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
         </Container>
       </div>
 

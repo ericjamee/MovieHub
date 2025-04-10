@@ -3,15 +3,51 @@ import { Row, Col, Form } from "react-bootstrap";
 import { Movie, MovieFilters } from "../types/movie";
 import { movieService } from "../services/movieService";
 import MovieCard from "../components/MovieCard";
-import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
-import Logout from '../components/Logout';
+import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
+import Logout from "../components/Logout";
 
 const Movies: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("All");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [filters, setFilters] = useState<MovieFilters>({
     page: 1,
     pageSize: 12,
   });
+  const genres = [
+    "Action",
+    "Adventure",
+    "AnimeSeriesInternationalTVShows",
+    "BritishTVShowsDocuseriesInternationalTVShows",
+    "Children",
+    "Comedies",
+    "ComediesDramasInternationalMovies",
+    "ComediesInternationalMovies",
+    "ComediesRomanticMovies",
+    "CrimeTVShowsDocuseries",
+    "Documentaries",
+    "DocumentariesInternationalMovies",
+    "Docuseries",
+    "Dramas",
+    "DramasInternationalMovies",
+    "DramasRomanticMovies",
+    "FamilyMovies",
+    "Fantasy",
+    "HorrorMovies",
+    "InternationalMoviesThrillers",
+    "InternationalTVShowsRomanticTVShowsTVDramas",
+    "KidsTV",
+    "LanguageTVShows",
+    "Musicals",
+    "NatureTV",
+    "RealityTV",
+    "Spirituality",
+    "TVAction",
+    "TVComedies",
+    "TVDramas",
+    "TalkShowsTVComedies",
+    "Thrillers",
+  ];
 
   const loadMovies = async (reset = false) => {
     try {
@@ -34,14 +70,6 @@ const Movies: React.FC = () => {
     loadMovies(true);
   }, [filters.genre, filters.searchTerm]);
 
-  const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilters((prev) => ({ ...prev, genre: e.target.value || undefined }));
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, searchTerm: e.target.value }));
-  };
-
   return (
     <AuthorizeView>
       <span>
@@ -52,34 +80,47 @@ const Movies: React.FC = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Movie List</h2>
       </div>
-  
-      <div className="mb-4">
-        <Row>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Search Movies</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Search by title..."
-                onChange={handleSearchChange}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Filter by Genre</Form.Label>
-              <Form.Select onChange={handleGenreChange}></Form.Select>
-            </Form.Group>
-          </Col>
-        </Row>
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <input
+          type="text"
+          className="form-control me-3"
+          placeholder="Search by title..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ maxWidth: "300px" }}
+        />
+
+        <select
+          className="form-select"
+          value={selectedGenre}
+          onChange={(e) => setSelectedGenre(e.target.value)}
+          style={{ maxWidth: "200px" }}
+        >
+          <option value="All">All Genres</option>
+          {genres.map((genre) => (
+            <option key={genre} value={genre}>
+              {genre}
+            </option>
+          ))}
+        </select>
       </div>
-  
+
       <Row xs={1} md={2} lg={3} xl={4} className="g-4">
-        {movies.map((movie) => (
-          <Col key={movie.showId}>
-            <MovieCard movie={movie} />
-          </Col>
-        ))}
+        {movies
+          .filter((movie) => {
+            const matchesTitle = movie.title
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase());
+            const matchesGenre =
+              selectedGenre === "All" || (movie as any)[selectedGenre] === 1;
+            return matchesTitle && matchesGenre;
+          })
+          .map((movie) => (
+            <Col key={movie.showId}>
+              <MovieCard movie={movie} />
+            </Col>
+          ))}
       </Row>
     </AuthorizeView>
   );

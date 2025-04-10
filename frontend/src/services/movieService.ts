@@ -1,8 +1,7 @@
 import axios from "axios";
 import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 
-const API_BASE_URL =
-  "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie"; // Updated to use the new backend URL
+const API_BASE_URL = "https://localhost:5000/Movie"; // Updated to use the new backend URL
 
 // Add error handling wrapper
 const handleApiError = async (apiCall: () => Promise<any>) => {
@@ -136,14 +135,14 @@ export const movieService = {
   async getMovieRecommendations(movieTitle: string): Promise<string[]> {
     return handleApiError(async () => {
       // Fetch the recommendations JSON file
-      const response = await axios.get('/api/data/movie_recommendations.json');
+      const response = await axios.get("/api/data/movie_recommendations.json");
       const recommendations = response.data;
-      
+
       // Find the recommendations for the specified movie
-      const movieRec = recommendations.find((rec: any) => 
-        rec.movie_title.toLowerCase() === movieTitle.toLowerCase()
+      const movieRec = recommendations.find(
+        (rec: any) => rec.movie_title.toLowerCase() === movieTitle.toLowerCase()
       );
-      
+
       if (movieRec) {
         // Return an array of the 5 recommended movie titles
         return [
@@ -151,10 +150,10 @@ export const movieService = {
           movieRec.rec_2,
           movieRec.rec_3,
           movieRec.rec_4,
-          movieRec.rec_5
+          movieRec.rec_5,
         ];
       }
-      
+
       // Return empty array if no recommendations found
       return [];
     });
