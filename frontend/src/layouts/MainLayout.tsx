@@ -9,57 +9,45 @@ import {
   FaTachometerAlt,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
+import { Outlet } from "react-router-dom";
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
+console.log("🧭 MainLayout is running");
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = useAuthorizedUser();
   const isAuthenticated = !!currentUser?.email;
-  const isAdmin = false; // Placeholder for future role handling
+  const isAdmin = currentUser?.roles?.includes("Administrator");
 
-  // Logout handler
   const handleLogout = async () => {
     try {
-      await fetch(
-        "https://localhost:5000/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-      navigate("/login"); // Navigate without full reload
+      await fetch("https://localhost:5000/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      navigate("/login");
     } catch (err) {
       console.error("Logout failed:", err);
     }
   };
 
-  // Debug logs
   useEffect(() => {
-    console.log("MainLayout - Auth state:", {
-      isAuthenticated,
-      currentUser,
-    });
-    console.log("MainLayout - Current path:", location.pathname);
-  }, [isAuthenticated, currentUser, location.pathname]);
+    console.log("MainLayout - Auth state:", { isAuthenticated, currentUser });
+  }, [isAuthenticated, currentUser]);
 
-  // Hide navbar on certain unauthenticated pages
-  const isLandingPage = location.pathname === "/" && !isAuthenticated;
-  const isAuthPage =
-    ["/login", "/register"].includes(location.pathname) && !isAuthenticated;
-  const showNavbar = !isLandingPage && !isAuthPage;
+  const hideNavbar =
+    (!isAuthenticated && ["/", "/login", "/register"].includes(location.pathname));
 
   return (
     <div className="d-flex flex-column min-vh-100 w-100 overflow-hidden">
-      {showNavbar && (
+      {!hideNavbar && (
         <Navbar bg="dark" variant="dark" expand="lg" className="p-0 w-100">
           <Container fluid className="px-3">
             <Navbar.Brand
               as={Link}
-              to={isAuthenticated ? "/dashboard" : "/"}
+              to="/dashboard"
               className="py-3 ms-0 d-flex align-items-center"
             >
               <FaFilm className="me-2" /> CineNiche
@@ -69,6 +57,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </Badge>
               )}
             </Navbar.Brand>
+
             <Navbar.Toggle aria-controls="basic-navbar-nav" className="me-3" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="me-auto">
@@ -94,15 +83,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   Privacy
                 </Nav.Link>
               </Nav>
+
               <Nav className="me-0">
                 {isAuthenticated ? (
                   <NavDropdown
                     title={
                       <span>
                         <FaUser className="me-1" />
-                        {currentUser.email || "User"}
+                        Welcome, {currentUser.email.split("@")[0]}
                         {isAdmin && (
-                          <Badge bg="danger" pill className="ms-1">
+                          <Badge bg="danger" pill className="ms-2">
                             Admin
                           </Badge>
                         )}
@@ -111,6 +101,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     id="user-dropdown"
                     align="end"
                   >
+                    {isAdmin && (
+                      <NavDropdown.Item as={Link} to="/admin/movies">
+                        <FaUserShield className="me-2" /> Admin Movies
+                      </NavDropdown.Item>
+                    )}
+                    <NavDropdown.Item as={Link} to="/dashboard">
+                      <FaTachometerAlt className="me-2" /> Dashboard
+                    </NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item onClick={handleLogout}>
                       <FaSignOutAlt className="me-2" /> Sign Out
@@ -132,17 +130,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Navbar>
       )}
 
-      <main className={`flex-grow-1 w-100 ${!showNavbar ? "p-0" : "mb-4"}`}>
-        {children}
+      <main className={`flex-grow-1 w-100 ${hideNavbar ? "p-0" : "mb-4"}`}>
+        <Outlet />
       </main>
 
-      {showNavbar && (
+      {!hideNavbar && (
         <footer className="bg-dark text-light py-4 w-100">
           <Container>
             <div className="text-center">
-              <p className="mb-0">
-                &copy; 2025 CineNiche. All rights reserved.
-              </p>
+              <p className="mb-0">&copy; 2025 CineNiche. All rights reserved.</p>
             </div>
           </Container>
         </footer>

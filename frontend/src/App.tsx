@@ -14,79 +14,72 @@ import Register from "./pages/Register";
 import Privacy from "./pages/Privacy";
 import AdminMovies from "./pages/AdminMovies";
 import Profile from "./pages/Profile";
-import AuthorizeView from "./components/AuthorizeView"; // your working guard
+import AuthorizeView from "./components/AuthorizeView";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import CookieConsentBanner from "./components/CookieConsentBanner";
-
-function AppRoutes() {
-  return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/privacy" element={<Privacy />} />
-
-      {/* Protected routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <AuthorizeView>
-            <Dashboard />
-          </AuthorizeView>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <AuthorizeView>
-            <Profile />
-          </AuthorizeView>
-        }
-      />
-      <Route
-        path="/movies"
-        element={
-          <AuthorizeView>
-            <Movies />
-          </AuthorizeView>
-        }
-      />
-      <Route
-        path="/movies/:id"
-        element={
-          <AuthorizeView>
-            <MovieDetail />
-          </AuthorizeView>
-        }
-      />
-
-      {/* Admin routes (if needed later) */}
-      <Route
-        path="/admin/movies"
-        element={
-          <AuthorizeView>
-            <AdminMovies />
-          </AuthorizeView>
-        }
-      />
-
-      {/* Catch-all redirect */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
-  );
-}
 
 function App() {
   return (
     <Router>
-      <MainLayout>
-        <AppRoutes />
-        <CookieConsentBanner />
-      </MainLayout>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Main layout routes */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route
+            path="/dashboard"
+            element={
+              <AuthorizeView>
+                <Dashboard />
+              </AuthorizeView>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <AuthorizeView>
+                <Profile />
+              </AuthorizeView>
+            }
+          />
+          <Route
+            path="/movies"
+            element={
+              <AuthorizeView>
+                <Movies />
+              </AuthorizeView>
+            }
+          />
+          <Route
+            path="/movies/:id"
+            element={
+              <AuthorizeView>
+                <MovieDetail />
+              </AuthorizeView>
+            }
+          />
+          <Route
+            path="/admin/movies"
+            element={
+              <AuthorizeView>
+                <AdminMovies />
+              </AuthorizeView>
+            }
+          />
+        </Route>
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+      <CookieConsentBanner />
     </Router>
   );
 }
 
 export default App;
+
