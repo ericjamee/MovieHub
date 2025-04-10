@@ -2,11 +2,11 @@ import React, { useEffect } from "react";
 import { Container, Navbar, Nav, NavDropdown, Badge } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
+  FaUser,
   FaSignOutAlt,
   FaFilm,
   FaUserShield,
   FaTachometerAlt,
-  FaUserCircle,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
 
@@ -24,13 +24,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Logout handler
   const handleLogout = async () => {
     try {
-      await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      await fetch("https://localhost:5000/logout", {
+        method: "POST",
+        credentials: "include",
+      });
       navigate("/login"); // Navigate without full reload
     } catch (err) {
       console.error("Logout failed:", err);
@@ -46,9 +43,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     console.log("MainLayout - Current path:", location.pathname);
   }, [isAuthenticated, currentUser, location.pathname]);
 
-  // Hide navbar only on landing page when not authenticated
+  // Hide navbar on certain unauthenticated pages
   const isLandingPage = location.pathname === "/" && !isAuthenticated;
-  // Hide navbar on auth pages only when not authenticated
   const isAuthPage =
     ["/login", "/register"].includes(location.pathname) && !isAuthenticated;
   const showNavbar = !isLandingPage && !isAuthPage;
@@ -100,16 +96,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <NavDropdown
                     title={
                       <span>
-                        <FaUserCircle className="me-1" />
-                        {currentUser?.email}
+                        <FaUser className="me-1" />
+                        {currentUser.email || "User"}
+                        {isAdmin && (
+                          <Badge bg="danger" pill className="ms-1">
+                            Admin
+                          </Badge>
+                        )}
                       </span>
                     }
                     id="user-dropdown"
                     align="end"
                   >
-                    <NavDropdown.Item as={Link} to="/profile">
-                      <FaUserCircle className="me-2" /> Profile
-                    </NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item onClick={handleLogout}>
                       <FaSignOutAlt className="me-2" /> Sign Out

@@ -46,7 +46,9 @@ export const movieService = {
         url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm)}`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
@@ -54,11 +56,11 @@ export const movieService = {
 
       // Process response data
       const data = await response.json();
-      
+
       // Return the movie data directly from the API
       return {
         movies: data.movies,
-        totalNumMovies: data.totalNumMovies
+        totalNumMovies: data.totalNumMovies,
       };
     });
   },
