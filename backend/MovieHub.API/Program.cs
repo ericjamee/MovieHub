@@ -42,10 +42,23 @@ builder.Services.AddDbContext<MoviesContext>(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
 
-// Identity
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+// ✅ Identity with built-in endpoints
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddApiEndpoints();
 
+// Configure stronger password policy
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequiredUniqueChars = 4;
+});
+
+// ✅ Cookie settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.HttpOnly = true;
@@ -92,9 +105,19 @@ app.MapIdentityApi<IdentityUser>();
 app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
 {
     await signInManager.SignOutAsync();
-    context.Response.Cookies.Delete(".AspNetCore.Identity.Application");
+
+    context.Response.Cookies.Append(".AspNetCore.Identity.Application", "", new CookieOptions
+    {
+        Expires = DateTimeOffset.UnixEpoch,
+        Path = "/", // Make sure this matches the original cookie's path
+        Secure = true,
+        HttpOnly = true,
+        SameSite = SameSiteMode.None
+    });
+
     return Results.Ok(new { message = "Logout successful" });
 });
+
 
 // Ping auth endpoint
 app.MapGet("/pingauth", (ClaimsPrincipal user) =>
