@@ -75,10 +75,13 @@ function LoginPage() {
         throw new Error(data?.message || "Invalid email or password.");
       }
 
-      const ping = await fetch("https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth", {
-        method: "GET",
-        credentials: "include",
-      });
+      const ping = await fetch(
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       console.log("📡 Pingauth response:", ping);
 
