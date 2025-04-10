@@ -111,11 +111,22 @@ body {
 /* Movie Card Styles */
 .movie-card {
   height: 100%;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .movie-card .card-img-top {
   height: 300px;
   object-fit: cover;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.movie-card:hover .card-img-top {
+  opacity: 0.9;
 }
 
 /* Icon Circle */
