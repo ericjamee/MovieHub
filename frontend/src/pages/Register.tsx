@@ -42,17 +42,14 @@ function Register() {
     }
 
     try {
-      const response = await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//register",
-        {
-          method: "POST",
-          credentials: "include", // ✅ Cookie-based login
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch("https://localhost:5000/register", {
+        method: "POST",
+        credentials: "include", // ✅ Cookie-based login
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (response.ok) {
         setError("");
