@@ -17,13 +17,10 @@ function AuthorizeView(props: { children: React.ReactNode }) {
 
     async function checkAuth() {
       try {
-        const response = await fetch(
-          "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const response = await fetch("https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth", {
+          method: "GET",
+          credentials: "include",
+        });
 
         console.log("📡 /pingauth status:", response.status);
 
