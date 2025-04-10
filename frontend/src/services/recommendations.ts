@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  "https://lively-mushroom-0e516051e.6.azurestaticapps.net/recommendations";
+  "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//recommendations";
 
 export async function fetchRecommendations(
   movieTitle: string

@@ -43,7 +43,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        "https://lively-mushroom-0e516051e.6.azurestaticapps.net/register",
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//register",
         {
           method: "POST",
           credentials: "include", // ✅ Cookie-based login
