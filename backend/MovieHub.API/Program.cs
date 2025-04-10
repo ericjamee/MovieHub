@@ -113,16 +113,17 @@ app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> s
 {
     await signInManager.SignOutAsync();
 
-    context.Response.Cookies.Delete(".AspNetCore.Identity.Application", new CookieOptions
+    context.Response.Cookies.Append(".AspNetCore.Identity.Application", "", new CookieOptions
     {
-        HttpOnly = true,
+        Expires = DateTimeOffset.UnixEpoch,
+        Path = "/", // Make sure this matches the original cookie's path
         Secure = true,
-        SameSite = SameSiteMode.None,
-        Path = "/",
+        HttpOnly = true,
+        SameSite = SameSiteMode.None
     });
 
     return Results.Ok(new { message = "Logout successful" });
-}).RequireAuthorization();
+});
 
 // ✅ Auth check for frontend
 app.MapGet("/pingauth", (ClaimsPrincipal user) =>
