@@ -43,7 +43,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//register",
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/register",
         {
           method: "POST",
           credentials: "include", // ✅ Cookie-based login
@@ -58,8 +58,14 @@ function Register() {
         setError("");
         navigate("/login");
       } else {
-        const errorData = await response.json();
-        setError(errorData?.message || "Registration failed.");
+        const data = await response.json();
+
+        if (data?.errors) {
+          const firstKey = Object.keys(data.errors)[0];
+          setError(data.errors[firstKey][0] || "Registration failed.");
+        } else {
+          setError(data?.message || "Registration failed.");
+        }
       }
     } catch (err) {
       console.error("❌ Network error:", err);

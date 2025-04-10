@@ -2,7 +2,7 @@ import axios from "axios";
 import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 
 const API_BASE_URL =
-  "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net//Movie"; // Updated to use the new backend URL
+  "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie"; // Updated to use the new backend URL
 
 // Add error handling wrapper
 const handleApiError = async (apiCall: () => Promise<any>) => {
@@ -45,7 +45,9 @@ export const movieService = {
         url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm)}`;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
