@@ -412,8 +412,6 @@ const Dashboard: React.FC = () => {
   const [usedMovieIds, setUsedMovieIds] = useState<Set<string>>(new Set());
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [movieRecommendations, setMovieRecommendations] = useState<Movie[]>([]);
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   // References for elements
   const carouselRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -845,32 +843,9 @@ const Dashboard: React.FC = () => {
   };
 
   // Function to open the movie details modal
-  const openMovieDetails = async (movie: Movie) => {
+  const openMovieDetails = (movie: Movie) => {
     setSelectedMovie(movie);
     setShowModal(true);
-    
-    // Fetch movie recommendations
-    try {
-      setLoadingRecommendations(true);
-      const recommendedTitles = await movieService.getMovieRecommendations(movie.title);
-      
-      if (recommendedTitles.length > 0) {
-        // Find the actual movie objects for the recommended titles
-        const recommendedMovies = moviesData.filter(m => 
-          recommendedTitles.some(title => 
-            title.toLowerCase() === m.title.toLowerCase()
-          )
-        );
-        setMovieRecommendations(recommendedMovies);
-      } else {
-        setMovieRecommendations([]);
-      }
-    } catch (error) {
-      console.error("Error fetching movie recommendations:", error);
-      setMovieRecommendations([]);
-    } finally {
-      setLoadingRecommendations(false);
-    }
   };
 
   // Function to close the movie details modal
@@ -1589,46 +1564,6 @@ const Dashboard: React.FC = () => {
                   Close
                 </Button>
               </Modal.Footer>
-              
-              {/* Movie Recommendations Section */}
-              {movieRecommendations.length > 0 && (
-                <div className="px-3 pb-4">
-                  <h5 className="mb-3">Movies Like This</h5>
-                  <Row className="g-3">
-                    {movieRecommendations.map((movie, index) => (
-                      <Col key={index} xs={4} sm={2} md={2} lg={2}>
-                        <div 
-                          className="recommendation-card" 
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            closeMovieDetails();
-                            setTimeout(() => openMovieDetails(movie), 300);
-                          }}
-                        >
-                          <img
-                            src={getMovieImageUrl(movie)}
-                            alt={movie.title}
-                            className="img-fluid rounded mb-2"
-                            style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover" }}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.onerror = null; // Prevent infinite loop
-                              target.src = getRandomFallbackPoster();
-                            }}
-                          />
-                          <p className="small text-truncate mb-0">{movie.title}</p>
-                        </div>
-                      </Col>
-                    ))}
-                  </Row>
-                </div>
-              )}
-              
-              {loadingRecommendations && (
-                <div className="d-flex justify-content-center pb-3">
-                  <Spinner animation="border" size="sm" />
-                </div>
-              )}
             </>
           )}
         </Modal>
