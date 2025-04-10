@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Container, Navbar, Nav, NavDropdown, Badge } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  FaUser,
   FaSignOutAlt,
   FaFilm,
   FaUserShield,
@@ -47,8 +46,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     console.log("MainLayout - Current path:", location.pathname);
   }, [isAuthenticated, currentUser, location.pathname]);
 
-  // Hide navbar on certain unauthenticated pages
+  // Hide navbar only on landing page when not authenticated
   const isLandingPage = location.pathname === "/" && !isAuthenticated;
+  // Hide navbar on auth pages only when not authenticated
   const isAuthPage =
     ["/login", "/register"].includes(location.pathname) && !isAuthenticated;
   const showNavbar = !isLandingPage && !isAuthPage;
@@ -100,13 +100,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <NavDropdown
                     title={
                       <span>
-                        <FaUser className="me-1" />
-                        {currentUser.email || "User"}
-                        {isAdmin && (
-                          <Badge bg="danger" pill className="ms-1">
-                            Admin
-                          </Badge>
-                        )}
+                        <FaUserCircle className="me-1" />
+                        {currentUser?.email}
                       </span>
                     }
                     id="user-dropdown"
