@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Container,
   Row,
@@ -33,44 +27,8 @@ import {
 import { useAuthorizedUser } from "../components/AuthorizeView";
 import { movieService } from "../services/movieService";
 import { AdminDashboardStats, Movie } from "../types/movie";
-import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
-import Logout from "../components/Logout";
-
-//Genre dropdown labels
-const GENRE_LABELS: { [key: string]: string } = {
-  action: "Action",
-  adventure: "Adventure",
-  animeSeriesInternationalTvShows: "Anime",
-  britishTvShowsDocuseriesInternationalTvShows: "British Docuseries",
-  children: "Childrens",
-  comedies: "Comedy",
-  comediesDramasInternationalMovies: "International Dramatic Comedy",
-  comediesInternationalMovies: "International Comedy",
-  comediesRomanticMovies: "Romantic Comety",
-  crimeTvShowsDocuseries: "Crime Docuseries",
-  documentaries: "Documentaries",
-  documentariesInternationalMovies: "International Documentaries",
-  docuseries: "Docuseries",
-  dramas: "Dramas",
-  dramasInternationalMovies: "International Dramas",
-  dramasRomanticMovies: "Romance",
-  familyMovies: "Family",
-  fantasy: "Fantasy",
-  horrorMovies: "Horror",
-  internationalMoviesThrillers: "International Thrillers",
-  internationalTvShowsRomanticTVShowsTvDramas: "International Romantic TV",
-  kidsTv: "Kids TV",
-  languageTvShows: "Language TV",
-  musicals: "Musicals",
-  natureTv: "Nature TV",
-  realityTv: "Reality TV",
-  spirituality: "Spirituality",
-  tvAction: "Action TV",
-  tvComedies: "Comedy TV",
-  tvDramas: "Drama TV",
-  talkShowsTVComedies: "Comedic Talk Shows",
-  thrillers: "Thrillers",
-};
+import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
+import Logout from '../components/Logout';
 
 // Add CSS styles
 const styles = `
@@ -432,7 +390,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
-  const isAdmin = currentUser?.email === "admin@example.com"; // or however you define admin
+  const isAdmin = currentUser?.roles?.includes("Administrator");
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -453,29 +411,7 @@ const Dashboard: React.FC = () => {
   }>({});
   const [usedMovieIds, setUsedMovieIds] = useState<Set<string>>(new Set());
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("All");
   const [showModal, setShowModal] = useState(false);
-  const [movieRecommendations, setMovieRecommendations] = useState<Movie[]>([]);
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
-  const filteredMovies = useMemo(() => {
-    return moviesData.filter((movie) => {
-      const matchesTitle = movie.title
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesGenre =
-        selectedGenre === "All" || movie[selectedGenre as keyof Movie] === 1;
-      return matchesTitle && matchesGenre;
-    });
-  }, [moviesData, searchTerm, selectedGenre]);
-  useEffect(() => {
-    if (filteredMovies.length > 0) {
-      rebuildCategoryRows();
-    } else {
-      setCategoryRows([]);
-      setVisibleCategories([]);
-    }
-  }, [filteredMovies]);
 
   // References for elements
   const carouselRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -499,65 +435,6 @@ const Dashboard: React.FC = () => {
       fetchInitialMoviesData();
     }
   }, [isAdmin, pageLoaded]);
-
-  const rebuildCategoryRows = () => {
-    setCategoryRows([]);
-    setVisibleCategories([]);
-    setUsedMovieIds(new Set());
-    setSelectedMovie(null);
-    setShowModal(false);
-
-    const isFiltering = searchTerm !== "" || selectedGenre !== "All";
-    const maxCategories = isFiltering ? 1 : 5; // Show fewer categories if searching/filtering
-
-    const initialCategories = UNLIMITED_CATEGORIES.filter((category) => {
-      const filteredForCategory = filteredMovies.filter(category.filter);
-      return filteredForCategory.length >= 1;
-    }).slice(0, maxCategories);
-
-    const usedIds = new Set<string>();
-    const initialRows = initialCategories.map((category) => {
-      let filteredForCategory = filteredMovies.filter(category.filter);
-      filteredForCategory = filteredForCategory.filter(
-        (movie) => !usedIds.has(movie.showId)
-      );
-
-      const moviesToUse = filteredForCategory.slice(0, 10);
-      moviesToUse.forEach((movie) => usedIds.add(movie.showId));
-
-      return {
-        id: category.id,
-        title: category.title,
-        movies: moviesToUse,
-        page: 1,
-        hasMore: filteredForCategory.length > 10,
-      };
-    });
-
-    if (initialCategories.length === 0 && filteredMovies.length > 0) {
-      // Fallback when no category matches — show search results directly
-      const usedIds = new Set<string>();
-      const moviesToUse = filteredMovies.slice(0, 10);
-      moviesToUse.forEach((movie) => usedIds.add(movie.showId));
-
-      setCategoryRows([
-        {
-          id: "search_results",
-          title: "Search Results",
-          movies: moviesToUse,
-          page: 1,
-          hasMore: filteredMovies.length > 10,
-        },
-      ]);
-      setVisibleCategories(["search_results"]);
-      setUsedMovieIds(usedIds);
-      return; // Exit early to avoid errors
-    }
-
-    setCategoryRows(initialRows);
-    setVisibleCategories(initialCategories.map((c) => c.id));
-    setUsedMovieIds(usedIds);
-  };
 
   // Load more categories as user scrolls down
   const loadMoreCategories = useCallback(() => {
@@ -595,7 +472,7 @@ const Dashboard: React.FC = () => {
         }
 
         // Get movies for this category that haven't been used yet
-        const unusedMovies = filteredMovies.filter(
+        const unusedMovies = moviesData.filter(
           (movie) =>
             nextCategory.filter(movie) && !usedMovieIds.has(movie.showId)
         );
@@ -659,7 +536,7 @@ const Dashboard: React.FC = () => {
         }
       }
     }
-  }, [visibleCategories, moviesData, usedMovieIds, isLoading, filteredMovies]);
+  }, [visibleCategories, moviesData, usedMovieIds, isLoading]);
 
   // Function to force add a category even with fewer movies
   const forceAddACategory = useCallback(() => {
@@ -678,7 +555,7 @@ const Dashboard: React.FC = () => {
       }
 
       // Check if this category has any movies at all
-      const unusedMovies = filteredMovies.filter(
+      const unusedMovies = moviesData.filter(
         (movie) => nextCategory.filter(movie) && !usedMovieIds.has(movie.showId)
       );
 
@@ -720,10 +597,52 @@ const Dashboard: React.FC = () => {
   const fetchInitialMoviesData = async () => {
     try {
       setIsLoading(true);
-      const response = await movieService.getMovies(200, 1);
+      const response = await movieService.getMovies(
+        200, // pageSize - Increased to fetch more movies initially
+        1 // pageNum
+      );
+
       if (response && response.movies && response.movies.length > 0) {
         setMoviesData(response.movies);
-        // Do not build categories here anymore
+
+        // Generate category rows from the data
+        const initialCategories = UNLIMITED_CATEGORIES.filter((category) => {
+          const filteredMovies = response.movies.filter(category.filter);
+          return filteredMovies.length >= 4; // Lowered threshold to include more categories
+        }).slice(0, 5); // Start with 5 categories
+
+        // Track used movie IDs to ensure uniqueness
+        const usedIds = new Set<string>();
+
+        const initialRows = initialCategories.map((category) => {
+          // For the first category, we don't need to filter out used movies
+          let filteredMovies = response.movies.filter(category.filter);
+
+          if (category.id !== initialCategories[0].id) {
+            // For subsequent categories, filter out movies already used
+            filteredMovies = filteredMovies.filter(
+              (movie) => !usedIds.has(movie.showId)
+            );
+          }
+
+          // Get the first 10 movies (or less if not enough)
+          const moviesToUse = filteredMovies.slice(0, 10);
+
+          // Add these movies to the used set
+          moviesToUse.forEach((movie) => usedIds.add(movie.showId));
+
+          return {
+            id: category.id,
+            title: category.title,
+            movies: moviesToUse,
+            page: 1,
+            hasMore: filteredMovies.length > 10,
+          };
+        });
+
+        setCategoryRows(initialRows);
+        setVisibleCategories(initialCategories.map((c) => c.id));
+        setUsedMovieIds(usedIds);
       }
     } catch (error) {
       console.error("Error fetching initial movies:", error);
@@ -812,7 +731,7 @@ const Dashboard: React.FC = () => {
       if (!category) return;
 
       // Get all unused movies that match this category
-      const unusedMoviesForCategory = filteredMovies.filter(
+      const unusedMoviesForCategory = moviesData.filter(
         (movie) =>
           category.filter(movie) &&
           !usedMovieIds.has(movie.showId) &&
@@ -924,34 +843,9 @@ const Dashboard: React.FC = () => {
   };
 
   // Function to open the movie details modal
-  const openMovieDetails = async (movie: Movie) => {
+  const openMovieDetails = (movie: Movie) => {
     setSelectedMovie(movie);
     setShowModal(true);
-
-    // Fetch movie recommendations
-    // try {
-    //   setLoadingRecommendations(true);
-    //   const recommendedTitles = await movieService.getMovieRecommendations(
-    //     movie.title
-    //   );
-
-    //   if (recommendedTitles.length > 0) {
-    //     // Find the actual movie objects for the recommended titles
-    //     const recommendedMovies = filteredMovies.filter((m) =>
-    //       recommendedTitles.some(
-    //         (title) => title.toLowerCase() === m.title.toLowerCase()
-    //       )
-    //     );
-    //     setMovieRecommendations(recommendedMovies);
-    //   } else {
-    //     setMovieRecommendations([]);
-    //   }
-    // } catch (error) {
-    //   console.error("Error fetching movie recommendations:", error);
-    //   setMovieRecommendations([]);
-    // } finally {
-    //   setLoadingRecommendations(false);
-    // }
   };
 
   // Function to close the movie details modal
@@ -966,311 +860,303 @@ const Dashboard: React.FC = () => {
 
     return (
       <AuthorizeView>
-        <span>
-          <Logout>
-            Logout <AuthorizedUser value="email" />
-          </Logout>
-        </span>
-        <Container fluid className="py-4">
-          <Row className="mb-4">
-            <Col>
-              <div className="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 className="h3 mb-0 text-black">Admin Dashboard</h1>
-                <Button
-                  as={Link as any}
-                  to="/admin/movies"
-                  variant="primary"
-                  className="d-none d-sm-inline-block shadow-sm"
-                >
-                  <FaFilm className="me-1" /> Manage Movies
-                </Button>
-              </div>
-            </Col>
-          </Row>
-
-          {isLoading ? (
-            <div className="text-center my-5">
-              <Spinner animation="border" role="status">
-                <span className="visually-hidden">
-                  Loading dashboard data...
-                </span>
-              </Spinner>
+      <span>
+        <Logout>
+          Logout <AuthorizedUser value="email" />
+        </Logout>
+      </span>
+      <Container fluid className="py-4">
+        <Row className="mb-4">
+          <Col>
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-black">Admin Dashboard</h1>
+              <Button
+                as={Link as any}
+                to="/admin/movies"
+                variant="primary"
+                className="d-none d-sm-inline-block shadow-sm"
+              >
+                <FaFilm className="me-1" /> Manage Movies
+              </Button>
             </div>
-          ) : (
-            <>
-              <Row>
-                {/* Total Movies Card */}
-                <Col xl={3} md={6} className="mb-4">
-                  <Card className="border-left-primary shadow h-100 admin-card">
-                    <Card.Body>
-                      <Row className="no-gutters align-items-center">
-                        <Col className="mr-2">
-                          <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total Movies
-                          </Card.Title>
-                          <Card.Text
-                            className="h3 mb-0 font-weight-bold"
-                            style={{ fontSize: "2.5rem" }}
-                          >
-                            {stats.totalMovies}
-                          </Card.Text>
-                        </Col>
-                        <Col xs="auto">
-                          <FaFilm
-                            className="fa-2x text-gray-300"
-                            style={{ fontSize: "2rem", opacity: 0.3 }}
-                          />
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                </Col>
+          </Col>
+        </Row>
 
-                {/* Total Users Card */}
-                <Col xl={3} md={6} className="mb-4">
-                  <Card className="border-left-success shadow h-100 admin-card">
-                    <Card.Body>
-                      <Row className="no-gutters align-items-center">
-                        <Col className="mr-2">
-                          <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Total Users
-                          </Card.Title>
-                          <Card.Text
-                            className="h3 mb-0 font-weight-bold"
-                            style={{ fontSize: "2.5rem" }}
-                          >
-                            {stats.totalUsers}
-                          </Card.Text>
-                        </Col>
-                        <Col xs="auto">
-                          <FaUsers
-                            className="fa-2x text-gray-300"
-                            style={{ fontSize: "2rem", opacity: 0.3 }}
-                          />
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                </Col>
+        {isLoading ? (
+          <div className="text-center my-5">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading dashboard data...</span>
+            </Spinner>
+          </div>
+        ) : (
+          <>
+            <Row>
+              {/* Total Movies Card */}
+              <Col xl={3} md={6} className="mb-4">
+                <Card className="border-left-primary shadow h-100 admin-card">
+                  <Card.Body>
+                    <Row className="no-gutters align-items-center">
+                      <Col className="mr-2">
+                        <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                          Total Movies
+                        </Card.Title>
+                        <Card.Text
+                          className="h3 mb-0 font-weight-bold"
+                          style={{ fontSize: "2.5rem" }}
+                        >
+                          {stats.totalMovies}
+                        </Card.Text>
+                      </Col>
+                      <Col xs="auto">
+                        <FaFilm
+                          className="fa-2x text-gray-300"
+                          style={{ fontSize: "2rem", opacity: 0.3 }}
+                        />
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
 
-                {/* Top Rated Movies Card */}
-                <Col xl={6} md={12} className="mb-4">
-                  <Card className="border-left-info shadow h-100 admin-card">
-                    <Card.Body>
-                      <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-3">
-                        Top Rated Movies
-                      </Card.Title>
-                      {stats.topRatedMovies &&
-                      stats.topRatedMovies.length > 0 ? (
-                        <div>
-                          {stats.topRatedMovies.map((movie, index) => (
-                            <div
-                              key={movie.showId}
-                              className={`d-flex align-items-center ${index < stats.topRatedMovies.length - 1 ? "mb-2" : ""}`}
+              {/* Total Users Card */}
+              <Col xl={3} md={6} className="mb-4">
+                <Card className="border-left-success shadow h-100 admin-card">
+                  <Card.Body>
+                    <Row className="no-gutters align-items-center">
+                      <Col className="mr-2">
+                        <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                          Total Users
+                        </Card.Title>
+                        <Card.Text
+                          className="h3 mb-0 font-weight-bold"
+                          style={{ fontSize: "2.5rem" }}
+                        >
+                          {stats.totalUsers}
+                        </Card.Text>
+                      </Col>
+                      <Col xs="auto">
+                        <FaUsers
+                          className="fa-2x text-gray-300"
+                          style={{ fontSize: "2rem", opacity: 0.3 }}
+                        />
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+
+              {/* Top Rated Movies Card */}
+              <Col xl={6} md={12} className="mb-4">
+                <Card className="border-left-info shadow h-100 admin-card">
+                  <Card.Body>
+                    <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-3">
+                      Top Rated Movies
+                    </Card.Title>
+                    {stats.topRatedMovies && stats.topRatedMovies.length > 0 ? (
+                      <div>
+                        {stats.topRatedMovies.map((movie, index) => (
+                          <div
+                            key={movie.showId}
+                            className={`d-flex align-items-center ${index < stats.topRatedMovies.length - 1 ? "mb-2" : ""}`}
+                          >
+                            <Badge
+                              bg={
+                                index === 0
+                                  ? "warning"
+                                  : index === 1
+                                    ? "secondary"
+                                    : "light"
+                              }
+                              text={index === 2 ? "dark" : "white"}
+                              className="me-2"
                             >
-                              <Badge
-                                bg={
-                                  index === 0
-                                    ? "warning"
-                                    : index === 1
-                                      ? "secondary"
-                                      : "light"
-                                }
-                                text={index === 2 ? "dark" : "white"}
-                                className="me-2"
+                              #{index + 1}
+                            </Badge>
+                            <div className="d-flex justify-content-between align-items-center w-100">
+                              <span
+                                className="text-truncate"
+                                style={{ maxWidth: "200px" }}
                               >
-                                #{index + 1}
-                              </Badge>
-                              <div className="d-flex justify-content-between align-items-center w-100">
-                                <span
-                                  className="text-truncate"
-                                  style={{ maxWidth: "200px" }}
-                                >
-                                  {movie.title}
-                                </span>
-                                <div className="d-flex align-items-center">
-                                  <FaStar className="text-warning me-1" />
-                                  <span>{movie.rating}</span>
-                                </div>
+                                {movie.title}
+                              </span>
+                              <div className="d-flex align-items-center">
+                                <FaStar className="text-warning me-1" />
+                                <span>{movie.rating}</span>
                               </div>
                             </div>
-                          ))}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mb-0">No rating data available</p>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+
+            <Row>
+              {/* Top Genres */}
+              <Col lg={6} className="mb-4">
+                <Card className="shadow mb-4 admin-card">
+                  <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 className="m-0 font-weight-bold">Popular Genres</h6>
+                  </Card.Header>
+                  <Card.Body>
+                    {stats.topGenres && stats.topGenres.length > 0 ? (
+                      stats.topGenres.map((genre, index) => (
+                        <div key={index} className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>{genre.name}</span>
+                            <span>{genre.value}%</span>
+                          </div>
+                          <ProgressBar
+                            now={genre.value}
+                            variant={
+                              index === 0
+                                ? "primary"
+                                : index === 1
+                                  ? "success"
+                                  : index === 2
+                                    ? "info"
+                                    : index === 3
+                                      ? "warning"
+                                      : index === 4
+                                        ? "danger"
+                                        : index === 5
+                                          ? "secondary"
+                                          : index === 6
+                                            ? "dark"
+                                            : "light"
+                            }
+                            className="mb-2"
+                          />
                         </div>
-                      ) : (
-                        <p className="mb-0">No rating data available</p>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
+                      ))
+                    ) : (
+                      <p>No genre data available</p>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
 
-              <Row>
-                {/* Top Genres */}
-                <Col lg={6} className="mb-4">
-                  <Card className="shadow mb-4 admin-card">
-                    <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                      <h6 className="m-0 font-weight-bold">Popular Genres</h6>
-                    </Card.Header>
-                    <Card.Body>
-                      {stats.topGenres && stats.topGenres.length > 0 ? (
-                        stats.topGenres.map((genre, index) => (
-                          <div key={index} className="mb-3">
-                            <div className="d-flex justify-content-between mb-1">
-                              <span>{genre.name}</span>
-                              <span>{genre.value}%</span>
-                            </div>
-                            <ProgressBar
-                              now={genre.value}
-                              variant={
-                                index === 0
-                                  ? "primary"
-                                  : index === 1
-                                    ? "success"
-                                    : index === 2
-                                      ? "info"
-                                      : index === 3
-                                        ? "warning"
-                                        : index === 4
-                                          ? "danger"
-                                          : index === 5
-                                            ? "secondary"
-                                            : index === 6
-                                              ? "dark"
-                                              : "light"
-                              }
-                              className="mb-2"
-                            />
+              {/* Streaming Services */}
+              <Col lg={6} className="mb-4">
+                <Card className="shadow mb-4 admin-card">
+                  <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 className="m-0 font-weight-bold">Streaming Services</h6>
+                  </Card.Header>
+                  <Card.Body>
+                    {stats.streamingServices &&
+                    stats.streamingServices.length > 0 ? (
+                      stats.streamingServices.map((service, index) => (
+                        <div key={index} className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>{service.name}</span>
+                            <span>{service.value}%</span>
                           </div>
-                        ))
-                      ) : (
-                        <p>No genre data available</p>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Col>
+                          <ProgressBar
+                            now={service.value}
+                            variant={
+                              index === 0
+                                ? "primary"
+                                : index === 1
+                                  ? "success"
+                                  : index === 2
+                                    ? "info"
+                                    : index === 3
+                                      ? "warning"
+                                      : index === 4
+                                        ? "danger"
+                                        : index === 5
+                                          ? "secondary"
+                                          : index === 6
+                                            ? "dark"
+                                            : "light"
+                            }
+                            className="mb-2"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <p>No streaming service data available</p>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </>
+        )}
 
-                {/* Streaming Services */}
-                <Col lg={6} className="mb-4">
-                  <Card className="shadow mb-4 admin-card">
-                    <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                      <h6 className="m-0 font-weight-bold">
-                        Streaming Services
-                      </h6>
-                    </Card.Header>
-                    <Card.Body>
-                      {stats.streamingServices &&
-                      stats.streamingServices.length > 0 ? (
-                        stats.streamingServices.map((service, index) => (
-                          <div key={index} className="mb-3">
-                            <div className="d-flex justify-content-between mb-1">
-                              <span>{service.name}</span>
-                              <span>{service.value}%</span>
-                            </div>
-                            <ProgressBar
-                              now={service.value}
-                              variant={
-                                index === 0
-                                  ? "primary"
-                                  : index === 1
-                                    ? "success"
-                                    : index === 2
-                                      ? "info"
-                                      : index === 3
-                                        ? "warning"
-                                        : index === 4
-                                          ? "danger"
-                                          : index === 5
-                                            ? "secondary"
-                                            : index === 6
-                                              ? "dark"
-                                              : "light"
-                              }
-                              className="mb-2"
-                            />
-                          </div>
-                        ))
-                      ) : (
-                        <p>No streaming service data available</p>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
-            </>
-          )}
+        <Row className="mb-4">
+          <Col>
+            <Card className="shadow admin-card">
+              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 className="m-0 font-weight-bold">Admin Quick Actions</h6>
+              </Card.Header>
+              <Card.Body>
+                <Row>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button
+                      as={Link as any}
+                      to="/admin/movies"
+                      variant="outline-primary"
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaFilm style={{ fontSize: "2rem" }} className="mb-2" />
+                      <span>Manage Movies</span>
+                    </Button>
+                  </Col>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button
+                      variant="outline-success"
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaUsers style={{ fontSize: "2rem" }} className="mb-2" />
+                      <span>Manage Users</span>
+                    </Button>
+                  </Col>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button
+                      variant="outline-info"
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaChartLine
+                        style={{ fontSize: "2rem" }}
+                        className="mb-2"
+                      />
+                      <span>Analytics</span>
+                    </Button>
+                  </Col>
+                  <Col md={3} sm={6} className="mb-3">
+                    <Button
+                      variant="outline-warning"
+                      className="w-100 d-flex flex-column align-items-center py-3"
+                    >
+                      <FaCog style={{ fontSize: "2rem" }} className="mb-2" />
+                      <span>Settings</span>
+                    </Button>
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-          <Row className="mb-4">
-            <Col>
-              <Card className="shadow admin-card">
-                <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                  <h6 className="m-0 font-weight-bold">Admin Quick Actions</h6>
-                </Card.Header>
-                <Card.Body>
-                  <Row>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        as={Link as any}
-                        to="/admin/movies"
-                        variant="outline-primary"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaFilm style={{ fontSize: "2rem" }} className="mb-2" />
-                        <span>Manage Movies</span>
-                      </Button>
-                    </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-success"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaUsers
-                          style={{ fontSize: "2rem" }}
-                          className="mb-2"
-                        />
-                        <span>Manage Users</span>
-                      </Button>
-                    </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-info"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaChartLine
-                          style={{ fontSize: "2rem" }}
-                          className="mb-2"
-                        />
-                        <span>Analytics</span>
-                      </Button>
-                    </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-warning"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaCog style={{ fontSize: "2rem" }} className="mb-2" />
-                        <span>Settings</span>
-                      </Button>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          <Alert variant="info" className="d-flex align-items-center">
-            <FaUserShield className="me-2" size={24} />
-            <div>
-              <h5 className="mb-1">Admin Mode Active</h5>
-              <p className="mb-0">
-                You're currently in admin mode. You can switch to the{" "}
-                <Link to="/movies" className="alert-link">
-                  movies section
-                </Link>{" "}
-                to view the site as a regular user.
-              </p>
-            </div>
-          </Alert>
-        </Container>
+        <Alert variant="info" className="d-flex align-items-center">
+          <FaUserShield className="me-2" size={24} />
+          <div>
+            <h5 className="mb-1">Admin Mode Active</h5>
+            <p className="mb-0">
+              You're currently in admin mode. You can switch to the{" "}
+              <Link to="/movies" className="alert-link">
+                movies section
+              </Link>{" "}
+              to view the site as a regular user.
+            </p>
+          </div>
+        </Alert>
+      </Container>
       </AuthorizeView>
     );
   };
@@ -1400,63 +1286,10 @@ const Dashboard: React.FC = () => {
           </Container>
         </div>
 
-        <Container className="mb-4">
-          <Row className="align-items-end">
-            <Col md={6}>
-              <label className="form-label text-white">Search Movies</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search by title..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </Col>
-            <Col md={6}>
-              <label className="form-label text-white">Filter by Genre</label>
-              <select
-                className="form-select"
-                value={selectedGenre}
-                onChange={(e) => setSelectedGenre(e.target.value)}
-              >
-                <option value="All">All Genres</option>
-                {Object.keys(moviesData[0] || {})
-                  .filter((key) =>
-                    moviesData.some((movie) => movie[key as keyof Movie] === 1)
-                  )
-                  .sort((a, b) =>
-                    (GENRE_LABELS[a] || a).localeCompare(GENRE_LABELS[b] || b)
-                  )
-                  .map((genre) => (
-                    <option key={genre} value={genre}>
-                      {GENRE_LABELS[genre] || genre}
-                    </option>
-                  ))}
-              </select>
-            </Col>
-            <Col md={2}>
-              <Button
-                variant="outline-light"
-                className="w-100"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedGenre("All");
-                }}
-              >
-                Clear Filters
-              </Button>
-            </Col>
-          </Row>
-        </Container>
-
         {/* Netflix-style Dynamic Category Rows */}
         {isLoading && categoryRows.length === 0 ? (
           <div className="d-flex justify-content-center my-5">
             <Spinner animation="border" variant="danger" />
-          </div>
-        ) : filteredMovies.length === 0 ? (
-          <div className="text-center text-light my-5">
-            <h4>No movies match your search or filter.</h4>
           </div>
         ) : (
           <>
@@ -1731,52 +1564,6 @@ const Dashboard: React.FC = () => {
                   Close
                 </Button>
               </Modal.Footer>
-
-              {/* Movie Recommendations Section */}
-              {movieRecommendations.length > 0 && (
-                <div className="px-3 pb-4">
-                  <h5 className="mb-3">Movies Like This</h5>
-                  <Row className="g-3">
-                    {movieRecommendations.map((movie, index) => (
-                      <Col key={index} xs={4} sm={2} md={2} lg={2}>
-                        <div
-                          className="recommendation-card"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            closeMovieDetails();
-                            setTimeout(() => openMovieDetails(movie), 300);
-                          }}
-                        >
-                          <img
-                            src={getMovieImageUrl(movie)}
-                            alt={movie.title}
-                            className="img-fluid rounded mb-2"
-                            style={{
-                              width: "100%",
-                              aspectRatio: "2/3",
-                              objectFit: "cover",
-                            }}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.onerror = null; // Prevent infinite loop
-                              target.src = getRandomFallbackPoster();
-                            }}
-                          />
-                          <p className="small text-truncate mb-0">
-                            {movie.title}
-                          </p>
-                        </div>
-                      </Col>
-                    ))}
-                  </Row>
-                </div>
-              )}
-
-              {loadingRecommendations && (
-                <div className="d-flex justify-content-center pb-3">
-                  <Spinner animation="border" size="sm" />
-                </div>
-              )}
             </>
           )}
         </Modal>
