@@ -13,6 +13,14 @@
       }
     },
     {
+      "route": "/favicon.ico",
+      "serve": "/favicon.ico"
+    },
+    {
+      "route": "/robots.txt",
+      "serve": "/robots.txt"
+    },
+    {
       "route": "/*",
       "rewrite": "/index.html"
     }
