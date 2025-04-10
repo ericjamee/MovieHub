@@ -132,4 +132,31 @@ export const movieService = {
       return response.data;
     });
   },
+
+  async getMovieRecommendations(movieTitle: string): Promise<string[]> {
+    return handleApiError(async () => {
+      // Fetch the recommendations JSON file
+      const response = await axios.get('/api/data/movie_recommendations.json');
+      const recommendations = response.data;
+      
+      // Find the recommendations for the specified movie
+      const movieRec = recommendations.find((rec: any) => 
+        rec.movie_title.toLowerCase() === movieTitle.toLowerCase()
+      );
+      
+      if (movieRec) {
+        // Return an array of the 5 recommended movie titles
+        return [
+          movieRec.rec_1,
+          movieRec.rec_2,
+          movieRec.rec_3,
+          movieRec.rec_4,
+          movieRec.rec_5
+        ];
+      }
+      
+      // Return empty array if no recommendations found
+      return [];
+    });
+  },
 };
