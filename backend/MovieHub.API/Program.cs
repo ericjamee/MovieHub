@@ -105,9 +105,19 @@ app.MapIdentityApi<IdentityUser>();
 app.MapPost("/logout", async (HttpContext context, SignInManager<IdentityUser> signInManager) =>
 {
     await signInManager.SignOutAsync();
-    context.Response.Cookies.Delete(".AspNetCore.Identity.Application");
+
+    context.Response.Cookies.Append(".AspNetCore.Identity.Application", "", new CookieOptions
+    {
+        Expires = DateTimeOffset.UnixEpoch,
+        Path = "/", // Make sure this matches the original cookie's path
+        Secure = true,
+        HttpOnly = true,
+        SameSite = SameSiteMode.None
+    });
+
     return Results.Ok(new { message = "Logout successful" });
 });
+
 
 // Ping auth endpoint
 app.MapGet("/pingauth", (ClaimsPrincipal user) =>
