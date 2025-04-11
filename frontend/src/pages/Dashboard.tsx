@@ -37,7 +37,7 @@ import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
 import Logout from "../components/Logout";
 
 //Genre dropdown labels
-const GENRE_LABELS: { [key: string]: string } = {
+const GENRE_LABELS: { [key: string]: string } = { 
   action: "Action",
   adventure: "Adventure",
   animeSeriesInternationalTvShows: "Anime",
@@ -1037,18 +1037,18 @@ const Dashboard: React.FC = () => {
   const fetchAdminDashboardStats = async () => {
     try {
       setIsLoading(true);
-
+      
       // First try to get the movie count which we know works
       try {
         // Get one movie to find the total count
         const moviesResponse = await movieService.getAdminMovies(1, 1);
         console.log("Movies response:", moviesResponse);
-
-        const realStats = {
+        
+        const realStats = { 
           ...adminStats,
-          totalMovies: moviesResponse.totalNumMovies || adminStats.totalMovies,
+          totalMovies: moviesResponse.totalNumMovies || adminStats.totalMovies
         };
-
+        
         // Now try to get user count and admin stats if available
         try {
           const data = await movieService.getAdminDashboardStats();
@@ -1058,15 +1058,11 @@ const Dashboard: React.FC = () => {
             setDashboardStats({
               ...realStats,
               ...data,
-              totalMovies:
-                moviesResponse.totalNumMovies ||
-                data.totalMovies ||
-                adminStats.totalMovies,
+              totalMovies: moviesResponse.totalNumMovies || data.totalMovies || adminStats.totalMovies,
               // Ensure these arrays exist
               topGenres: data.topGenres || adminStats.topGenres,
-              streamingServices:
-                data.streamingServices || adminStats.streamingServices,
-              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies,
+              streamingServices: data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
             });
           } else {
             setDashboardStats(realStats);
@@ -1078,7 +1074,7 @@ const Dashboard: React.FC = () => {
         }
       } catch (moviesError) {
         console.error("Error fetching movie count:", moviesError);
-
+        
         // If movies fail too, just use mock data as a last resort
         try {
           const data = await movieService.getAdminDashboardStats();
@@ -1088,9 +1084,8 @@ const Dashboard: React.FC = () => {
               ...data,
               // Ensure these arrays exist
               topGenres: data.topGenres || adminStats.topGenres,
-              streamingServices:
-                data.streamingServices || adminStats.streamingServices,
-              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies,
+              streamingServices: data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
             });
           } else {
             setDashboardStats(adminStats);

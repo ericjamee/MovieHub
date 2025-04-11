@@ -173,37 +173,28 @@ export const movieService = {
       // Try multiple potential endpoints since we're not sure of the exact path
       try {
         // First attempt: Try directly with the Movie controller
-        const response = await axios.get(
-          `${API_BASE_URL}/AdminDashboardStats`,
-          {
-            withCredentials: true,
-          }
-        );
+        const response = await axios.get(`${API_BASE_URL}/AdminDashboardStats`, {
+          withCredentials: true
+        });
         console.log("Admin stats fetched successfully from Movie controller");
         return response.data;
       } catch (error) {
         console.log("First endpoint attempt failed, trying alternate paths...");
-
+        
         try {
           // Second attempt: Try with Admin controller
-          const response = await axios.get(
-            `${ADMIN_API_BASE_URL}/Admin/DashboardStats`,
-            {
-              withCredentials: true,
-            }
-          );
+          const response = await axios.get(`${ADMIN_API_BASE_URL}/Admin/DashboardStats`, {
+            withCredentials: true
+          });
           console.log("Admin stats fetched successfully from Admin controller");
           return response.data;
         } catch (secondError) {
           console.log("Second endpoint attempt failed, trying root path...");
-
+          
           // Third attempt: Try direct endpoint
-          const response = await axios.get(
-            `${ADMIN_API_BASE_URL}/AdminDashboardStats`,
-            {
-              withCredentials: true,
-            }
-          );
+          const response = await axios.get(`${ADMIN_API_BASE_URL}/AdminDashboardStats`, {
+            withCredentials: true
+          });
           console.log("Admin stats fetched successfully from root path");
           return response.data;
         }
