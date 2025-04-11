@@ -8,6 +8,7 @@ import {
   FaUserShield,
   FaTachometerAlt,
   FaUserCircle,
+  FaUsers,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
 
@@ -83,13 +84,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </Nav.Link>
                 )}
                 {isAdmin && (
-                  <Nav.Link
-                    as={Link}
-                    to="/admin/movies"
-                    active={location.pathname === "/admin/movies"}
-                  >
-                    <FaUserShield className="me-1" /> Admin Movies
-                  </Nav.Link>
+                  <>
+                    <Nav.Link
+                      as={Link}
+                      to="/admin/dashboard"
+                      active={location.pathname === "/admin/dashboard"}
+                    >
+                      <FaUserShield className="me-1" /> Admin Dashboard
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
+                      to="/admin/movies"
+                      active={location.pathname === "/admin/movies"}
+                    >
+                      <FaFilm className="me-1" /> Admin Movies
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
+                      to="/admin/users"
+                      active={location.pathname === "/admin/users"}
+                    >
+                      <FaUsers className="me-1" /> Users
+                    </Nav.Link>
+                  </>
                 )}
                 <Nav.Link as={Link} to="/privacy">
                   Privacy
@@ -97,24 +114,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Nav>
               <Nav className="me-0">
                 {isAuthenticated ? (
-                  <NavDropdown
-                    title={
-                      <span>
-                        <FaUserCircle className="me-1" />
-                        Profile
-                      </span>
-                    }
-                    id="user-dropdown"
-                    align="end"
-                  >
-                    <NavDropdown.Item as={Link} to="/profile">
-                      <FaUser className="me-2" /> Profile
-                    </NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item onClick={handleLogout}>
-                      <FaSignOutAlt className="me-2" /> Logout
-                    </NavDropdown.Item>
-                  </NavDropdown>
+                  <>
+                    <NavDropdown
+                      title={
+                        <span>
+                          <FaUserCircle className="me-1" />
+                          Profile
+                        </span>
+                      }
+                      id="user-dropdown"
+                      align="end"
+                    >
+                      <NavDropdown.Item as={Link} to="/profile">
+                        <FaUser className="me-2" /> Profile
+                      </NavDropdown.Item>
+                      <NavDropdown.Divider />
+                      <NavDropdown.Item onClick={handleLogout}>
+                        <FaSignOutAlt className="me-2" /> Logout
+                      </NavDropdown.Item>
+                    </NavDropdown>
+                    <Nav.Link 
+                      onClick={handleLogout} 
+                      className="ms-2 d-flex align-items-center"
+                    >
+                      <FaSignOutAlt className="me-1" /> Sign Out
+                    </Nav.Link>
+                  </>
                 ) : (
                   <Nav.Link as={Link} to="/profile">
                     <FaUserCircle className="me-1" /> Profile
