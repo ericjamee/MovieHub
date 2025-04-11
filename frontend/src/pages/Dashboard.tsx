@@ -1037,27 +1037,64 @@ const Dashboard: React.FC = () => {
   const fetchAdminDashboardStats = async () => {
     try {
       setIsLoading(true);
-      const data = await movieService.getAdminDashboardStats();
-      // If we get data from the backend, use it
-      if (data) {
-        console.log("Admin dashboard data received:", data);
-        // Ensure all expected properties exist by merging with default data
-        setDashboardStats({
-          ...adminStats, // Fallback data
-          ...data, // Overwrite with actual data
-          // Ensure these arrays exist
-          topGenres: data.topGenres || adminStats.topGenres,
-          streamingServices: data.streamingServices || adminStats.streamingServices,
-          topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
-        });
-      } else {
-        // If no data, fall back to mock data
-        setDashboardStats(adminStats);
+      
+      // First try to get the movie count which we know works
+      try {
+        // Get one movie to find the total count
+        const moviesResponse = await movieService.getAdminMovies(1, 1);
+        console.log("Movies response:", moviesResponse);
+        
+        const realStats = { 
+          ...adminStats,
+          totalMovies: moviesResponse.totalNumMovies || adminStats.totalMovies
+        };
+        
+        // Now try to get user count and admin stats if available
+        try {
+          const data = await movieService.getAdminDashboardStats();
+          if (data) {
+            console.log("Admin dashboard data received:", data);
+            // Merge the admin stats with our real movie count
+            setDashboardStats({
+              ...realStats,
+              ...data,
+              totalMovies: moviesResponse.totalNumMovies || data.totalMovies || adminStats.totalMovies,
+              // Ensure these arrays exist
+              topGenres: data.topGenres || adminStats.topGenres,
+              streamingServices: data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+            });
+          } else {
+            setDashboardStats(realStats);
+          }
+        } catch (statsError) {
+          console.error("Error fetching admin dashboard stats:", statsError);
+          // Still use the real movie count we got
+          setDashboardStats(realStats);
+        }
+      } catch (moviesError) {
+        console.error("Error fetching movie count:", moviesError);
+        
+        // If movies fail too, just use mock data as a last resort
+        try {
+          const data = await movieService.getAdminDashboardStats();
+          if (data) {
+            setDashboardStats({
+              ...adminStats,
+              ...data,
+              // Ensure these arrays exist
+              topGenres: data.topGenres || adminStats.topGenres,
+              streamingServices: data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+            });
+          } else {
+            setDashboardStats(adminStats);
+          }
+        } catch (finalError) {
+          console.error("All stats fetching failed:", finalError);
+          setDashboardStats(adminStats);
+        }
       }
-    } catch (error) {
-      console.error("Error fetching admin dashboard stats:", error);
-      // Use mock data on error
-      setDashboardStats(adminStats);
     } finally {
       setIsLoading(false);
     }
