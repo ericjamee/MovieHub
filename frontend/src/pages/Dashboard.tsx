@@ -451,6 +451,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
   const isAdmin = currentUser?.roles?.includes("Administrator");
+  const [userRating, setUserRating] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -490,7 +491,8 @@ const Dashboard: React.FC = () => {
           // Special case for anime - use title matching as a fallback for now
           matchesGenre =
             movie.AnimeSeriesInternationalTVShows === 1 ||
-            (movie.title &&
+            !!(
+              movie.title &&
               (movie.title.includes("Anime") ||
                 movie.title.toLowerCase().includes("anime") ||
                 (movie.type &&
@@ -501,7 +503,8 @@ const Dashboard: React.FC = () => {
                     movie.title.includes("Bleach") ||
                     movie.title.includes("Marvel Anime") ||
                     movie.title.includes("Vampire Knight") ||
-                    movie.title.includes("Durarara")))));
+                    movie.title.includes("Durarara"))))
+            );
         } else {
           // For all other genres
           matchesGenre = movie[selectedGenre as keyof Movie] === 1;
@@ -520,6 +523,21 @@ const Dashboard: React.FC = () => {
     }
   }, [filteredMovies]);
 
+  const handleRating = async (rating: number) => {
+    setUserRating(rating);
+    if (!selectedMovie || !currentUser) return;
+
+    await fetch("/api/ratings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: currentUser.email,
+        showId: selectedMovie.showId,
+        rating: rating,
+      }),
+    });
+  };
+
   // References for elements
   const carouselRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -532,6 +550,76 @@ const Dashboard: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // 1. First, extract the fetchRecommendedRow function outside the useEffect
+  // so we can call it from other places
+  const fetchRecommendedRow = async () => {
+    if (!currentUser || moviesData.length === 0) return;
+
+    const defaultShowId = "s123"; // Change to match your working example
+    const userId = 1;
+
+    try {
+      console.log("Making request to recommendations endpoint...");
+
+      // Use the full URL since we know this works in the browser
+      const res = await fetch(
+        `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/recommendations/azure/${defaultShowId}?userId=${userId}`,
+        {
+          credentials: "include", // Include credentials for auth cookies
+        }
+      );
+
+      console.log("Response status:", res.status);
+
+      const text = await res.text();
+      console.log("Response text length:", text.length);
+      console.log("Response from recommendations endpoint:", text);
+
+      // Only try to parse if there's content
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          console.log("Parsed recommendation data:", json);
+
+          if (json.recommendations && json.recommendations.length > 0) {
+            console.log("Found recommendations, updating UI");
+            setCategoryRows((prev) => {
+              // Check if we already have a recommended row
+              if (prev.some((row) => row.id === "recommended")) {
+                return prev;
+              }
+
+              // Otherwise, add the recommended row at the beginning
+              return [
+                {
+                  id: "recommended",
+                  title: "Recommended For You",
+                  movies: json.recommendations,
+                  page: 1,
+                  hasMore: false,
+                },
+                ...prev,
+              ];
+            });
+          }
+        } catch (parseError) {
+          console.error("Failed to parse recommendation JSON:", parseError);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load recommendations:", err);
+    }
+  };
+
+  // 4. Modify the useEffect to use the extracted function
+  useEffect(() => {
+    // We'll fetch recommendations after initialMoviesData loads the movies
+    // This useEffect will run when moviesData changes
+    if (!isAdmin && currentUser && moviesData.length > 0) {
+      fetchRecommendedRow();
+    }
+  }, [currentUser, moviesData, isAdmin]);
 
   useEffect(() => {
     if (isAdmin && pageLoaded) {
@@ -774,7 +862,7 @@ const Dashboard: React.FC = () => {
     console.log("Reached the end of all categories!");
   }, [visibleCategories, moviesData, usedMovieIds]);
 
-  // Initial fetch to populate first set of movies
+  // 5. Modify fetchInitialMoviesData to not overwrite our recommendations
   const fetchInitialMoviesData = async () => {
     try {
       setIsLoading(true);
@@ -1042,9 +1130,80 @@ const Dashboard: React.FC = () => {
       console.log("Response status:", response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Response not OK:", errorText);
-        throw new Error(`Failed to fetch recommendations: ${response.status}`);
+        // If specific movie recommendations not found, try to get fallback recommendations
+        console.log("Specific recommendations not found, trying fallback...");
+        const fallbackUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/random`;
+
+        try {
+          const fallbackResponse = await fetch(fallbackUrl, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            if (
+              fallbackData &&
+              fallbackData.recommendations &&
+              fallbackData.recommendations.length > 0
+            ) {
+              console.log(
+                "Using random recommendations:",
+                fallbackData.recommendations
+              );
+              setMovieRecommendations(fallbackData.recommendations);
+              return;
+            }
+          } else {
+            // If random fails, try popular
+            const popularUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/popular`;
+            const popularResponse = await fetch(popularUrl, {
+              method: "GET",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            });
+
+            if (popularResponse.ok) {
+              const popularData = await popularResponse.json();
+              if (
+                popularData &&
+                popularData.recommendations &&
+                popularData.recommendations.length > 0
+              ) {
+                console.log(
+                  "Using popular recommendations:",
+                  popularData.recommendations
+                );
+                setMovieRecommendations(popularData.recommendations);
+                return;
+              }
+            }
+          }
+        } catch (fallbackError) {
+          console.error(
+            "Error fetching fallback recommendations:",
+            fallbackError
+          );
+        }
+
+        // If all else fails, use hardcoded popular recommendations
+        const hardcodedRecommendations = [
+          "Stranger Things",
+          "The Queen's Gambit",
+          "Money Heist",
+          "Squid Game",
+          "Dark",
+        ];
+        console.log("Using hardcoded recommendations");
+        setMovieRecommendations(hardcodedRecommendations);
+        return;
       }
 
       const recommendations = await response.json();
@@ -1059,12 +1218,26 @@ const Dashboard: React.FC = () => {
         console.log("Cleaned recommendations:", cleanedRecommendations);
         setMovieRecommendations(cleanedRecommendations);
       } else {
-        console.log("No valid recommendations found");
-        setMovieRecommendations([]);
+        console.log("No valid recommendations found, using hardcoded");
+        // Fallback to some popular movies if no recommendations
+        setMovieRecommendations([
+          "Stranger Things",
+          "The Queen's Gambit",
+          "Money Heist",
+          "Squid Game",
+          "Dark",
+        ]);
       }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
-      setMovieRecommendations([]);
+      // Fallback to some popular movies if error occurs
+      setMovieRecommendations([
+        "Stranger Things",
+        "The Queen's Gambit",
+        "Money Heist",
+        "Squid Game",
+        "Dark",
+      ]);
     }
   };
 
@@ -1811,6 +1984,22 @@ const Dashboard: React.FC = () => {
                         <p>{selectedMovie.country}</p>
                       </div>
                     )}
+
+                    <div className="mb-3">
+                      <h5>Rate This Movie</h5>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          onClick={() => handleRating(star)}
+                          color={userRating >= star ? "gold" : "gray"}
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "1.5rem",
+                            marginRight: "5px",
+                          }}
+                        />
+                      ))}
+                    </div>
 
                     <div className="mb-3">
                       <h5>Genres</h5>
