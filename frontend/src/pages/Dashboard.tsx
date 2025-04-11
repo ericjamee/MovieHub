@@ -24,7 +24,6 @@ import {
   FaInfoCircle,
   FaArrowLeft,
   FaArrowRight,
-  FaCog,
   FaUsers,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
@@ -1562,15 +1561,6 @@ const Dashboard: React.FC = () => {
                           className="mb-2"
                         />
                         <span>Manage Users</span>
-                      </Button>
-                    </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-warning"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaCog style={{ fontSize: "2rem" }} className="mb-2" />
-                        <span>Settings</span>
                       </Button>
                     </Col>
                   </Row>
