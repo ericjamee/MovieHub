@@ -22,6 +22,7 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpGet("AdminMovies")]
+        [Authorize(Roles = "Admin,Administrator")]
         public IActionResult GetMovies(int pageSize = 10, int pageNum = 1)
         {
             var query = _movieContext.MoviesTitles.AsQueryable();
@@ -43,6 +44,7 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpPost("AddMovie")]
+        [Authorize(Roles = "Admin,Administrator")]
         public IActionResult AddMovie([FromBody] MoviesTitle newMovie)
         {
             int highestId = _movieContext.MoviesTitles
@@ -58,6 +60,7 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpPut("UpdateMovie/{showId}")]
+        [Authorize(Roles = "Admin,Administrator")]
         public IActionResult UpdateMovie(string showId, [FromBody] MoviesTitle updatedMovie)
         {
             MoviesTitle existingMovie = _movieContext.MoviesTitles.Find(showId);
@@ -79,6 +82,7 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpDelete("DeleteMovie/{showId}")]
+        [Authorize(Roles = "Admin,Administrator")]
         public IActionResult DeleteMovie(string showId)
         {
             MoviesTitle movie = _movieContext.MoviesTitles.Find(showId);
@@ -95,6 +99,7 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpGet("AdminDashboardStats")]
+        [Authorize(Roles = "Admin,Administrator")]
         public IActionResult GetAdminDashboardStats()
         {
             // Get total movies count
