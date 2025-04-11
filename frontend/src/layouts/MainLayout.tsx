@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Navbar, Nav, NavDropdown, Badge } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -20,9 +20,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = useAuthorizedUser();
-  const isAuthenticated = !!currentUser?.email;
-  // Check if user has admin role
-  const isAdmin = currentUser?.roles?.includes('admin') || false;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+
+  // Set authentication status and admin role
+  useEffect(() => {
+    // Update state based on user data
+    const authenticated = !!currentUser?.email;
+    const adminRole = currentUser?.roles?.includes("admin") || false;
+    
+    setIsAuthenticated(authenticated);
+    setIsAdmin(adminRole);
+    setUserEmail(currentUser?.email || "");
+    
+    // Detailed debug logs
+    console.log("MainLayout - User Context:", currentUser);
+    console.log("MainLayout - Auth State:", {
+      authenticated,
+      adminRole,
+      email: currentUser?.email,
+      roles: currentUser?.roles
+    });
+  }, [currentUser]);
 
   // Logout handler
   const handleLogout = async () => {
@@ -34,6 +54,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           credentials: "include",
         }
       );
+      console.log("Logout successful");
       navigate("/login"); // Navigate without full reload
     } catch (err) {
       console.error("Logout failed:", err);
@@ -42,12 +63,44 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   // Debug logs
   useEffect(() => {
-    console.log("MainLayout - Auth state:", {
-      isAuthenticated,
-      currentUser,
-    });
-    console.log("MainLayout - Current path:", location.pathname);
-  }, [isAuthenticated, currentUser, location.pathname]);
+    console.log("MainLayout - Path:", location.pathname);
+    console.log("MainLayout - Debug:", { isAuthenticated, isAdmin, userEmail });
+  }, [location.pathname, isAuthenticated, isAdmin]);
+
+  // Force authentication check on initial load and path change
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(
+          "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          console.log("MainLayout - Auth check failed:", response.status);
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+          return;
+        }
+
+        const data = await response.json();
+        console.log("MainLayout - Auth check result:", data);
+        
+        setIsAuthenticated(!!data.email);
+        setIsAdmin(data.roles?.includes("admin") || false);
+        setUserEmail(data.email || "");
+      } catch (error) {
+        console.error("MainLayout - Auth check error:", error);
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAuth();
+  }, [location.pathname]);
 
   // Hide navbar on certain unauthenticated pages
   const isLandingPage = location.pathname === "/" && !isAuthenticated;
@@ -57,6 +110,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="d-flex flex-column min-vh-100 w-100 overflow-hidden">
+      {/* Debug info */}
+      <div className="bg-warning p-1 text-center">
+        Auth: {isAuthenticated ? "Yes" : "No"} | 
+        Admin: {isAdmin ? "Yes" : "No"} | 
+        User: {userEmail || "None"}
+      </div>
+      
       {showNavbar && (
         <Navbar bg="dark" variant="dark" expand="lg" className="p-0 w-100">
           <Container fluid className="px-3">
@@ -142,8 +202,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Nav.Link>
                   </>
                 ) : (
-                  <Nav.Link as={Link} to="/profile">
-                    <FaUserCircle className="me-1" /> Profile
+                  <Nav.Link as={Link} to="/login">
+                    <FaUser className="me-1" /> Login
                   </Nav.Link>
                 )}
               </Nav>
