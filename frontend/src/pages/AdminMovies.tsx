@@ -24,8 +24,7 @@ import {
 import { Movie } from "../types/movie";
 import { movieService } from "../services/movieService";
 import Pagination from "../components/Pagination";
-import AuthorizeView, { AuthorizedUser, useAuthorizedUser } from '../components/AuthorizeView';
-import Logout from '../components/Logout';
+import AuthorizeView, { useAuthorizedUser } from '../components/AuthorizeView';
 import { Navigate } from "react-router-dom";
 
 const AdminMovies: React.FC = () => {
@@ -243,11 +242,6 @@ const AdminMovies: React.FC = () => {
 
   return (
     <AuthorizeView>
-    <span>
-      <Logout>
-        Logout <AuthorizedUser value="email" />
-      </Logout>
-      </span>
     <Container fluid className="py-4 px-4">
       <Card className="shadow-sm border-0">
         <Card.Header className="bg-primary text-white py-3">

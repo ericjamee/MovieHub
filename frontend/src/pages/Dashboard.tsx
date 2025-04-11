@@ -13,7 +13,6 @@ import {
   Card,
   Badge,
   ProgressBar,
-  Alert,
   Spinner,
   Modal,
 } from "react-bootstrap";
@@ -25,19 +24,15 @@ import {
   FaInfoCircle,
   FaArrowLeft,
   FaArrowRight,
-  FaUserShield,
-  FaCog,
-  FaChartLine,
   FaUsers,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
 import { movieService } from "../services/movieService";
 import { AdminDashboardStats, Movie } from "../types/movie";
-import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
-import Logout from "../components/Logout";
+import AuthorizeView from "../components/AuthorizeView";
 
 //Genre dropdown labels
-const GENRE_LABELS: { [key: string]: string } = {
+const GENRE_LABELS: { [key: string]: string } = { 
   action: "Action",
   adventure: "Adventure",
   animeSeriesInternationalTvShows: "Anime",
@@ -1037,10 +1032,64 @@ const Dashboard: React.FC = () => {
   const fetchAdminDashboardStats = async () => {
     try {
       setIsLoading(true);
-      const data = await movieService.getAdminDashboardStats();
-      setDashboardStats(data);
-    } catch (error) {
-      console.error("Error fetching admin dashboard stats:", error);
+      
+      // First try to get the movie count which we know works
+      try {
+        // Get one movie to find the total count
+        const moviesResponse = await movieService.getAdminMovies(1, 1);
+        console.log("Movies response:", moviesResponse);
+        
+        const realStats = { 
+          ...adminStats,
+          totalMovies: moviesResponse.totalNumMovies || adminStats.totalMovies
+        };
+        
+        // Now try to get user count and admin stats if available
+        try {
+          const data = await movieService.getAdminDashboardStats();
+          if (data) {
+            console.log("Admin dashboard data received:", data);
+            // Merge the admin stats with our real movie count
+            setDashboardStats({
+              ...realStats,
+              ...data,
+              totalMovies: moviesResponse.totalNumMovies || data.totalMovies || adminStats.totalMovies,
+              // Ensure these arrays exist
+              topGenres: data.topGenres || adminStats.topGenres,
+              streamingServices: data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+            });
+          } else {
+            setDashboardStats(realStats);
+          }
+        } catch (statsError) {
+          console.error("Error fetching admin dashboard stats:", statsError);
+          // Still use the real movie count we got
+          setDashboardStats(realStats);
+        }
+      } catch (moviesError) {
+        console.error("Error fetching movie count:", moviesError);
+        
+        // If movies fail too, just use mock data as a last resort
+        try {
+          const data = await movieService.getAdminDashboardStats();
+          if (data) {
+            setDashboardStats({
+              ...adminStats,
+              ...data,
+              // Ensure these arrays exist
+              topGenres: data.topGenres || adminStats.topGenres,
+              streamingServices: data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+            });
+          } else {
+            setDashboardStats(adminStats);
+          }
+        } catch (finalError) {
+          console.error("All stats fetching failed:", finalError);
+          setDashboardStats(adminStats);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -1253,11 +1302,6 @@ const Dashboard: React.FC = () => {
 
     return (
       <AuthorizeView>
-        <span>
-          <Logout>
-            Logout <AuthorizedUser value="email" />
-          </Logout>
-        </span>
         <Container fluid className="py-4">
           <Row className="mb-4">
             <Col>
@@ -1507,6 +1551,8 @@ const Dashboard: React.FC = () => {
                     </Col>
                     <Col md={3} sm={6} className="mb-3">
                       <Button
+                        as={Link as any}
+                        to="/admin/users"
                         variant="outline-success"
                         className="w-100 d-flex flex-column align-items-center py-3"
                       >
@@ -1517,46 +1563,11 @@ const Dashboard: React.FC = () => {
                         <span>Manage Users</span>
                       </Button>
                     </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-info"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaChartLine
-                          style={{ fontSize: "2rem" }}
-                          className="mb-2"
-                        />
-                        <span>Analytics</span>
-                      </Button>
-                    </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-warning"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaCog style={{ fontSize: "2rem" }} className="mb-2" />
-                        <span>Settings</span>
-                      </Button>
-                    </Col>
                   </Row>
                 </Card.Body>
               </Card>
             </Col>
           </Row>
-
-          <Alert variant="info" className="d-flex align-items-center">
-            <FaUserShield className="me-2" size={24} />
-            <div>
-              <h5 className="mb-1">Admin Mode Active</h5>
-              <p className="mb-0">
-                You're currently in admin mode. You can switch to the{" "}
-                <Link to="/movies" className="alert-link">
-                  movies section
-                </Link>{" "}
-                to view the site as a regular user.
-              </p>
-            </div>
-          </Alert>
         </Container>
       </AuthorizeView>
     );

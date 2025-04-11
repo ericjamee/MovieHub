@@ -4,6 +4,9 @@ import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 const API_BASE_URL =
   "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie"; // Updated to use the new backend URL
 
+const ADMIN_API_BASE_URL =
+  "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net"; // Base URL without /Movie for admin endpoints
+
 // Add error handling wrapper
 const handleApiError = async (apiCall: () => Promise<any>) => {
   try {
@@ -167,8 +170,35 @@ export const movieService = {
 
   async getAdminDashboardStats(): Promise<any> {
     return handleApiError(async () => {
-      const response = await axios.get(`${API_BASE_URL}/AdminDashboardStats`);
-      return response.data;
+      // Try multiple potential endpoints since we're not sure of the exact path
+      try {
+        // First attempt: Try directly with the Movie controller
+        const response = await axios.get(`${API_BASE_URL}/AdminDashboardStats`, {
+          withCredentials: true
+        });
+        console.log("Admin stats fetched successfully from Movie controller");
+        return response.data;
+      } catch (error) {
+        console.log("First endpoint attempt failed, trying alternate paths...");
+        
+        try {
+          // Second attempt: Try with Admin controller
+          const response = await axios.get(`${ADMIN_API_BASE_URL}/Admin/DashboardStats`, {
+            withCredentials: true
+          });
+          console.log("Admin stats fetched successfully from Admin controller");
+          return response.data;
+        } catch (secondError) {
+          console.log("Second endpoint attempt failed, trying root path...");
+          
+          // Third attempt: Try direct endpoint
+          const response = await axios.get(`${ADMIN_API_BASE_URL}/AdminDashboardStats`, {
+            withCredentials: true
+          });
+          console.log("Admin stats fetched successfully from root path");
+          return response.data;
+        }
+      }
     });
   },
 
