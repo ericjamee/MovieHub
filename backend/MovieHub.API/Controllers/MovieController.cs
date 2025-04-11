@@ -22,7 +22,6 @@ namespace MovieHub.API.Controllers
         }
 
         [HttpGet("AdminMovies")]
-        [Authorize(Roles = "Admin,Administrator")]
         public IActionResult GetMovies(int pageSize = 10, int pageNum = 1)
         {
             var query = _movieContext.MoviesTitles.AsQueryable();
