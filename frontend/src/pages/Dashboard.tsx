@@ -564,7 +564,7 @@ const Dashboard: React.FC = () => {
 
       // Use the full URL since we know this works in the browser
       const res = await fetch(
-        `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/recommendations/azure/${defaultShowId}?userId=${userId}`,
+        `https://localhost:5000/recommendations/azure/${defaultShowId}?userId=${userId}`,
         {
           credentials: "include", // Include credentials for auth cookies
         }
@@ -1037,18 +1037,18 @@ const Dashboard: React.FC = () => {
   const fetchAdminDashboardStats = async () => {
     try {
       setIsLoading(true);
-      
+
       // First try to get the movie count which we know works
       try {
         // Get one movie to find the total count
         const moviesResponse = await movieService.getAdminMovies(1, 1);
         console.log("Movies response:", moviesResponse);
-        
-        const realStats = { 
+
+        const realStats = {
           ...adminStats,
-          totalMovies: moviesResponse.totalNumMovies || adminStats.totalMovies
+          totalMovies: moviesResponse.totalNumMovies || adminStats.totalMovies,
         };
-        
+
         // Now try to get user count and admin stats if available
         try {
           const data = await movieService.getAdminDashboardStats();
@@ -1058,11 +1058,15 @@ const Dashboard: React.FC = () => {
             setDashboardStats({
               ...realStats,
               ...data,
-              totalMovies: moviesResponse.totalNumMovies || data.totalMovies || adminStats.totalMovies,
+              totalMovies:
+                moviesResponse.totalNumMovies ||
+                data.totalMovies ||
+                adminStats.totalMovies,
               // Ensure these arrays exist
               topGenres: data.topGenres || adminStats.topGenres,
-              streamingServices: data.streamingServices || adminStats.streamingServices,
-              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+              streamingServices:
+                data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies,
             });
           } else {
             setDashboardStats(realStats);
@@ -1074,7 +1078,7 @@ const Dashboard: React.FC = () => {
         }
       } catch (moviesError) {
         console.error("Error fetching movie count:", moviesError);
-        
+
         // If movies fail too, just use mock data as a last resort
         try {
           const data = await movieService.getAdminDashboardStats();
@@ -1084,8 +1088,9 @@ const Dashboard: React.FC = () => {
               ...data,
               // Ensure these arrays exist
               topGenres: data.topGenres || adminStats.topGenres,
-              streamingServices: data.streamingServices || adminStats.streamingServices,
-              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+              streamingServices:
+                data.streamingServices || adminStats.streamingServices,
+              topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies,
             });
           } else {
             setDashboardStats(adminStats);
@@ -1168,7 +1173,7 @@ const Dashboard: React.FC = () => {
 
       // Encode the movie title for the URL
       const encodedTitle = encodeURIComponent(movieTitle.trim());
-      const url = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/recommendations/${encodedTitle}`;
+      const url = `https://localhost:5000/Movie/recommendations/${encodedTitle}`;
 
       console.log("Request URL:", url);
 
@@ -1186,7 +1191,7 @@ const Dashboard: React.FC = () => {
       if (!response.ok) {
         // If specific movie recommendations not found, try to get fallback recommendations
         console.log("Specific recommendations not found, trying fallback...");
-        const fallbackUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/random`;
+        const fallbackUrl = `https://localhost:5000/Recommendations/random`;
 
         try {
           const fallbackResponse = await fetch(fallbackUrl, {
@@ -1214,7 +1219,7 @@ const Dashboard: React.FC = () => {
             }
           } else {
             // If random fails, try popular
-            const popularUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/popular`;
+            const popularUrl = `https://localhost:5000/Recommendations/popular`;
             const popularResponse = await fetch(popularUrl, {
               method: "GET",
               headers: {
@@ -2139,7 +2144,7 @@ const Dashboard: React.FC = () => {
                                   );
 
                                   // First try the SearchMovies endpoint with the exact title
-                                  const searchUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/SearchMovies?searchTerm=${encodeURIComponent(title)}`;
+                                  const searchUrl = `https://localhost:5000/Movie/SearchMovies?searchTerm=${encodeURIComponent(title)}`;
 
                                   console.log(
                                     "Searching using URL:",
@@ -2241,7 +2246,7 @@ const Dashboard: React.FC = () => {
                                   );
 
                                   // Try to get a batch of movies to search through
-                                  const adminMoviesUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/AdminMovies?pageSize=100&pageNum=1`;
+                                  const adminMoviesUrl = `https://localhost:5000/Movie/AdminMovies?pageSize=100&pageNum=1`;
 
                                   const adminResponse = await fetch(
                                     adminMoviesUrl,
@@ -2389,7 +2394,7 @@ const Dashboard: React.FC = () => {
                                     );
 
                                     // Get all movies in one bigger batch
-                                    const finalUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/AdminMovies?pageSize=500&pageNum=1`;
+                                    const finalUrl = `https://localhost:5000/Movie/AdminMovies?pageSize=500&pageNum=1`;
 
                                     const finalResponse = await fetch(
                                       finalUrl,
