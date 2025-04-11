@@ -2,7 +2,7 @@ import axios from "axios";
 import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 
 const API_BASE_URL =
-  "https://localhost:5000/Movie"; // Updated to use the new backend URL
+  "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie"; // Updated to use the new backend URL
 
 // Add error handling wrapper
 const handleApiError = async (apiCall: () => Promise<any>) => {
@@ -43,19 +43,21 @@ export const movieService = {
 
       // If we have a search term, use the search endpoint
       if (searchTerm) {
-        url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm).replace(/%20/g, '+')}`;
+        url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm).replace(/%20/g, "+")}`;
       }
 
       const response = await fetch(url, {
         credentials: "include",
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch movies: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch movies: ${response.status} ${response.statusText}`
+        );
       }
 
       // Process response data
@@ -172,7 +174,9 @@ export const movieService = {
 
   async getRecommendedMovies(movieId: string): Promise<Movie[]> {
     return handleApiError(async () => {
-      const response = await axios.get(`${API_BASE_URL}/recommendations/azure/${movieId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/recommendations/azure/${movieId}`
+      );
       return response.data.recommendations;
     });
   },

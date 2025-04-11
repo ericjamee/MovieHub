@@ -52,8 +52,8 @@ function LoginPage() {
     }
 
     const loginUrl = rememberme
-      ? "https://localhost:5000/login?useCookies=true"
-      : "https://localhost:5000/login?useSessionCookies=true";
+      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true"
+      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true";
 
     try {
       const response = await fetch(loginUrl, {
@@ -76,7 +76,7 @@ function LoginPage() {
       }
 
       const ping = await fetch(
-        "https://localhost:5000/pingauth",
+        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
         {
           method: "GET",
           credentials: "include",
@@ -88,9 +88,9 @@ function LoginPage() {
       if (ping.ok) {
         const userData = await ping.json();
         const roles = userData.roles || [];
-      
+
         console.log("✅ Ping success — roles:", roles);
-      
+
         if (roles.includes("Administrator")) {
           console.log("👑 Redirecting admin to /admin/movies");
           navigate("/admin/movies");
@@ -98,14 +98,13 @@ function LoginPage() {
           console.log("👤 Redirecting user to /dashboard");
           navigate("/dashboard");
         }
-      
+
         // Optional: reload app to rehydrate any auth state
         setTimeout(() => {
           console.log("🔄 Reloading after login");
           window.location.reload();
         }, 100);
-      }      
-      else {
+      } else {
         console.log("❌ Ping failed after login");
       }
     } catch (error: any) {

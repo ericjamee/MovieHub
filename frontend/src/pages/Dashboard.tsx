@@ -456,7 +456,7 @@ const Dashboard: React.FC = () => {
 
       // Use the full URL since we know this works in the browser
       const res = await fetch(
-        `https://localhost:5000/recommendations/azure/${defaultShowId}?userId=${userId}`,
+        `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/recommendations/azure/${defaultShowId}?userId=${userId}`,
         {
           credentials: "include", // Include credentials for auth cookies
         }
@@ -974,7 +974,7 @@ const Dashboard: React.FC = () => {
         // If specific movie recommendations not found, try to get fallback recommendations
         console.log("Specific recommendations not found, trying fallback...");
         const fallbackUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/random`;
-        
+
         try {
           const fallbackResponse = await fetch(fallbackUrl, {
             method: "GET",
@@ -984,11 +984,18 @@ const Dashboard: React.FC = () => {
             },
             credentials: "include",
           });
-          
+
           if (fallbackResponse.ok) {
             const fallbackData = await fallbackResponse.json();
-            if (fallbackData && fallbackData.recommendations && fallbackData.recommendations.length > 0) {
-              console.log("Using random recommendations:", fallbackData.recommendations);
+            if (
+              fallbackData &&
+              fallbackData.recommendations &&
+              fallbackData.recommendations.length > 0
+            ) {
+              console.log(
+                "Using random recommendations:",
+                fallbackData.recommendations
+              );
               setRecommendedMovies(fallbackData.recommendations);
               return;
             }
@@ -1003,27 +1010,37 @@ const Dashboard: React.FC = () => {
               },
               credentials: "include",
             });
-            
+
             if (popularResponse.ok) {
               const popularData = await popularResponse.json();
-              if (popularData && popularData.recommendations && popularData.recommendations.length > 0) {
-                console.log("Using popular recommendations:", popularData.recommendations);
+              if (
+                popularData &&
+                popularData.recommendations &&
+                popularData.recommendations.length > 0
+              ) {
+                console.log(
+                  "Using popular recommendations:",
+                  popularData.recommendations
+                );
                 setRecommendedMovies(popularData.recommendations);
                 return;
               }
             }
           }
         } catch (fallbackError) {
-          console.error("Error fetching fallback recommendations:", fallbackError);
+          console.error(
+            "Error fetching fallback recommendations:",
+            fallbackError
+          );
         }
-        
+
         // If all else fails, use hardcoded popular recommendations
         const hardcodedRecommendations = [
-          "Stranger Things", 
-          "The Queen's Gambit", 
-          "Money Heist", 
-          "Squid Game", 
-          "Dark"
+          "Stranger Things",
+          "The Queen's Gambit",
+          "Money Heist",
+          "Squid Game",
+          "Dark",
         ];
         console.log("Using hardcoded recommendations");
         setRecommendedMovies(hardcodedRecommendations);
@@ -1045,22 +1062,22 @@ const Dashboard: React.FC = () => {
         console.log("No valid recommendations found, using hardcoded");
         // Fallback to some popular movies if no recommendations
         setRecommendedMovies([
-          "Stranger Things", 
-          "The Queen's Gambit", 
-          "Money Heist", 
-          "Squid Game", 
-          "Dark"
+          "Stranger Things",
+          "The Queen's Gambit",
+          "Money Heist",
+          "Squid Game",
+          "Dark",
         ]);
       }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       // Fallback to some popular movies if error occurs
       setRecommendedMovies([
-        "Stranger Things", 
-        "The Queen's Gambit", 
-        "Money Heist", 
-        "Squid Game", 
-        "Dark"
+        "Stranger Things",
+        "The Queen's Gambit",
+        "Money Heist",
+        "Squid Game",
+        "Dark",
       ]);
     }
   };
