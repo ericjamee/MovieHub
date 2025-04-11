@@ -13,7 +13,6 @@ import {
   Card,
   Badge,
   ProgressBar,
-  Alert,
   Spinner,
   Modal,
 } from "react-bootstrap";
@@ -25,9 +24,7 @@ import {
   FaInfoCircle,
   FaArrowLeft,
   FaArrowRight,
-  FaUserShield,
   FaCog,
-  FaChartLine,
   FaUsers,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
@@ -1555,6 +1552,8 @@ const Dashboard: React.FC = () => {
                     </Col>
                     <Col md={3} sm={6} className="mb-3">
                       <Button
+                        as={Link as any}
+                        to="/admin/users"
                         variant="outline-success"
                         className="w-100 d-flex flex-column align-items-center py-3"
                       >
@@ -1563,18 +1562,6 @@ const Dashboard: React.FC = () => {
                           className="mb-2"
                         />
                         <span>Manage Users</span>
-                      </Button>
-                    </Col>
-                    <Col md={3} sm={6} className="mb-3">
-                      <Button
-                        variant="outline-info"
-                        className="w-100 d-flex flex-column align-items-center py-3"
-                      >
-                        <FaChartLine
-                          style={{ fontSize: "2rem" }}
-                          className="mb-2"
-                        />
-                        <span>Analytics</span>
                       </Button>
                     </Col>
                     <Col md={3} sm={6} className="mb-3">
@@ -1591,20 +1578,6 @@ const Dashboard: React.FC = () => {
               </Card>
             </Col>
           </Row>
-
-          <Alert variant="info" className="d-flex align-items-center">
-            <FaUserShield className="me-2" size={24} />
-            <div>
-              <h5 className="mb-1">Admin Mode Active</h5>
-              <p className="mb-0">
-                You're currently in admin mode. You can switch to the{" "}
-                <Link to="/movies" className="alert-link">
-                  movies section
-                </Link>{" "}
-                to view the site as a regular user.
-              </p>
-            </div>
-          </Alert>
         </Container>
       </AuthorizeView>
     );
