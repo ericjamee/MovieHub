@@ -34,7 +34,6 @@ import { useAuthorizedUser } from "../components/AuthorizeView";
 import { movieService } from "../services/movieService";
 import { AdminDashboardStats, Movie } from "../types/movie";
 import AuthorizeView from "../components/AuthorizeView";
-import Logout from "../components/Logout";
 
 //Genre dropdown labels
 const GENRE_LABELS: { [key: string]: string } = {
