@@ -167,7 +167,9 @@ export const movieService = {
 
   async getAdminDashboardStats(): Promise<any> {
     return handleApiError(async () => {
-      const response = await axios.get(`${API_BASE_URL}/AdminDashboardStats`);
+      const response = await axios.get(`${API_BASE_URL}/Movie/AdminDashboardStats`, {
+        withCredentials: true
+      });
       return response.data;
     });
   },

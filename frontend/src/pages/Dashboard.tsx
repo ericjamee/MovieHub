@@ -1038,9 +1038,26 @@ const Dashboard: React.FC = () => {
     try {
       setIsLoading(true);
       const data = await movieService.getAdminDashboardStats();
-      setDashboardStats(data);
+      // If we get data from the backend, use it
+      if (data) {
+        console.log("Admin dashboard data received:", data);
+        // Ensure all expected properties exist by merging with default data
+        setDashboardStats({
+          ...adminStats, // Fallback data
+          ...data, // Overwrite with actual data
+          // Ensure these arrays exist
+          topGenres: data.topGenres || adminStats.topGenres,
+          streamingServices: data.streamingServices || adminStats.streamingServices,
+          topRatedMovies: data.topRatedMovies || adminStats.topRatedMovies
+        });
+      } else {
+        // If no data, fall back to mock data
+        setDashboardStats(adminStats);
+      }
     } catch (error) {
       console.error("Error fetching admin dashboard stats:", error);
+      // Use mock data on error
+      setDashboardStats(adminStats);
     } finally {
       setIsLoading(false);
     }
