@@ -11,6 +11,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { useAuthorizedUser } from "../components/AuthorizeView";
+import { getAuthUrl, getDefaultFetchOptions } from "../services/apiConfig";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -72,11 +73,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const checkAuth = async () => {
       try {
         const response = await fetch(
-          "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
-          {
-            method: "GET",
-            credentials: "include",
-          }
+          getAuthUrl("pingauth"),
+          getDefaultFetchOptions()
         );
 
         if (!response.ok) {
