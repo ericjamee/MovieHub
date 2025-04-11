@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Privacy from "./pages/Privacy";
 import AdminMovies from "./pages/AdminMovies";
+import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
 import AuthorizeView from "./components/AuthorizeView"; // your working guard
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -68,6 +69,14 @@ function AppRoutes() {
         element={
           <AuthorizeView>
             <AdminMovies />
+          </AuthorizeView>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AuthorizeView>
+            <AdminUsers />
           </AuthorizeView>
         }
       />
