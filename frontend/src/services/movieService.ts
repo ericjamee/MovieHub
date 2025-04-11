@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Movie, MovieFilters, MovieResponse } from "../types/movie";
 
-const API_BASE_URL = "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie"; // Updated to use the new backend URL
+const API_BASE_URL = "https://localhost:5000/Movie"; // Updated to use the new backend URL
 
 // Add error handling wrapper
 const handleApiError = async (apiCall: () => Promise<any>) => {
@@ -167,7 +167,9 @@ export const movieService = {
 
   async getRecommendedMovies(movieId: string): Promise<Movie[]> {
     return handleApiError(async () => {
-      const response = await axios.get(`${API_BASE_URL}/recommendations/azure/${movieId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/recommendations/azure/${movieId}`
+      );
       return response.data.recommendations;
     });
   },
