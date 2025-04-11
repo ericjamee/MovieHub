@@ -101,6 +101,16 @@ if (app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection(); 
 
+// Add static file serving for Data directory
+app.UseStaticFiles();
+app.UseFileServer(new FileServerOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Data")),
+    RequestPath = "/data",
+    EnableDirectoryBrowsing = false
+});
+
 app.Use(async (context, next) =>
 {
     Console.WriteLine($"Incoming request from Origin: {context.Request.Headers["Origin"]}");

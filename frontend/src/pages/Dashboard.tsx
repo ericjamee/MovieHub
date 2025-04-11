@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Container,
   Row,
@@ -432,7 +426,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
-  const isAdmin = currentUser?.email === "admin@example.com"; // or however you define admin
+  const isAdmin = currentUser?.roles?.includes("Administrator");
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -720,8 +714,20 @@ const Dashboard: React.FC = () => {
   const fetchInitialMoviesData = async () => {
     try {
       setIsLoading(true);
-      const response = await movieService.getMovies(200, 1);
+      console.log("Fetching initial movies data...");
+      const response = await movieService.getMovies(
+        200, // pageSize - Increased to fetch more movies initially
+        1 // pageNum
+      );
+
+      console.log("Response from movie service:", response);
+
       if (response && response.movies && response.movies.length > 0) {
+        console.log(
+          "Setting movies data with",
+          response.movies.length,
+          "movies"
+        );
         setMoviesData(response.movies);
         // Do not build categories here anymore
       }
@@ -923,35 +929,59 @@ const Dashboard: React.FC = () => {
       : Number(movie.rating).toFixed(1);
   };
 
-  // Function to open the movie details modal
-  const openMovieDetails = async (movie: Movie) => {
-    setSelectedMovie(movie);
-    setShowModal(true);
+  // Function to fetch recommended movies
+  const fetchRecommendedMovies = async (movieTitle: string) => {
+    try {
+      if (!movieTitle) {
+        console.error("No movie title provided for recommendations");
+        setRecommendedMovies([]);
+        return;
+      }
 
-    // Fetch movie recommendations
-    // try {
-    //   setLoadingRecommendations(true);
-    //   const recommendedTitles = await movieService.getMovieRecommendations(
-    //     movie.title
-    //   );
+      console.log("Fetching recommendations for:", movieTitle);
 
-    //   if (recommendedTitles.length > 0) {
-    //     // Find the actual movie objects for the recommended titles
-    //     const recommendedMovies = filteredMovies.filter((m) =>
-    //       recommendedTitles.some(
-    //         (title) => title.toLowerCase() === m.title.toLowerCase()
-    //       )
-    //     );
-    //     setMovieRecommendations(recommendedMovies);
-    //   } else {
-    //     setMovieRecommendations([]);
-    //   }
-    // } catch (error) {
-    //   console.error("Error fetching movie recommendations:", error);
-    //   setMovieRecommendations([]);
-    // } finally {
-    //   setLoadingRecommendations(false);
-    // }
+      // Encode the movie title for the URL
+      const encodedTitle = encodeURIComponent(movieTitle.trim());
+      const url = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/recommendations/${encodedTitle}`;
+
+      console.log("Request URL:", url);
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      console.log("Response status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Response not OK:", errorText);
+        throw new Error(`Failed to fetch recommendations: ${response.status}`);
+      }
+
+      const recommendations = await response.json();
+      console.log("Raw recommendations:", recommendations);
+
+      if (Array.isArray(recommendations) && recommendations.length > 0) {
+        // Clean up the recommendations before setting them
+        const cleanedRecommendations = recommendations
+          .map((title) => (typeof title === "string" ? title.trim() : ""))
+          .filter((title) => title.length > 0);
+
+        console.log("Cleaned recommendations:", cleanedRecommendations);
+        setRecommendedMovies(cleanedRecommendations);
+      } else {
+        console.log("No valid recommendations found");
+        setRecommendedMovies([]);
+      }
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      setRecommendedMovies([]);
+    }
   };
 
   // Function to close the movie details modal
@@ -1486,7 +1516,13 @@ const Dashboard: React.FC = () => {
                           minWidth: "200px",
                           cursor: "pointer",
                         }}
-                        onClick={() => openMovieDetails(movie)}
+                        onClick={() => {
+                          setSelectedMovie(movie);
+                          setShowModal(true);
+                          if (movie.title) {
+                            fetchRecommendedMovies(movie.title);
+                          }
+                        }}
                       >
                         <div className="position-relative">
                           <img
@@ -1719,6 +1755,426 @@ const Dashboard: React.FC = () => {
                           ))}
                       </div>
                     </div>
+
+                    {/* Recommended Movies Section */}
+                    <div className="mt-4">
+                      <h5 className="mb-3">Recommended Movies</h5>
+                      <div className="d-flex flex-wrap gap-2">
+                        {recommendedMovies.length > 0 ? (
+                          recommendedMovies.map((title, index) => (
+                            <Button
+                              key={index}
+                              variant="primary"
+                              className="recommendation-button"
+                              style={{
+                                padding: "8px 16px",
+                                backgroundColor: "rgba(13, 110, 253, 0.8)",
+                                border: "none",
+                                borderRadius: "4px",
+                                transition: "all 0.2s ease",
+                                fontSize: "0.9rem",
+                                textAlign: "center",
+                                whiteSpace: "normal",
+                                minHeight: "40px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                              onClick={async () => {
+                                console.log(
+                                  `Clicking on recommendation: ${title}`
+                                );
+
+                                try {
+                                  // OPTION 1: First check if we already have this movie in our local dataset
+                                  const existingMovie = moviesData.find(
+                                    (movie) =>
+                                      movie.title?.toLowerCase() ===
+                                      title.toLowerCase()
+                                  );
+
+                                  if (existingMovie) {
+                                    console.log(
+                                      "Found movie in existing dataset:",
+                                      existingMovie
+                                    );
+                                    setSelectedMovie(existingMovie);
+                                    fetchRecommendedMovies(existingMovie.title);
+                                    return;
+                                  }
+
+                                  // OPTION 2: Try to search directly for the movie using search endpoint
+                                  console.log(
+                                    `Searching for movie: "${title}"`
+                                  );
+
+                                  // First try the SearchMovies endpoint with the exact title
+                                  const searchUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/SearchMovies?searchTerm=${encodeURIComponent(title)}`;
+
+                                  console.log(
+                                    "Searching using URL:",
+                                    searchUrl
+                                  );
+
+                                  const searchResponse = await fetch(
+                                    searchUrl,
+                                    {
+                                      method: "GET",
+                                      headers: {
+                                        Accept: "application/json",
+                                        "Content-Type": "application/json",
+                                      },
+                                      credentials: "include",
+                                    }
+                                  );
+
+                                  if (!searchResponse.ok) {
+                                    console.error(
+                                      `Search failed with status: ${searchResponse.status}`
+                                    );
+                                    // Try fallback to AdminMovies as a backup strategy
+                                    throw new Error(
+                                      `SearchMovies failed: ${searchResponse.status}`
+                                    );
+                                  }
+
+                                  const searchResults =
+                                    await searchResponse.json();
+                                  console.log("Search results:", searchResults);
+
+                                  if (
+                                    searchResults &&
+                                    searchResults.movies &&
+                                    searchResults.movies.length > 0
+                                  ) {
+                                    // Find exact match first
+                                    const exactMatch =
+                                      searchResults.movies.find(
+                                        (m: Movie) =>
+                                          m.title?.toLowerCase() ===
+                                          title.toLowerCase()
+                                      );
+
+                                    // Find close matches if no exact match
+                                    const closeMatches = !exactMatch
+                                      ? searchResults.movies.filter(
+                                          (m: Movie) =>
+                                            m.title
+                                              ?.toLowerCase()
+                                              .includes(title.toLowerCase()) ||
+                                            title
+                                              .toLowerCase()
+                                              .includes(
+                                                m.title?.toLowerCase() || ""
+                                              )
+                                        )
+                                      : [];
+
+                                    const matchedMovie =
+                                      exactMatch ||
+                                      (closeMatches.length > 0
+                                        ? closeMatches[0]
+                                        : null);
+
+                                    if (matchedMovie) {
+                                      console.log(
+                                        "Found match via search:",
+                                        matchedMovie
+                                      );
+
+                                      // Add to our dataset for future use
+                                      setMoviesData((prev) => {
+                                        // Make sure we don't add duplicates
+                                        if (
+                                          !prev.some(
+                                            (m) =>
+                                              m.showId === matchedMovie.showId
+                                          )
+                                        ) {
+                                          return [...prev, matchedMovie];
+                                        }
+                                        return prev;
+                                      });
+
+                                      // Update the selected movie
+                                      setSelectedMovie(matchedMovie);
+                                      fetchRecommendedMovies(
+                                        matchedMovie.title
+                                      );
+                                      return;
+                                    }
+                                  }
+
+                                  // OPTION 3: Fallback to broader search using AdminMovies
+                                  console.log(
+                                    "No exact matches found, trying broader search..."
+                                  );
+
+                                  // Try to get a batch of movies to search through
+                                  const adminMoviesUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/AdminMovies?pageSize=100&pageNum=1`;
+
+                                  const adminResponse = await fetch(
+                                    adminMoviesUrl,
+                                    {
+                                      method: "GET",
+                                      headers: {
+                                        Accept: "application/json",
+                                        "Content-Type": "application/json",
+                                      },
+                                      credentials: "include",
+                                    }
+                                  );
+
+                                  if (!adminResponse.ok) {
+                                    throw new Error(
+                                      `AdminMovies search failed: ${adminResponse.status}`
+                                    );
+                                  }
+
+                                  const adminResults =
+                                    await adminResponse.json();
+                                  console.log(
+                                    "Admin search results:",
+                                    adminResults
+                                  );
+
+                                  if (
+                                    adminResults &&
+                                    adminResults.movies &&
+                                    adminResults.movies.length > 0
+                                  ) {
+                                    // Do fuzzy search on titles
+                                    const fuzzyMatches =
+                                      adminResults.movies.filter((m: Movie) => {
+                                        const movieTitle =
+                                          m.title?.toLowerCase() || "";
+                                        const searchTitle = title.toLowerCase();
+
+                                        // Check for includes in either direction or partial word matches
+                                        return (
+                                          movieTitle.includes(searchTitle) ||
+                                          searchTitle.includes(movieTitle) ||
+                                          searchTitle
+                                            .split(" ")
+                                            .some((word) =>
+                                              movieTitle.includes(word)
+                                            ) ||
+                                          movieTitle
+                                            .split(" ")
+                                            .some((word) =>
+                                              searchTitle.includes(word)
+                                            )
+                                        );
+                                      });
+
+                                    if (fuzzyMatches.length > 0) {
+                                      console.log(
+                                        "Found fuzzy matches:",
+                                        fuzzyMatches
+                                      );
+                                      const bestMatch = fuzzyMatches[0];
+
+                                      // Add to our dataset for future use
+                                      setMoviesData((prev) => {
+                                        if (
+                                          !prev.some(
+                                            (m) => m.showId === bestMatch.showId
+                                          )
+                                        ) {
+                                          return [...prev, bestMatch];
+                                        }
+                                        return prev;
+                                      });
+
+                                      // Update the selected movie
+                                      setSelectedMovie(bestMatch);
+                                      fetchRecommendedMovies(bestMatch.title);
+                                      return;
+                                    }
+                                  }
+
+                                  // OPTION 4: Only as a last resort, create a fallback movie object
+                                  console.log(
+                                    "No matches found in any search, creating fallback object"
+                                  );
+                                  const fallbackMovie = {
+                                    title: title,
+                                    showId: `recommend-${Date.now()}`,
+                                    type: "Movie",
+                                    director: "Information not available",
+                                    cast: "Information not available",
+                                    country: "Information not available",
+                                    releaseYear: new Date().getFullYear(),
+                                    rating: "N/A",
+                                    duration: "Unknown",
+                                    description:
+                                      "Detailed information for this movie is not available at this time.",
+                                    // Add all genre fields with 0
+                                    Action: 0,
+                                    Adventure: 0,
+                                    AnimeSeriesInternationalTVShows: 0,
+                                    BritishTVShowsDocuseriesInternationalTVShows: 0,
+                                    Children: 0,
+                                    Comedies: 0,
+                                    ComediesDramasInternationalMovies: 0,
+                                    ComediesInternationalMovies: 0,
+                                    ComediesRomanticMovies: 0,
+                                    CrimeTVShowsDocuseries: 0,
+                                    Documentaries: 0,
+                                    DocumentariesInternationalMovies: 0,
+                                    Docuseries: 0,
+                                    Dramas: 0,
+                                    DramasInternationalMovies: 0,
+                                    DramasRomanticMovies: 0,
+                                    FamilyMovies: 0,
+                                    Fantasy: 0,
+                                    HorrorMovies: 0,
+                                    InternationalMoviesThrillers: 0,
+                                    InternationalTVShowsRomanticTVShowsTVDramas: 0,
+                                    KidsTV: 0,
+                                    LanguageTVShows: 0,
+                                    Musicals: 0,
+                                    NatureTV: 0,
+                                    RealityTV: 0,
+                                    Spirituality: 0,
+                                    TVAction: 0,
+                                    TVComedies: 0,
+                                    TVDramas: 0,
+                                    TalkShowsTVComedies: 0,
+                                    Thrillers: 0,
+                                  } as Movie;
+
+                                  setSelectedMovie(fallbackMovie);
+                                  fetchRecommendedMovies(title);
+                                } catch (error) {
+                                  console.error(
+                                    "Error loading recommended movie:",
+                                    error
+                                  );
+
+                                  // Try a final strategy - just attempt to load by title from all movies
+                                  try {
+                                    console.log(
+                                      "Attempting final search strategy..."
+                                    );
+
+                                    // Get all movies in one bigger batch
+                                    const finalUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Movie/AdminMovies?pageSize=500&pageNum=1`;
+
+                                    const finalResponse = await fetch(
+                                      finalUrl,
+                                      {
+                                        method: "GET",
+                                        headers: {
+                                          Accept: "application/json",
+                                          "Content-Type": "application/json",
+                                        },
+                                        credentials: "include",
+                                      }
+                                    );
+
+                                    if (finalResponse.ok) {
+                                      const allMovies =
+                                        await finalResponse.json();
+
+                                      // Do a liberal search - any partial match
+                                      const anyMatch = allMovies.movies?.find(
+                                        (m: Movie) =>
+                                          m.title
+                                            ?.toLowerCase()
+                                            .includes(
+                                              title.toLowerCase().split(" ")[0]
+                                            ) ||
+                                          (title.toLowerCase().split(" ")[0] &&
+                                            m.title
+                                              ?.toLowerCase()
+                                              .includes(
+                                                title
+                                                  .toLowerCase()
+                                                  .split(" ")[0]
+                                              ))
+                                      );
+
+                                      if (anyMatch) {
+                                        console.log(
+                                          "Found match in final attempt:",
+                                          anyMatch
+                                        );
+                                        setSelectedMovie(anyMatch);
+                                        fetchRecommendedMovies(anyMatch.title);
+                                        return;
+                                      }
+                                    }
+                                  } catch (finalError) {
+                                    console.error(
+                                      "Final search attempt failed:",
+                                      finalError
+                                    );
+                                  }
+
+                                  // Absolute last resort fallback
+                                  const fallbackMovie = {
+                                    title: title,
+                                    showId: `recommend-${Date.now()}`,
+                                    type: "Movie",
+                                    director: "Information not available",
+                                    cast: "Information not available",
+                                    country: "Information not available",
+                                    releaseYear: new Date().getFullYear(),
+                                    rating: "N/A",
+                                    duration: "Unknown",
+                                    description:
+                                      "An error occurred while loading this movie's details.",
+                                    // Add all genre fields with 0
+                                    Action: 0,
+                                    Adventure: 0,
+                                    AnimeSeriesInternationalTVShows: 0,
+                                    BritishTVShowsDocuseriesInternationalTVShows: 0,
+                                    Children: 0,
+                                    Comedies: 0,
+                                    ComediesDramasInternationalMovies: 0,
+                                    ComediesInternationalMovies: 0,
+                                    ComediesRomanticMovies: 0,
+                                    CrimeTVShowsDocuseries: 0,
+                                    Documentaries: 0,
+                                    DocumentariesInternationalMovies: 0,
+                                    Docuseries: 0,
+                                    Dramas: 0,
+                                    DramasInternationalMovies: 0,
+                                    DramasRomanticMovies: 0,
+                                    FamilyMovies: 0,
+                                    Fantasy: 0,
+                                    HorrorMovies: 0,
+                                    InternationalMoviesThrillers: 0,
+                                    InternationalTVShowsRomanticTVShowsTVDramas: 0,
+                                    KidsTV: 0,
+                                    LanguageTVShows: 0,
+                                    Musicals: 0,
+                                    NatureTV: 0,
+                                    RealityTV: 0,
+                                    Spirituality: 0,
+                                    TVAction: 0,
+                                    TVComedies: 0,
+                                    TVDramas: 0,
+                                    TalkShowsTVComedies: 0,
+                                    Thrillers: 0,
+                                  } as Movie;
+
+                                  setSelectedMovie(fallbackMovie);
+                                  fetchRecommendedMovies(title);
+                                }
+                              }}
+                            >
+                              {title}
+                            </Button>
+                          ))
+                        ) : (
+                          <p className="text-light opacity-75 mb-0 fst-italic">
+                            No recommendations available
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </Col>
                 </Row>
               </Modal.Body>
@@ -1731,55 +2187,51 @@ const Dashboard: React.FC = () => {
                   Close
                 </Button>
               </Modal.Footer>
-
-              {/* Movie Recommendations Section */}
-              {movieRecommendations.length > 0 && (
-                <div className="px-3 pb-4">
-                  <h5 className="mb-3">Movies Like This</h5>
-                  <Row className="g-3">
-                    {movieRecommendations.map((movie, index) => (
-                      <Col key={index} xs={4} sm={2} md={2} lg={2}>
-                        <div
-                          className="recommendation-card"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => {
-                            closeMovieDetails();
-                            setTimeout(() => openMovieDetails(movie), 300);
-                          }}
-                        >
-                          <img
-                            src={getMovieImageUrl(movie)}
-                            alt={movie.title}
-                            className="img-fluid rounded mb-2"
-                            style={{
-                              width: "100%",
-                              aspectRatio: "2/3",
-                              objectFit: "cover",
-                            }}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.onerror = null; // Prevent infinite loop
-                              target.src = getRandomFallbackPoster();
-                            }}
-                          />
-                          <p className="small text-truncate mb-0">
-                            {movie.title}
-                          </p>
-                        </div>
-                      </Col>
-                    ))}
-                  </Row>
-                </div>
-              )}
-
-              {loadingRecommendations && (
-                <div className="d-flex justify-content-center pb-3">
-                  <Spinner animation="border" size="sm" />
-                </div>
-              )}
             </>
           )}
         </Modal>
+
+        {/* Add this CSS to your styles section */}
+        <style>
+          {styles +
+            `
+            .recommendation-button {
+              position: relative;
+              overflow: hidden;
+            }
+            .recommendation-button:hover {
+              transform: scale(1.05);
+              box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+              background-color: rgba(13, 110, 253, 1) !important;
+            }
+            .recommendation-button:active {
+              transform: scale(0.98);
+            }
+            .recommendation-button:disabled {
+              background-color: rgba(255,255,255,0.1) !important;
+              color: rgba(255,255,255,0.5);
+              cursor: not-allowed;
+            }
+            .recommendation-button::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+              );
+              transition: 0.5s;
+            }
+            .recommendation-button:hover::before {
+              left: 100%;
+            }
+          `}
+        </style>
       </div>
     );
   };

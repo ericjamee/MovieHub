@@ -25,37 +25,3 @@ export async function fetchRecommendations(
     return [];
   }
 }
-
-export async function fetchUserRecommendations(
-  userId: string
-): Promise<string[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/${userId}`);
-
-    if (!response.ok) {
-      throw new Error(`Error fetching user recommendations`);
-    }
-
-    const result = await response.json();
-    return result.recommendations || [];
-  } catch (error) {
-    console.error(`Failed to get recommendations for user "${userId}":`, error);
-    return [];
-  }
-}
-
-export async function fetchRecommendationsForMovie(
-  movieTitle: string
-): Promise<string[]> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/details/${encodeURIComponent(movieTitle)}`
-    );
-    if (!response.ok)
-      throw new Error("Failed to fetch movie detail recommendations");
-    return await response.json();
-  } catch (error) {
-    console.error("Error loading detail recommendations:", error);
-    return [];
-  }
-}
