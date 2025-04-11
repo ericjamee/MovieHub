@@ -5,7 +5,6 @@ import {
   FaUser,
   FaSignOutAlt,
   FaFilm,
-  FaUserShield,
   FaTachometerAlt,
   FaUserCircle,
   FaUsers,
@@ -144,13 +143,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 )}
                 {isAdmin && (
                   <>
-                    <Nav.Link
-                      as={Link}
-                      to="/admin/dashboard"
-                      active={location.pathname === "/admin/dashboard"}
-                    >
-                      <FaUserShield className="me-1" /> Admin Dashboard
-                    </Nav.Link>
                     <Nav.Link
                       as={Link}
                       to="/admin/movies"
