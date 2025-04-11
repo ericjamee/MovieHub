@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   Container,
   Row,
@@ -450,7 +456,9 @@ const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [showModal, setShowModal] = useState(false);
-  const [movieRecommendations, setMovieRecommendations] = useState<Movie[]>([]);
+  const [movieRecommendations, setMovieRecommendations] = useState<string[]>(
+    []
+  );
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const filteredMovies = useMemo(() => {
     return moviesData.filter((movie) => {
@@ -934,7 +942,7 @@ const Dashboard: React.FC = () => {
     try {
       if (!movieTitle) {
         console.error("No movie title provided for recommendations");
-        setRecommendedMovies([]);
+        setMovieRecommendations([]);
         return;
       }
 
@@ -973,14 +981,14 @@ const Dashboard: React.FC = () => {
           .filter((title) => title.length > 0);
 
         console.log("Cleaned recommendations:", cleanedRecommendations);
-        setRecommendedMovies(cleanedRecommendations);
+        setMovieRecommendations(cleanedRecommendations);
       } else {
         console.log("No valid recommendations found");
-        setRecommendedMovies([]);
+        setMovieRecommendations([]);
       }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
-      setRecommendedMovies([]);
+      setMovieRecommendations([]);
     }
   };
 
@@ -1760,8 +1768,8 @@ const Dashboard: React.FC = () => {
                     <div className="mt-4">
                       <h5 className="mb-3">Recommended Movies</h5>
                       <div className="d-flex flex-wrap gap-2">
-                        {recommendedMovies.length > 0 ? (
-                          recommendedMovies.map((title, index) => (
+                        {movieRecommendations.length > 0 ? (
+                          movieRecommendations.map((title, index) => (
                             <Button
                               key={index}
                               variant="primary"
