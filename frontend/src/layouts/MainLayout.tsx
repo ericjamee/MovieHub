@@ -29,7 +29,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     // Update state based on user data
     const authenticated = !!currentUser?.email;
-    const adminRole = currentUser?.roles?.includes("admin") || false;
+    const adminRole = currentUser?.roles?.includes("Administrator") || false;
     
     setIsAuthenticated(authenticated);
     setIsAdmin(adminRole);
@@ -88,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         console.log("MainLayout - Auth check result:", data);
         
         setIsAuthenticated(!!data.email);
-        setIsAdmin(data.roles?.includes("admin") || false);
+        setIsAdmin(data.roles?.includes("Administrator") || false);
         setUserEmail(data.email || "");
       } catch (error) {
         console.error("MainLayout - Auth check error:", error);
