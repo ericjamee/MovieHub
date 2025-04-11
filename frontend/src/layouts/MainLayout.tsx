@@ -146,6 +146,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <>
                     <Nav.Link
                       as={Link}
+                      to="/admin/dashboard"
+                      active={location.pathname === "/admin/dashboard"}
+                    >
+                      <FaUserShield className="me-1" /> Admin Dashboard
+                    </Nav.Link>
+                    <Nav.Link
+                      as={Link}
                       to="/admin/movies"
                       active={location.pathname === "/admin/movies"}
                     >
