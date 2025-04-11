@@ -2,14 +2,21 @@ import React from "react";
 import { Card } from "react-bootstrap";
 import { Movie } from "../types/movie";
 import { FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 interface MovieCardProps {
   movie: Movie;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/movie/${movie.showId}`);
+  };
+
   return (
-    <Card className="h-100">
+    <Card className="h-100" onClick={handleClick} style={{ cursor: 'pointer' }}>
       <Card.Img
         variant="top"
         alt={movie.title}

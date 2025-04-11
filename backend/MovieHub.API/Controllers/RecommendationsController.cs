@@ -43,6 +43,87 @@ public class RecommendationsController : ControllerBase
         });
     }
 
+    [HttpGet("popular")]
+    [AllowAnonymous]
+    public IActionResult GetPopularRecommendations()
+    {
+        try
+        {
+            _logger.LogInformation("Getting popular movie recommendations");
+            
+            // Return a fixed set of popular titles as recommendations
+            var popularTitles = new List<string>
+            {
+                "Stranger Things",
+                "The Queen's Gambit",
+                "Money Heist",
+                "Squid Game",
+                "Dark",
+                "Breaking Bad",
+                "The Witcher",
+                "Bridgerton",
+                "The Crown",
+                "Narcos"
+            };
+            
+            return Ok(new
+            {
+                movie = "Popular Movies",
+                recommendations = popularTitles
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting popular recommendations: {ex}");
+            return StatusCode(500, new { message = $"Error getting popular recommendations: {ex.Message}" });
+        }
+    }
+
+    [HttpGet("random")]
+    [AllowAnonymous]
+    public IActionResult GetRandomRecommendations()
+    {
+        try
+        {
+            _logger.LogInformation("Getting random movie recommendations");
+            
+            // Read the recommendations file to get random movies
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "Data", "movie_recommendations.json");
+            if (!System.IO.File.Exists(path))
+            {
+                _logger.LogWarning("Recommendations file not found!");
+                return NotFound(new { message = "Recommendations file not found" });
+            }
+
+            var jsonContent = System.IO.File.ReadAllText(path);
+            var recommendations = System.Text.Json.JsonSerializer.Deserialize<List<MovieRecommendation>>(jsonContent);
+            
+            if (recommendations == null || !recommendations.Any())
+            {
+                return NotFound(new { message = "No recommendations found in file." });
+            }
+            
+            // Get 5 random movie titles from the recommendations
+            var random = new Random();
+            var randomMovies = recommendations
+                .OrderBy(_ => random.Next())
+                .Take(5)
+                .Select(r => r.Movie_Title)
+                .ToList();
+            
+            return Ok(new
+            {
+                movie = "Random Suggestions",
+                recommendations = randomMovies
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting random recommendations: {ex}");
+            return StatusCode(500, new { message = $"Error getting random recommendations: {ex.Message}" });
+        }
+    }
+
     [HttpGet("azure/{showId}")]
     public async Task<IActionResult> GetAzureRecommendations(string showId, [FromQuery] int userId = 1)
     {
