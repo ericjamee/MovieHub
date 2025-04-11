@@ -21,8 +21,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const currentUser = useAuthorizedUser();
   const isAuthenticated = !!currentUser?.email;
-  // Temporarily set isAdmin to true for testing
-  const isAdmin = true; // Changed from false to true for testing
+  // Check if user has admin role
+  const isAdmin = currentUser?.roles?.includes('admin') || false;
 
   // Logout handler
   const handleLogout = async () => {
@@ -114,13 +114,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </Nav.Link>
               </Nav>
               <Nav className="me-0">
-                {/* Always show the Sign Out button for debugging */}
-                <Nav.Link 
-                  onClick={handleLogout} 
-                  className="ms-2 d-flex align-items-center"
-                >
-                  <FaSignOutAlt className="me-1" /> Sign Out
-                </Nav.Link>
                 {isAuthenticated ? (
                   <>
                     <NavDropdown
@@ -141,6 +134,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         <FaSignOutAlt className="me-2" /> Logout
                       </NavDropdown.Item>
                     </NavDropdown>
+                    <Nav.Link 
+                      onClick={handleLogout} 
+                      className="ms-2 d-flex align-items-center"
+                    >
+                      <FaSignOutAlt className="me-1" /> Sign Out
+                    </Nav.Link>
                   </>
                 ) : (
                   <Nav.Link as={Link} to="/profile">
