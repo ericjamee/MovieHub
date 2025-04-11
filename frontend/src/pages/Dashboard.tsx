@@ -885,9 +885,63 @@ const Dashboard: React.FC = () => {
       console.log("Response status:", response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Response not OK:", errorText);
-        throw new Error(`Failed to fetch recommendations: ${response.status}`);
+        // If specific movie recommendations not found, try to get fallback recommendations
+        console.log("Specific recommendations not found, trying fallback...");
+        const fallbackUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/random`;
+        
+        try {
+          const fallbackResponse = await fetch(fallbackUrl, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            if (fallbackData && fallbackData.recommendations && fallbackData.recommendations.length > 0) {
+              console.log("Using random recommendations:", fallbackData.recommendations);
+              setRecommendedMovies(fallbackData.recommendations);
+              return;
+            }
+          } else {
+            // If random fails, try popular
+            const popularUrl = `https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/Recommendations/popular`;
+            const popularResponse = await fetch(popularUrl, {
+              method: "GET",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            });
+            
+            if (popularResponse.ok) {
+              const popularData = await popularResponse.json();
+              if (popularData && popularData.recommendations && popularData.recommendations.length > 0) {
+                console.log("Using popular recommendations:", popularData.recommendations);
+                setRecommendedMovies(popularData.recommendations);
+                return;
+              }
+            }
+          }
+        } catch (fallbackError) {
+          console.error("Error fetching fallback recommendations:", fallbackError);
+        }
+        
+        // If all else fails, use hardcoded popular recommendations
+        const hardcodedRecommendations = [
+          "Stranger Things", 
+          "The Queen's Gambit", 
+          "Money Heist", 
+          "Squid Game", 
+          "Dark"
+        ];
+        console.log("Using hardcoded recommendations");
+        setRecommendedMovies(hardcodedRecommendations);
+        return;
       }
 
       const recommendations = await response.json();
@@ -902,12 +956,26 @@ const Dashboard: React.FC = () => {
         console.log("Cleaned recommendations:", cleanedRecommendations);
         setRecommendedMovies(cleanedRecommendations);
       } else {
-        console.log("No valid recommendations found");
-        setRecommendedMovies([]);
+        console.log("No valid recommendations found, using hardcoded");
+        // Fallback to some popular movies if no recommendations
+        setRecommendedMovies([
+          "Stranger Things", 
+          "The Queen's Gambit", 
+          "Money Heist", 
+          "Squid Game", 
+          "Dark"
+        ]);
       }
     } catch (error) {
       console.error("Error fetching recommendations:", error);
-      setRecommendedMovies([]);
+      // Fallback to some popular movies if error occurs
+      setRecommendedMovies([
+        "Stranger Things", 
+        "The Queen's Gambit", 
+        "Money Heist", 
+        "Squid Game", 
+        "Dark"
+      ]);
     }
   };
 
