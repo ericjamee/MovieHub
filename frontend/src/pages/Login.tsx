@@ -9,7 +9,7 @@ import {
   Card,
   Alert,
 } from "react-bootstrap";
-import { FaGoogle, FaFacebookF, FaUser, FaLock, FaFilm } from "react-icons/fa";
+import { FaUser, FaLock, FaFilm } from "react-icons/fa";
 import { getAuthUrl, getDefaultFetchOptions } from "../services/apiConfig";
 
 function LoginPage() {
@@ -272,36 +272,6 @@ function LoginPage() {
                     </Button>
                   </div>
                 </Form>
-
-                <div className="text-center mt-4">
-                  <p className="text-light mb-4">Or sign in with</p>
-                  <div className="d-flex justify-content-center gap-3">
-                    <Button
-                      variant="outline-danger"
-                      className="rounded-circle p-2"
-                      style={{
-                        width: "45px",
-                        height: "45px",
-                        borderColor: "rgba(220, 53, 69, 0.5)",
-                        background: "rgba(33, 37, 41, 0.5)",
-                      }}
-                    >
-                      <FaGoogle />
-                    </Button>
-                    <Button
-                      variant="outline-primary"
-                      className="rounded-circle p-2"
-                      style={{
-                        width: "45px",
-                        height: "45px",
-                        borderColor: "rgba(13, 110, 253, 0.5)",
-                        background: "rgba(33, 37, 41, 0.5)",
-                      }}
-                    >
-                      <FaFacebookF />
-                    </Button>
-                  </div>
-                </div>
 
                 <div className="text-center mt-4">
                   <p className="mb-0 text-light">
