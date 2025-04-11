@@ -13,7 +13,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Privacy from "./pages/Privacy";
 import AdminMovies from "./pages/AdminMovies";
+import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
+import Unauthorized from "./pages/Unauthorized";
 import AuthorizeView from "./components/AuthorizeView"; // your working guard
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -27,6 +29,7 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* Protected routes */}
       <Route
@@ -68,6 +71,14 @@ function AppRoutes() {
         element={
           <AuthorizeView>
             <AdminMovies />
+          </AuthorizeView>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AuthorizeView>
+            <AdminUsers />
           </AuthorizeView>
         }
       />
