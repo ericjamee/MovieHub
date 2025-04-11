@@ -1307,6 +1307,11 @@ const Dashboard: React.FC = () => {
 
     return (
       <AuthorizeView>
+        <span>
+          <Logout>
+            Logout <AuthorizedUser value="email" />
+          </Logout>
+        </span>
         <Container fluid className="py-4">
           <Row className="mb-4">
             <Col>
