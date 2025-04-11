@@ -1689,17 +1689,19 @@ const Dashboard: React.FC = () => {
 
         <Container className="mb-4">
           <Row className="align-items-end">
-            <Col md={6}>
+            <Col md={5}>
               <label className="form-label text-white">Search Movies</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search by title..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="d-flex">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by title..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </Col>
-            <Col md={6}>
+            <Col md={5}>
               <label className="form-label text-white">Filter by Genre</label>
               <select
                 className="form-select"
@@ -1722,6 +1724,7 @@ const Dashboard: React.FC = () => {
               </select>
             </Col>
             <Col md={2}>
+              <label className="form-label text-white">&nbsp;</label>
               <Button
                 variant="outline-light"
                 className="w-100"
