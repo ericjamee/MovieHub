@@ -391,6 +391,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
   const isAdmin = currentUser?.roles?.includes("Administrator");
+  const [userRating, setUserRating] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -414,6 +415,21 @@ const Dashboard: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [recommendedMovies, setRecommendedMovies] = useState<string[]>([]);
 
+  const handleRating = async (rating: number) => {
+    setUserRating(rating);
+    if (!selectedMovie || !currentUser) return;
+
+    await fetch("/api/ratings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: currentUser.email,
+        showId: selectedMovie.showId,
+        rating: rating,
+      }),
+    });
+  };
+
   // References for elements
   const carouselRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -426,6 +442,76 @@ const Dashboard: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // 1. First, extract the fetchRecommendedRow function outside the useEffect
+  // so we can call it from other places
+  const fetchRecommendedRow = async () => {
+    if (!currentUser || moviesData.length === 0) return;
+
+    const defaultShowId = "s123"; // Change to match your working example
+    const userId = 1;
+
+    try {
+      console.log("Making request to recommendations endpoint...");
+
+      // Use the full URL since we know this works in the browser
+      const res = await fetch(
+        `https://localhost:5000/recommendations/azure/${defaultShowId}?userId=${userId}`,
+        {
+          credentials: "include", // Include credentials for auth cookies
+        }
+      );
+
+      console.log("Response status:", res.status);
+
+      const text = await res.text();
+      console.log("Response text length:", text.length);
+      console.log("Response from recommendations endpoint:", text);
+
+      // Only try to parse if there's content
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          console.log("Parsed recommendation data:", json);
+
+          if (json.recommendations && json.recommendations.length > 0) {
+            console.log("Found recommendations, updating UI");
+            setCategoryRows((prev) => {
+              // Check if we already have a recommended row
+              if (prev.some((row) => row.id === "recommended")) {
+                return prev;
+              }
+
+              // Otherwise, add the recommended row at the beginning
+              return [
+                {
+                  id: "recommended",
+                  title: "Recommended For You",
+                  movies: json.recommendations,
+                  page: 1,
+                  hasMore: false,
+                },
+                ...prev,
+              ];
+            });
+          }
+        } catch (parseError) {
+          console.error("Failed to parse recommendation JSON:", parseError);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load recommendations:", err);
+    }
+  };
+
+  // 4. Modify the useEffect to use the extracted function
+  useEffect(() => {
+    // We'll fetch recommendations after initialMoviesData loads the movies
+    // This useEffect will run when moviesData changes
+    if (!isAdmin && currentUser && moviesData.length > 0) {
+      fetchRecommendedRow();
+    }
+  }, [currentUser, moviesData, isAdmin]);
 
   useEffect(() => {
     if (isAdmin && pageLoaded) {
@@ -594,7 +680,7 @@ const Dashboard: React.FC = () => {
     console.log("Reached the end of all categories!");
   }, [visibleCategories, moviesData, usedMovieIds]);
 
-  // Initial fetch to populate first set of movies
+  // 5. Modify fetchInitialMoviesData to not overwrite our recommendations
   const fetchInitialMoviesData = async () => {
     try {
       setIsLoading(true);
@@ -1669,6 +1755,22 @@ const Dashboard: React.FC = () => {
                         <p>{selectedMovie.country}</p>
                       </div>
                     )}
+
+                    <div className="mb-3">
+                      <h5>Rate This Movie</h5>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          onClick={() => handleRating(star)}
+                          color={userRating >= star ? "gold" : "gray"}
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "1.5rem",
+                            marginRight: "5px",
+                          }}
+                        />
+                      ))}
+                    </div>
 
                     <div className="mb-3">
                       <h5>Genres</h5>
