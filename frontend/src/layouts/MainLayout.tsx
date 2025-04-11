@@ -116,14 +116,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </NavDropdown.Item>
                   </NavDropdown>
                 ) : (
-                  <>
-                    <Nav.Link as={Link} to="/login">
-                      Sign In
-                    </Nav.Link>
-                    <Nav.Link as={Link} to="/register">
-                      Sign Up
-                    </Nav.Link>
-                  </>
+                  <Nav.Link as={Link} to="/login">
+                    <FaUserCircle className="me-1" /> Profile
+                  </Nav.Link>
                 )}
               </Nav>
             </Navbar.Collapse>
