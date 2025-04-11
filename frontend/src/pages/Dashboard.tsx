@@ -37,7 +37,7 @@ import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
 import Logout from "../components/Logout";
 
 //Genre dropdown labels
-const GENRE_LABELS: { [key: string]: string } = {
+const GENRE_LABELS: { [key: string]: string } = { 
   action: "Action",
   adventure: "Adventure",
   animeSeriesInternationalTvShows: "Anime",
@@ -1307,11 +1307,6 @@ const Dashboard: React.FC = () => {
 
     return (
       <AuthorizeView>
-        <span>
-          <Logout>
-            Logout <AuthorizedUser value="email" />
-          </Logout>
-        </span>
         <Container fluid className="py-4">
           <Row className="mb-4">
             <Col>
