@@ -261,10 +261,73 @@ namespace MovieHub.API.Controllers
             }
         }
 
+        [HttpGet("recommendations/{movieTitle}")]
+        [AllowAnonymous]
+        public IActionResult GetMovieRecommendations(string movieTitle)
+        {
+            try
+            {
+                Console.WriteLine($"Fetching recommendations for movie: {movieTitle}");
+                
+                // Read the recommendations file
+                string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "movie_recommendations.json");
+                Console.WriteLine($"Looking for recommendations file at: {jsonPath}");
+                
+                if (!System.IO.File.Exists(jsonPath))
+                {
+                    Console.WriteLine("Recommendations file not found!");
+                    return NotFound(new { message = "Recommendations file not found", path = jsonPath });
+                }
+
+                string jsonContent = System.IO.File.ReadAllText(jsonPath);
+                var recommendations = System.Text.Json.JsonSerializer.Deserialize<List<MovieRecommendation>>(jsonContent);
+                Console.WriteLine($"Loaded {recommendations?.Count ?? 0} recommendations from file");
+
+                // Find recommendations for the given movie
+                var movieRecs = recommendations?.FirstOrDefault(r => 
+                    r.movie_title.Equals(movieTitle, StringComparison.OrdinalIgnoreCase));
+
+                if (movieRecs == null)
+                {
+                    Console.WriteLine($"No recommendations found for movie: {movieTitle}");
+                    return NotFound(new { message = "No recommendations found for this movie" });
+                }
+
+                // Return the recommendations as a list
+                var recommendedTitles = new List<string>
+                {
+                    movieRecs.rec_1,
+                    movieRecs.rec_2,
+                    movieRecs.rec_3,
+                    movieRecs.rec_4,
+                    movieRecs.rec_5
+                };
+
+                Console.WriteLine($"Found recommendations for {movieTitle}: {string.Join(", ", recommendedTitles)}");
+                return Ok(recommendedTitles);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting recommendations: {ex}");
+                return StatusCode(500, new { message = $"Error getting recommendations: {ex.Message}" });
+            }
+        }
+
         // Rating request model
         public class RatingRequest
         {
             public int Rating { get; set; }
+        }
+
+        // Add the MovieRecommendation class at the end of the file
+        public class MovieRecommendation
+        {
+            public string movie_title { get; set; }
+            public string rec_1 { get; set; }
+            public string rec_2 { get; set; }
+            public string rec_3 { get; set; }
+            public string rec_4 { get; set; }
+            public string rec_5 { get; set; }
         }
     }
 }

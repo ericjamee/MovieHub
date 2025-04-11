@@ -43,15 +43,19 @@ export const movieService = {
 
       // If we have a search term, use the search endpoint
       if (searchTerm) {
-        url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm)}`;
+        url = `${API_BASE_URL}/SearchMovies?searchTerm=${encodeURIComponent(searchTerm).replace(/%20/g, '+')}`;
       }
 
       const response = await fetch(url, {
         credentials: "include",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch movies");
+        throw new Error(`Failed to fetch movies: ${response.status} ${response.statusText}`);
       }
 
       // Process response data
@@ -59,8 +63,8 @@ export const movieService = {
 
       // Return the movie data directly from the API
       return {
-        movies: data.movies,
-        totalNumMovies: data.totalNumMovies,
+        movies: data.movies || [],
+        totalNumMovies: data.totalNumMovies || 0,
       };
     });
   },
