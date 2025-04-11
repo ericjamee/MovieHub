@@ -108,10 +108,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="d-flex flex-column min-vh-100 w-100 overflow-hidden">
       {/* Debug info */}
-      <div className="bg-warning p-1 text-center">
+      {/* <div className="bg-warning p-1 text-center">
         Auth: {isAuthenticated ? "Yes" : "No"} | Admin: {isAdmin ? "Yes" : "No"}{" "}
         | User: {userEmail || "None"}
-      </div>
+      </div> */}
 
       {showNavbar && (
         <Navbar bg="dark" variant="dark" expand="lg" className="p-0 w-100">
