@@ -108,7 +108,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     align="end"
                   >
                     <NavDropdown.Item as={Link} to="/profile">
-                      <FaUser className="me-2" /> My Profile
+                      <FaUser className="me-2" /> Profile
                     </NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item onClick={handleLogout}>
