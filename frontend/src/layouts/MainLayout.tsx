@@ -53,7 +53,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         credentials: "include",
       });
       console.log("Logout successful");
-      navigate("/"); // Navigate to home page instead of login
+      navigate("/login"); // Navigate without full reload
     } catch (err) {
       console.error("Logout failed:", err);
     }

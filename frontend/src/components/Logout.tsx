@@ -12,7 +12,7 @@ function Logout(props: { children: React.ReactNode }) {
       });
 
       if (response.ok) {
-        window.location.href = "/";
+        window.location.href = "/login";
       } else {
         console.error("Logout failed:", response.status);
       }
