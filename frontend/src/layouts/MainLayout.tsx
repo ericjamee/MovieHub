@@ -29,18 +29,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     // Update state based on user data
     const authenticated = !!currentUser?.email;
     const adminRole = currentUser?.roles?.includes("Administrator") || false;
-    
+
     setIsAuthenticated(authenticated);
     setIsAdmin(adminRole);
     setUserEmail(currentUser?.email || "");
-    
+
     // Detailed debug logs
     console.log("MainLayout - User Context:", currentUser);
     console.log("MainLayout - Auth State:", {
       authenticated,
       adminRole,
       email: currentUser?.email,
-      roles: currentUser?.roles
+      roles: currentUser?.roles,
     });
   }, [currentUser]);
 
@@ -85,7 +85,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         const data = await response.json();
         console.log("MainLayout - Auth check result:", data);
-        
+
         setIsAuthenticated(!!data.email);
         setIsAdmin(data.roles?.includes("Administrator") || false);
         setUserEmail(data.email || "");
@@ -109,11 +109,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <div className="d-flex flex-column min-vh-100 w-100 overflow-hidden">
       {/* Debug info */}
       <div className="bg-warning p-1 text-center">
-        Auth: {isAuthenticated ? "Yes" : "No"} | 
-        Admin: {isAdmin ? "Yes" : "No"} | 
-        User: {userEmail || "None"}
+        Auth: {isAuthenticated ? "Yes" : "No"} | Admin: {isAdmin ? "Yes" : "No"}{" "}
+        | User: {userEmail || "None"}
       </div>
-      
+
       {showNavbar && (
         <Navbar bg="dark" variant="dark" expand="lg" className="p-0 w-100">
           <Container fluid className="px-3">
@@ -184,8 +183,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         <FaSignOutAlt className="me-2" /> Logout
                       </NavDropdown.Item>
                     </NavDropdown>
-                    <Nav.Link 
-                      onClick={handleLogout} 
+                    <Nav.Link
+                      onClick={handleLogout}
                       className="ms-2 d-flex align-items-center"
                     >
                       <FaSignOutAlt className="me-1" /> Sign Out
@@ -211,7 +210,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <Container>
             <div className="text-center">
               <p className="mb-0">
-                &copy; 2025 CineNiche. All rights reserved.
+                &copy; 2025 CineNiche. All rights reserved.{" "}
+                <Link to="/privacy" className="text-light text-decoration-none">
+                  Privacy Policy
+                </Link>
               </p>
             </div>
           </Container>
