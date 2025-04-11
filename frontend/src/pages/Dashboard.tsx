@@ -459,7 +459,6 @@ const Dashboard: React.FC = () => {
   const [movieRecommendations, setMovieRecommendations] = useState<string[]>(
     []
   );
-  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const filteredMovies = useMemo(() => {
     return moviesData.filter((movie) => {
       const matchesTitle = movie.title
