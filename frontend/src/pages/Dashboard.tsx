@@ -27,8 +27,8 @@ import {
 import { useAuthorizedUser } from "../components/AuthorizeView";
 import { movieService } from "../services/movieService";
 import { AdminDashboardStats, Movie } from "../types/movie";
-import AuthorizeView, { AuthorizedUser } from '../components/AuthorizeView';
-import Logout from '../components/Logout';
+import AuthorizeView, { AuthorizedUser } from "../components/AuthorizeView";
+import Logout from "../components/Logout";
 
 // Add CSS styles
 const styles = `
@@ -391,6 +391,7 @@ const UNLIMITED_CATEGORIES = generateMoreCategories(100);
 const Dashboard: React.FC = () => {
   const currentUser = useAuthorizedUser();
   const isAdmin = currentUser?.roles?.includes("Administrator");
+  const [userRating, setUserRating] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
   const [dashboardStats, setDashboardStats] =
     useState<AdminDashboardStats | null>(null);
@@ -413,6 +414,21 @@ const Dashboard: React.FC = () => {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  const handleRating = async (rating: number) => {
+    setUserRating(rating);
+    if (!selectedMovie || !currentUser) return;
+
+    await fetch("/api/ratings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: currentUser.email,
+        showId: selectedMovie.showId,
+        rating: rating,
+      }),
+    });
+  };
+
   // References for elements
   const carouselRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -425,6 +441,76 @@ const Dashboard: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // 1. First, extract the fetchRecommendedRow function outside the useEffect
+  // so we can call it from other places
+  const fetchRecommendedRow = async () => {
+    if (!currentUser || moviesData.length === 0) return;
+
+    const defaultShowId = "s123"; // Change to match your working example
+    const userId = 1;
+
+    try {
+      console.log("Making request to recommendations endpoint...");
+
+      // Use the full URL since we know this works in the browser
+      const res = await fetch(
+        `https://localhost:5000/recommendations/azure/${defaultShowId}?userId=${userId}`,
+        {
+          credentials: "include", // Include credentials for auth cookies
+        }
+      );
+
+      console.log("Response status:", res.status);
+
+      const text = await res.text();
+      console.log("Response text length:", text.length);
+      console.log("Response from recommendations endpoint:", text);
+
+      // Only try to parse if there's content
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          console.log("Parsed recommendation data:", json);
+
+          if (json.recommendations && json.recommendations.length > 0) {
+            console.log("Found recommendations, updating UI");
+            setCategoryRows((prev) => {
+              // Check if we already have a recommended row
+              if (prev.some((row) => row.id === "recommended")) {
+                return prev;
+              }
+
+              // Otherwise, add the recommended row at the beginning
+              return [
+                {
+                  id: "recommended",
+                  title: "Recommended For You",
+                  movies: json.recommendations,
+                  page: 1,
+                  hasMore: false,
+                },
+                ...prev,
+              ];
+            });
+          }
+        } catch (parseError) {
+          console.error("Failed to parse recommendation JSON:", parseError);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load recommendations:", err);
+    }
+  };
+
+  // 4. Modify the useEffect to use the extracted function
+  useEffect(() => {
+    // We'll fetch recommendations after initialMoviesData loads the movies
+    // This useEffect will run when moviesData changes
+    if (!isAdmin && currentUser && moviesData.length > 0) {
+      fetchRecommendedRow();
+    }
+  }, [currentUser, moviesData, isAdmin]);
 
   useEffect(() => {
     if (isAdmin && pageLoaded) {
@@ -593,7 +679,7 @@ const Dashboard: React.FC = () => {
     console.log("Reached the end of all categories!");
   }, [visibleCategories, moviesData, usedMovieIds]);
 
-  // Initial fetch to populate first set of movies
+  // 5. Modify fetchInitialMoviesData to not overwrite our recommendations
   const fetchInitialMoviesData = async () => {
     try {
       setIsLoading(true);
@@ -860,303 +946,311 @@ const Dashboard: React.FC = () => {
 
     return (
       <AuthorizeView>
-      <span>
-        <Logout>
-          Logout <AuthorizedUser value="email" />
-        </Logout>
-      </span>
-      <Container fluid className="py-4">
-        <Row className="mb-4">
-          <Col>
-            <div className="d-sm-flex align-items-center justify-content-between mb-4">
-              <h1 className="h3 mb-0 text-black">Admin Dashboard</h1>
-              <Button
-                as={Link as any}
-                to="/admin/movies"
-                variant="primary"
-                className="d-none d-sm-inline-block shadow-sm"
-              >
-                <FaFilm className="me-1" /> Manage Movies
-              </Button>
+        <span>
+          <Logout>
+            Logout <AuthorizedUser value="email" />
+          </Logout>
+        </span>
+        <Container fluid className="py-4">
+          <Row className="mb-4">
+            <Col>
+              <div className="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 className="h3 mb-0 text-black">Admin Dashboard</h1>
+                <Button
+                  as={Link as any}
+                  to="/admin/movies"
+                  variant="primary"
+                  className="d-none d-sm-inline-block shadow-sm"
+                >
+                  <FaFilm className="me-1" /> Manage Movies
+                </Button>
+              </div>
+            </Col>
+          </Row>
+
+          {isLoading ? (
+            <div className="text-center my-5">
+              <Spinner animation="border" role="status">
+                <span className="visually-hidden">
+                  Loading dashboard data...
+                </span>
+              </Spinner>
             </div>
-          </Col>
-        </Row>
-
-        {isLoading ? (
-          <div className="text-center my-5">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading dashboard data...</span>
-            </Spinner>
-          </div>
-        ) : (
-          <>
-            <Row>
-              {/* Total Movies Card */}
-              <Col xl={3} md={6} className="mb-4">
-                <Card className="border-left-primary shadow h-100 admin-card">
-                  <Card.Body>
-                    <Row className="no-gutters align-items-center">
-                      <Col className="mr-2">
-                        <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                          Total Movies
-                        </Card.Title>
-                        <Card.Text
-                          className="h3 mb-0 font-weight-bold"
-                          style={{ fontSize: "2.5rem" }}
-                        >
-                          {stats.totalMovies}
-                        </Card.Text>
-                      </Col>
-                      <Col xs="auto">
-                        <FaFilm
-                          className="fa-2x text-gray-300"
-                          style={{ fontSize: "2rem", opacity: 0.3 }}
-                        />
-                      </Col>
-                    </Row>
-                  </Card.Body>
-                </Card>
-              </Col>
-
-              {/* Total Users Card */}
-              <Col xl={3} md={6} className="mb-4">
-                <Card className="border-left-success shadow h-100 admin-card">
-                  <Card.Body>
-                    <Row className="no-gutters align-items-center">
-                      <Col className="mr-2">
-                        <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                          Total Users
-                        </Card.Title>
-                        <Card.Text
-                          className="h3 mb-0 font-weight-bold"
-                          style={{ fontSize: "2.5rem" }}
-                        >
-                          {stats.totalUsers}
-                        </Card.Text>
-                      </Col>
-                      <Col xs="auto">
-                        <FaUsers
-                          className="fa-2x text-gray-300"
-                          style={{ fontSize: "2rem", opacity: 0.3 }}
-                        />
-                      </Col>
-                    </Row>
-                  </Card.Body>
-                </Card>
-              </Col>
-
-              {/* Top Rated Movies Card */}
-              <Col xl={6} md={12} className="mb-4">
-                <Card className="border-left-info shadow h-100 admin-card">
-                  <Card.Body>
-                    <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-3">
-                      Top Rated Movies
-                    </Card.Title>
-                    {stats.topRatedMovies && stats.topRatedMovies.length > 0 ? (
-                      <div>
-                        {stats.topRatedMovies.map((movie, index) => (
-                          <div
-                            key={movie.showId}
-                            className={`d-flex align-items-center ${index < stats.topRatedMovies.length - 1 ? "mb-2" : ""}`}
+          ) : (
+            <>
+              <Row>
+                {/* Total Movies Card */}
+                <Col xl={3} md={6} className="mb-4">
+                  <Card className="border-left-primary shadow h-100 admin-card">
+                    <Card.Body>
+                      <Row className="no-gutters align-items-center">
+                        <Col className="mr-2">
+                          <Card.Title className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Movies
+                          </Card.Title>
+                          <Card.Text
+                            className="h3 mb-0 font-weight-bold"
+                            style={{ fontSize: "2.5rem" }}
                           >
-                            <Badge
-                              bg={
-                                index === 0
-                                  ? "warning"
-                                  : index === 1
-                                    ? "secondary"
-                                    : "light"
-                              }
-                              text={index === 2 ? "dark" : "white"}
-                              className="me-2"
+                            {stats.totalMovies}
+                          </Card.Text>
+                        </Col>
+                        <Col xs="auto">
+                          <FaFilm
+                            className="fa-2x text-gray-300"
+                            style={{ fontSize: "2rem", opacity: 0.3 }}
+                          />
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </Col>
+
+                {/* Total Users Card */}
+                <Col xl={3} md={6} className="mb-4">
+                  <Card className="border-left-success shadow h-100 admin-card">
+                    <Card.Body>
+                      <Row className="no-gutters align-items-center">
+                        <Col className="mr-2">
+                          <Card.Title className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Total Users
+                          </Card.Title>
+                          <Card.Text
+                            className="h3 mb-0 font-weight-bold"
+                            style={{ fontSize: "2.5rem" }}
+                          >
+                            {stats.totalUsers}
+                          </Card.Text>
+                        </Col>
+                        <Col xs="auto">
+                          <FaUsers
+                            className="fa-2x text-gray-300"
+                            style={{ fontSize: "2rem", opacity: 0.3 }}
+                          />
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </Col>
+
+                {/* Top Rated Movies Card */}
+                <Col xl={6} md={12} className="mb-4">
+                  <Card className="border-left-info shadow h-100 admin-card">
+                    <Card.Body>
+                      <Card.Title className="text-xs font-weight-bold text-info text-uppercase mb-3">
+                        Top Rated Movies
+                      </Card.Title>
+                      {stats.topRatedMovies &&
+                      stats.topRatedMovies.length > 0 ? (
+                        <div>
+                          {stats.topRatedMovies.map((movie, index) => (
+                            <div
+                              key={movie.showId}
+                              className={`d-flex align-items-center ${index < stats.topRatedMovies.length - 1 ? "mb-2" : ""}`}
                             >
-                              #{index + 1}
-                            </Badge>
-                            <div className="d-flex justify-content-between align-items-center w-100">
-                              <span
-                                className="text-truncate"
-                                style={{ maxWidth: "200px" }}
+                              <Badge
+                                bg={
+                                  index === 0
+                                    ? "warning"
+                                    : index === 1
+                                      ? "secondary"
+                                      : "light"
+                                }
+                                text={index === 2 ? "dark" : "white"}
+                                className="me-2"
                               >
-                                {movie.title}
-                              </span>
-                              <div className="d-flex align-items-center">
-                                <FaStar className="text-warning me-1" />
-                                <span>{movie.rating}</span>
+                                #{index + 1}
+                              </Badge>
+                              <div className="d-flex justify-content-between align-items-center w-100">
+                                <span
+                                  className="text-truncate"
+                                  style={{ maxWidth: "200px" }}
+                                >
+                                  {movie.title}
+                                </span>
+                                <div className="d-flex align-items-center">
+                                  <FaStar className="text-warning me-1" />
+                                  <span>{movie.rating}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mb-0">No rating data available</p>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-
-            <Row>
-              {/* Top Genres */}
-              <Col lg={6} className="mb-4">
-                <Card className="shadow mb-4 admin-card">
-                  <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 className="m-0 font-weight-bold">Popular Genres</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    {stats.topGenres && stats.topGenres.length > 0 ? (
-                      stats.topGenres.map((genre, index) => (
-                        <div key={index} className="mb-3">
-                          <div className="d-flex justify-content-between mb-1">
-                            <span>{genre.name}</span>
-                            <span>{genre.value}%</span>
-                          </div>
-                          <ProgressBar
-                            now={genre.value}
-                            variant={
-                              index === 0
-                                ? "primary"
-                                : index === 1
-                                  ? "success"
-                                  : index === 2
-                                    ? "info"
-                                    : index === 3
-                                      ? "warning"
-                                      : index === 4
-                                        ? "danger"
-                                        : index === 5
-                                          ? "secondary"
-                                          : index === 6
-                                            ? "dark"
-                                            : "light"
-                            }
-                            className="mb-2"
-                          />
+                          ))}
                         </div>
-                      ))
-                    ) : (
-                      <p>No genre data available</p>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
+                      ) : (
+                        <p className="mb-0">No rating data available</p>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
 
-              {/* Streaming Services */}
-              <Col lg={6} className="mb-4">
-                <Card className="shadow mb-4 admin-card">
-                  <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 className="m-0 font-weight-bold">Streaming Services</h6>
-                  </Card.Header>
-                  <Card.Body>
-                    {stats.streamingServices &&
-                    stats.streamingServices.length > 0 ? (
-                      stats.streamingServices.map((service, index) => (
-                        <div key={index} className="mb-3">
-                          <div className="d-flex justify-content-between mb-1">
-                            <span>{service.name}</span>
-                            <span>{service.value}%</span>
+              <Row>
+                {/* Top Genres */}
+                <Col lg={6} className="mb-4">
+                  <Card className="shadow mb-4 admin-card">
+                    <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                      <h6 className="m-0 font-weight-bold">Popular Genres</h6>
+                    </Card.Header>
+                    <Card.Body>
+                      {stats.topGenres && stats.topGenres.length > 0 ? (
+                        stats.topGenres.map((genre, index) => (
+                          <div key={index} className="mb-3">
+                            <div className="d-flex justify-content-between mb-1">
+                              <span>{genre.name}</span>
+                              <span>{genre.value}%</span>
+                            </div>
+                            <ProgressBar
+                              now={genre.value}
+                              variant={
+                                index === 0
+                                  ? "primary"
+                                  : index === 1
+                                    ? "success"
+                                    : index === 2
+                                      ? "info"
+                                      : index === 3
+                                        ? "warning"
+                                        : index === 4
+                                          ? "danger"
+                                          : index === 5
+                                            ? "secondary"
+                                            : index === 6
+                                              ? "dark"
+                                              : "light"
+                              }
+                              className="mb-2"
+                            />
                           </div>
-                          <ProgressBar
-                            now={service.value}
-                            variant={
-                              index === 0
-                                ? "primary"
-                                : index === 1
-                                  ? "success"
-                                  : index === 2
-                                    ? "info"
-                                    : index === 3
-                                      ? "warning"
-                                      : index === 4
-                                        ? "danger"
-                                        : index === 5
-                                          ? "secondary"
-                                          : index === 6
-                                            ? "dark"
-                                            : "light"
-                            }
-                            className="mb-2"
-                          />
-                        </div>
-                      ))
-                    ) : (
-                      <p>No streaming service data available</p>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-          </>
-        )}
+                        ))
+                      ) : (
+                        <p>No genre data available</p>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
 
-        <Row className="mb-4">
-          <Col>
-            <Card className="shadow admin-card">
-              <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 className="m-0 font-weight-bold">Admin Quick Actions</h6>
-              </Card.Header>
-              <Card.Body>
-                <Row>
-                  <Col md={3} sm={6} className="mb-3">
-                    <Button
-                      as={Link as any}
-                      to="/admin/movies"
-                      variant="outline-primary"
-                      className="w-100 d-flex flex-column align-items-center py-3"
-                    >
-                      <FaFilm style={{ fontSize: "2rem" }} className="mb-2" />
-                      <span>Manage Movies</span>
-                    </Button>
-                  </Col>
-                  <Col md={3} sm={6} className="mb-3">
-                    <Button
-                      variant="outline-success"
-                      className="w-100 d-flex flex-column align-items-center py-3"
-                    >
-                      <FaUsers style={{ fontSize: "2rem" }} className="mb-2" />
-                      <span>Manage Users</span>
-                    </Button>
-                  </Col>
-                  <Col md={3} sm={6} className="mb-3">
-                    <Button
-                      variant="outline-info"
-                      className="w-100 d-flex flex-column align-items-center py-3"
-                    >
-                      <FaChartLine
-                        style={{ fontSize: "2rem" }}
-                        className="mb-2"
-                      />
-                      <span>Analytics</span>
-                    </Button>
-                  </Col>
-                  <Col md={3} sm={6} className="mb-3">
-                    <Button
-                      variant="outline-warning"
-                      className="w-100 d-flex flex-column align-items-center py-3"
-                    >
-                      <FaCog style={{ fontSize: "2rem" }} className="mb-2" />
-                      <span>Settings</span>
-                    </Button>
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+                {/* Streaming Services */}
+                <Col lg={6} className="mb-4">
+                  <Card className="shadow mb-4 admin-card">
+                    <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                      <h6 className="m-0 font-weight-bold">
+                        Streaming Services
+                      </h6>
+                    </Card.Header>
+                    <Card.Body>
+                      {stats.streamingServices &&
+                      stats.streamingServices.length > 0 ? (
+                        stats.streamingServices.map((service, index) => (
+                          <div key={index} className="mb-3">
+                            <div className="d-flex justify-content-between mb-1">
+                              <span>{service.name}</span>
+                              <span>{service.value}%</span>
+                            </div>
+                            <ProgressBar
+                              now={service.value}
+                              variant={
+                                index === 0
+                                  ? "primary"
+                                  : index === 1
+                                    ? "success"
+                                    : index === 2
+                                      ? "info"
+                                      : index === 3
+                                        ? "warning"
+                                        : index === 4
+                                          ? "danger"
+                                          : index === 5
+                                            ? "secondary"
+                                            : index === 6
+                                              ? "dark"
+                                              : "light"
+                              }
+                              className="mb-2"
+                            />
+                          </div>
+                        ))
+                      ) : (
+                        <p>No streaming service data available</p>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+            </>
+          )}
 
-        <Alert variant="info" className="d-flex align-items-center">
-          <FaUserShield className="me-2" size={24} />
-          <div>
-            <h5 className="mb-1">Admin Mode Active</h5>
-            <p className="mb-0">
-              You're currently in admin mode. You can switch to the{" "}
-              <Link to="/movies" className="alert-link">
-                movies section
-              </Link>{" "}
-              to view the site as a regular user.
-            </p>
-          </div>
-        </Alert>
-      </Container>
+          <Row className="mb-4">
+            <Col>
+              <Card className="shadow admin-card">
+                <Card.Header className="py-3 d-flex flex-row align-items-center justify-content-between">
+                  <h6 className="m-0 font-weight-bold">Admin Quick Actions</h6>
+                </Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={3} sm={6} className="mb-3">
+                      <Button
+                        as={Link as any}
+                        to="/admin/movies"
+                        variant="outline-primary"
+                        className="w-100 d-flex flex-column align-items-center py-3"
+                      >
+                        <FaFilm style={{ fontSize: "2rem" }} className="mb-2" />
+                        <span>Manage Movies</span>
+                      </Button>
+                    </Col>
+                    <Col md={3} sm={6} className="mb-3">
+                      <Button
+                        variant="outline-success"
+                        className="w-100 d-flex flex-column align-items-center py-3"
+                      >
+                        <FaUsers
+                          style={{ fontSize: "2rem" }}
+                          className="mb-2"
+                        />
+                        <span>Manage Users</span>
+                      </Button>
+                    </Col>
+                    <Col md={3} sm={6} className="mb-3">
+                      <Button
+                        variant="outline-info"
+                        className="w-100 d-flex flex-column align-items-center py-3"
+                      >
+                        <FaChartLine
+                          style={{ fontSize: "2rem" }}
+                          className="mb-2"
+                        />
+                        <span>Analytics</span>
+                      </Button>
+                    </Col>
+                    <Col md={3} sm={6} className="mb-3">
+                      <Button
+                        variant="outline-warning"
+                        className="w-100 d-flex flex-column align-items-center py-3"
+                      >
+                        <FaCog style={{ fontSize: "2rem" }} className="mb-2" />
+                        <span>Settings</span>
+                      </Button>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+
+          <Alert variant="info" className="d-flex align-items-center">
+            <FaUserShield className="me-2" size={24} />
+            <div>
+              <h5 className="mb-1">Admin Mode Active</h5>
+              <p className="mb-0">
+                You're currently in admin mode. You can switch to the{" "}
+                <Link to="/movies" className="alert-link">
+                  movies section
+                </Link>{" "}
+                to view the site as a regular user.
+              </p>
+            </div>
+          </Alert>
+        </Container>
       </AuthorizeView>
     );
   };
@@ -1524,6 +1618,22 @@ const Dashboard: React.FC = () => {
                         <p>{selectedMovie.country}</p>
                       </div>
                     )}
+
+                    <div className="mb-3">
+                      <h5>Rate This Movie</h5>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          onClick={() => handleRating(star)}
+                          color={userRating >= star ? "gold" : "gray"}
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "1.5rem",
+                            marginRight: "5px",
+                          }}
+                        />
+                      ))}
+                    </div>
 
                     <div className="mb-3">
                       <h5>Genres</h5>
