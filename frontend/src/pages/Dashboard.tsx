@@ -190,6 +190,24 @@ const CATEGORIES = [
     title: "Sci-Fi & Fantasy",
     filter: (movie: Movie) => movie.Fantasy === 1,
   },
+  {
+    id: "anime",
+    title: "Anime",
+    filter: (movie: Movie) =>
+      movie.AnimeSeriesInternationalTVShows === 1 ||
+      (movie.title &&
+        (movie.title.includes("Anime") ||
+          movie.title.toLowerCase().includes("anime") ||
+          (movie.type &&
+            movie.type.toLowerCase() === "tv show" &&
+            (movie.title.includes("EDENS ZERO") ||
+              movie.title.includes("Naruto") ||
+              movie.title.includes("DEATH NOTE") ||
+              movie.title.includes("Bleach") ||
+              movie.title.includes("Marvel Anime") ||
+              movie.title.includes("Vampire Knight") ||
+              movie.title.includes("Durarara"))))),
+  },
 ];
 
 // Create additional categories by combining genres for "unlimited" categories
@@ -464,8 +482,32 @@ const Dashboard: React.FC = () => {
       const matchesTitle = movie.title
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase());
-      const matchesGenre =
-        selectedGenre === "All" || movie[selectedGenre as keyof Movie] === 1;
+
+      let matchesGenre = selectedGenre === "All";
+
+      if (!matchesGenre) {
+        if (selectedGenre === "animeSeriesInternationalTvShows") {
+          // Special case for anime - use title matching as a fallback for now
+          matchesGenre =
+            movie.AnimeSeriesInternationalTVShows === 1 ||
+            (movie.title &&
+              (movie.title.includes("Anime") ||
+                movie.title.toLowerCase().includes("anime") ||
+                (movie.type &&
+                  movie.type.toLowerCase() === "tv show" &&
+                  (movie.title.includes("EDENS ZERO") ||
+                    movie.title.includes("Naruto") ||
+                    movie.title.includes("DEATH NOTE") ||
+                    movie.title.includes("Bleach") ||
+                    movie.title.includes("Marvel Anime") ||
+                    movie.title.includes("Vampire Knight") ||
+                    movie.title.includes("Durarara")))));
+        } else {
+          // For all other genres
+          matchesGenre = movie[selectedGenre as keyof Movie] === 1;
+        }
+      }
+
       return matchesTitle && matchesGenre;
     });
   }, [moviesData, searchTerm, selectedGenre]);
@@ -505,8 +547,6 @@ const Dashboard: React.FC = () => {
     setCategoryRows([]);
     setVisibleCategories([]);
     setUsedMovieIds(new Set());
-    setSelectedMovie(null);
-    setShowModal(false);
 
     const isFiltering = searchTerm !== "" || selectedGenre !== "All";
     const maxCategories = isFiltering ? 1 : 5; // Show fewer categories if searching/filtering
@@ -517,8 +557,26 @@ const Dashboard: React.FC = () => {
     }).slice(0, maxCategories);
 
     const usedIds = new Set<string>();
+
+    // Check for duplicate movies that might cause rendering issues
+    const uniqueFilteredMovies = filteredMovies.reduce(
+      (acc: Movie[], movie) => {
+        // If we've already included this movie or it lacks an ID, skip it
+        if (usedIds.has(movie.showId) || !movie.showId) {
+          return acc;
+        }
+        usedIds.add(movie.showId);
+        acc.push(movie);
+        return acc;
+      },
+      []
+    );
+
+    // Reset usedIds to properly track usage in each category
+    usedIds.clear();
+
     const initialRows = initialCategories.map((category) => {
-      let filteredForCategory = filteredMovies.filter(category.filter);
+      let filteredForCategory = uniqueFilteredMovies.filter(category.filter);
       filteredForCategory = filteredForCategory.filter(
         (movie) => !usedIds.has(movie.showId)
       );
@@ -535,10 +593,9 @@ const Dashboard: React.FC = () => {
       };
     });
 
-    if (initialCategories.length === 0 && filteredMovies.length > 0) {
+    if (initialCategories.length === 0 && uniqueFilteredMovies.length > 0) {
       // Fallback when no category matches — show search results directly
-      const usedIds = new Set<string>();
-      const moviesToUse = filteredMovies.slice(0, 10);
+      const moviesToUse = uniqueFilteredMovies.slice(0, 10);
       moviesToUse.forEach((movie) => usedIds.add(movie.showId));
 
       setCategoryRows([
@@ -547,7 +604,7 @@ const Dashboard: React.FC = () => {
           title: "Search Results",
           movies: moviesToUse,
           page: 1,
-          hasMore: filteredMovies.length > 10,
+          hasMore: uniqueFilteredMovies.length > 10,
         },
       ]);
       setVisibleCategories(["search_results"]);
@@ -824,15 +881,28 @@ const Dashboard: React.FC = () => {
       const category = UNLIMITED_CATEGORIES.find((c) => c.id === categoryId);
       if (!category) return;
 
+      // Get unique movie IDs already in this category to prevent duplicates
+      const existingMovieIds = new Set(
+        categoryRow.movies.map((movie) => movie.showId)
+      );
+
       // Get all unused movies that match this category
       const unusedMoviesForCategory = filteredMovies.filter(
         (movie) =>
           category.filter(movie) &&
           !usedMovieIds.has(movie.showId) &&
-          !categoryRow.movies.some((m) => m.showId === movie.showId)
+          !existingMovieIds.has(movie.showId) &&
+          movie.showId // Ensure movie has an ID
       );
 
-      const moreMovies = unusedMoviesForCategory.slice(0, 5);
+      // Ensure we don't get duplicate movies
+      const uniqueUnusedMovies = Array.from(
+        new Map(
+          unusedMoviesForCategory.map((movie) => [movie.showId, movie])
+        ).values()
+      );
+
+      const moreMovies = uniqueUnusedMovies.slice(0, 5);
 
       // If we don't have enough movies in our current dataset, potentially fetch more from API
       if (moreMovies.length < 5 && moviesData.length < 300) {
@@ -853,9 +923,16 @@ const Dashboard: React.FC = () => {
                   ...row,
                   movies: [...row.movies, ...moreMovies],
                   page: row.page + 1,
-                  hasMore: unusedMoviesForCategory.length > moreMovies.length,
+                  hasMore: uniqueUnusedMovies.length > moreMovies.length,
                 }
               : row
+          )
+        );
+      } else {
+        // If no more movies are available, mark this carousel as fully loaded
+        setCategoryRows((prev) =>
+          prev.map((row) =>
+            row.id === categoryId ? { ...row, hasMore: false } : row
           )
         );
       }
