@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-bootstrap";
 import { FaGoogle, FaFacebookF, FaUser, FaLock, FaFilm } from "react-icons/fa";
+import { getAuthUrl, getDefaultFetchOptions } from "../services/apiConfig";
 
 function LoginPage() {
   // state variables for email and passwords
@@ -52,14 +53,12 @@ function LoginPage() {
     }
 
     const loginUrl = rememberme
-      ? "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useCookies=true"
-      : "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/login?useSessionCookies=true";
+      ? getAuthUrl("login?useCookies=true")
+      : getAuthUrl("login?useSessionCookies=true");
 
     try {
       const response = await fetch(loginUrl, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        ...getDefaultFetchOptions("POST"),
         body: JSON.stringify({ email, password }),
       });
 
@@ -76,11 +75,8 @@ function LoginPage() {
       }
 
       const ping = await fetch(
-        "https://cineniche-team-3-8-backend-eehrgvh4fhd7f8b9.eastus-01.azurewebsites.net/pingauth",
-        {
-          method: "GET",
-          credentials: "include",
-        }
+        getAuthUrl("pingauth"),
+        getDefaultFetchOptions()
       );
 
       console.log("📡 Pingauth response:", ping);
